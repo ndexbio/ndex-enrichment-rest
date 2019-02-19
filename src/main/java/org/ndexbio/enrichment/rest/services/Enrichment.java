@@ -8,15 +8,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
+import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
+import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
 import org.ndexbio.enrichment.rest.model.ErrorResponse;
 
 /**
@@ -53,6 +60,143 @@ public class Enrichment {
                })
     public Response requestEnrichment(@RequestBody(description="Query", required = true,
             content = @Content(schema = @Schema(implementation = EnrichmentQuery.class))) final EnrichmentQuery query) {
+        ObjectMapper omappy = new ObjectMapper();
+
+        try {
+            return Response.status(202).header("Location","someurl needs to go here").build();
+        }
+        catch(Exception ex){
+            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
+            try {
+                return Response.serverError().type(MediaType.APPLICATION_JSON).encoding(omappy.writeValueAsString(er)).build();
+            }
+            catch(JsonProcessingException jpe){
+                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
+            }
+        }
+    }
+    
+    /**
+     * Returns status of server 
+     * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
+     */
+    @GET 
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Gets result of enrichment",
+               description="NOTE: For incomplete/failed jobs only Status, message, progress, and walltime will\n" +
+"be returned in JSON",
+               responses = {
+                   @ApiResponse(responseCode = "200",
+                           description = "Success",
+                           content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                                schema = @Schema(implementation = EnrichmentQueryResults.class))),
+                   @ApiResponse(responseCode = "500", description = "Server Error",
+                                content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                                schema = @Schema(implementation = ErrorResponse.class)))
+               })
+    public Response getEnrichmentQueryResults(@PathParam("id") final String id, @QueryParam("Starting index of result, should be an integer 0 or larger\n" +
+"") int start, @QueryParam("Number of results to return, 0 for all") int size) {
+        ObjectMapper omappy = new ObjectMapper();
+
+        try {
+            return Response.status(202).header("Location","someurl needs to go here").build();
+        }
+        catch(Exception ex){
+            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
+            try {
+                return Response.serverError().type(MediaType.APPLICATION_JSON).encoding(omappy.writeValueAsString(er)).build();
+            }
+            catch(JsonProcessingException jpe){
+                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
+            }
+        }
+    }
+    
+    /**
+     * Returns status of server 
+     * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
+     */
+    @GET 
+    @Path("/{id}/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Gets status of enrichment",
+               description="This lets caller get status without getting the full result back",
+               responses = {
+                   @ApiResponse(responseCode = "200",
+                           description = "Success",
+                           content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                                schema = @Schema(implementation = EnrichmentQueryStatus.class))),
+                   @ApiResponse(responseCode = "500", description = "Server Error",
+                                content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                                schema = @Schema(implementation = ErrorResponse.class)))
+               })
+    public Response getEnrichmentQueryStatus(@PathParam("id") final String id) {
+        ObjectMapper omappy = new ObjectMapper();
+
+        try {
+            return Response.status(202).header("Location","someurl needs to go here").build();
+        }
+        catch(Exception ex){
+            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
+            try {
+                return Response.serverError().type(MediaType.APPLICATION_JSON).encoding(omappy.writeValueAsString(er)).build();
+            }
+            catch(JsonProcessingException jpe){
+                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
+            }
+        }
+    }
+    
+    /**
+     * Returns status of server 
+     * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
+     */
+    @DELETE 
+    @Path("/{id}")
+    @Operation(summary = "Deletes task associated with {id} passed in",
+               description="",
+               responses = {
+                   @ApiResponse(responseCode = "200",
+                           description = "Delete request successfully received"),
+                   @ApiResponse(responseCode = "500", description = "Server Error",
+                                content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                                schema = @Schema(implementation = ErrorResponse.class)))
+               })
+    public Response deleteQueryResult(@PathParam("id") final String id) {
+        ObjectMapper omappy = new ObjectMapper();
+
+        try {
+            return Response.status(202).header("Location","someurl needs to go here").build();
+        }
+        catch(Exception ex){
+            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
+            try {
+                return Response.serverError().type(MediaType.APPLICATION_JSON).encoding(omappy.writeValueAsString(er)).build();
+            }
+            catch(JsonProcessingException jpe){
+                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
+            }
+        }
+    }
+    
+    /**
+     * Returns status of server 
+     * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
+     */
+    @GET 
+    @Path("/{id}/overlaynetwork")
+    @Operation(summary = "Gets result of enrichment from a specific database and network as CX",
+               description="NOTE: For incomplete/failed 500 will be returned\n",
+               responses = {
+                   @ApiResponse(responseCode = "200",
+                           description = "Delete request successfully received"),
+                   @ApiResponse(responseCode = "500", description = "Server Error",
+                                content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                                schema = @Schema(implementation = ErrorResponse.class)))
+               })
+    public Response getOverlayNetwork(@PathParam("id") final String id, @Parameter(required = true) @QueryParam("UUID of database") final String databaseUUID,
+            @Parameter(required = true) @QueryParam("UUID of network") final String networkUUID) {
         ObjectMapper omappy = new ObjectMapper();
 
         try {

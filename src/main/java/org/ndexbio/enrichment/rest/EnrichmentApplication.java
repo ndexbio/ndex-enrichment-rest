@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
 import org.ndexbio.enrichment.rest.services.Enrichment;
+import org.ndexbio.enrichment.rest.services.EnrichmentDatabase;
 import org.ndexbio.enrichment.rest.services.Status;
 
 public class EnrichmentApplication extends Application {
@@ -30,6 +31,7 @@ public class EnrichmentApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         return Stream.of(Enrichment.class,
+                EnrichmentDatabase.class,
                 Status.class,
                 OpenApiResource.class,
                 AcceptHeaderOpenApiResource.class).collect(Collectors.toSet());
