@@ -4,7 +4,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
  http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
-    <display-name>Restful Web Application</display-name>
+    <display-name>NDEx Enrichment REST Service</display-name>
 <context-param>
         <param-name>resteasy.servlet.mapping.prefix</param-name>
         <!--Prefix for the endpoints-->
@@ -17,7 +17,7 @@
         </servlet-class>
         <init-param>
             <param-name>javax.ws.rs.Application</param-name>
-            <param-value>org.ndexbio.enrichment.app.EnrichmentApplication</param-value>
+            <param-value>org.ndexbio.enrichment.rest.EnrichmentApplication</param-value>
         </init-param>
     </servlet>
 <servlet-mapping>

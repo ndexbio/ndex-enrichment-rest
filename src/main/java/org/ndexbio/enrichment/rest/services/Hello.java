@@ -1,4 +1,4 @@
-package org.ndexbio.enrichment.rest; // Note your package will be {{ groupId }}.rest
+package org.ndexbio.enrichment.rest.services; // Note your package will be {{ groupId }}.rest
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -7,9 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("/")
-public class HelloRestService {
+public class Hello {
     
-    static Logger logger = LoggerFactory.getLogger(HelloRestService.class);
+    static Logger logger = LoggerFactory.getLogger(Hello.class);
     
     @GET // This annotation indicates GET request
     @Path("/hello")
