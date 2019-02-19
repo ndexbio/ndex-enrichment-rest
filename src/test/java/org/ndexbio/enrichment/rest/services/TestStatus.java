@@ -5,13 +5,14 @@
  */
 package org.ndexbio.enrichment.rest.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jboss.resteasy.core.Dispatcher;
 import org.jboss.resteasy.mock.*;
-import org.jboss.resteasy.plugins.server.resourcefactory.POJOResourceFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import org.ndexbio.enrichment.rest.model.ServerStatus;
 
 /**
  *
@@ -28,18 +29,20 @@ public class TestStatus {
   
     @Test
     public void testGet() throws Exception {
-        POJOResourceFactory noDefaults = new POJOResourceFactory(Status.class);
 
         Dispatcher dispatcher = MockDispatcherFactory.createDispatcher();
-        dispatcher.getRegistry().addResourceFactory(noDefaults);
+        dispatcher.getRegistry().addSingletonResource(new Status());
         
-        MockHttpRequest request = MockHttpRequest.get("/status");
+        MockHttpRequest request = MockHttpRequest.get("/enrichment/status");
         
         MockHttpResponse response = new MockHttpResponse();
         dispatcher.invoke(request, response);
         assertEquals(200, response.getStatus());
-        assertTrue(response.getContentAsString().contains("{\"restVersion\":"));
-        
+        ObjectMapper mapper = new ObjectMapper();
+        ServerStatus ss = mapper.readValue(response.getOutput(),
+                ServerStatus.class);
+        assertEquals("unknown", ss.getRestVersion());
+        assertTrue(ss.getSystemLoad() > 0.0);
     }
     
 }
