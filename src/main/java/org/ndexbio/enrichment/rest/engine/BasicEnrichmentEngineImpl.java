@@ -5,6 +5,8 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
+import java.util.List;
+import java.util.Map;
 import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
@@ -19,6 +21,7 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 
     private String _tmpDir;
+    private List<Map<String, EnrichmentQuery>> _queryTasks;
     private NdexRestClientModelAccessLayer _client;
     public BasicEnrichmentEngineImpl(final String tmpDir,
             NdexRestClientModelAccessLayer client){
@@ -36,7 +39,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
          *    raise exception
          * 
          * id = new uuid();
-         * this._queryList(new Query(id, query));
+         * HashMap<String,EnrichmentQuery> hm = new HashMap<String,EnrichmentQuery>();
+         * hm.put(id, query);
+         * this._queryTasks.add(hm);
          * 
          * return id;
          * 
