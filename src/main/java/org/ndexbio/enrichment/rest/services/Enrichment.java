@@ -59,7 +59,7 @@ public class Enrichment {
                                 schema = @Schema(implementation = ErrorResponse.class)))
                })
     public Response requestEnrichment(@RequestBody(description="Query", required = true,
-            content = @Content(schema = @Schema(implementation = EnrichmentQuery.class))) final EnrichmentQuery query) {
+                                                   content = @Content(schema = @Schema(implementation = EnrichmentQuery.class))) final EnrichmentQuery query) {
         ObjectMapper omappy = new ObjectMapper();
 
         try {
@@ -76,10 +76,8 @@ public class Enrichment {
         }
     }
     
-    /**
-     * Returns status of server 
-     * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
-     */
+    
+
     @GET 
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -95,8 +93,9 @@ public class Enrichment {
                                 content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                 schema = @Schema(implementation = ErrorResponse.class)))
                })
-    public Response getEnrichmentQueryResults(@PathParam("id") final String id, @QueryParam("Starting index of result, should be an integer 0 or larger\n" +
-"") int start, @QueryParam("Number of results to return, 0 for all") int size) {
+    public Response getEnrichmentQueryResults(@PathParam("id") final String id,
+            @Parameter(description = "Starting index of result, should be an integer 0 or larger") @QueryParam("start") int start,
+            @Parameter(description = "Number of results to return, 0 for all") @QueryParam("size") int size) {
         ObjectMapper omappy = new ObjectMapper();
 
         try {
@@ -113,10 +112,7 @@ public class Enrichment {
         }
     }
     
-    /**
-     * Returns status of server 
-     * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
-     */
+    
     @GET 
     @Path("/{id}/status")
     @Produces(MediaType.APPLICATION_JSON)
@@ -148,10 +144,7 @@ public class Enrichment {
         }
     }
     
-    /**
-     * Returns status of server 
-     * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
-     */
+    
     @DELETE 
     @Path("/{id}")
     @Operation(summary = "Deletes task associated with {id} passed in",
@@ -180,10 +173,7 @@ public class Enrichment {
         }
     }
     
-    /**
-     * Returns status of server 
-     * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
-     */
+    
     @GET 
     @Path("/{id}/overlaynetwork")
     @Operation(summary = "Gets result of enrichment from a specific database and network as CX",
@@ -195,8 +185,8 @@ public class Enrichment {
                                 content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                 schema = @Schema(implementation = ErrorResponse.class)))
                })
-    public Response getOverlayNetwork(@PathParam("id") final String id, @Parameter(required = true) @QueryParam("UUID of database") final String databaseUUID,
-            @Parameter(required = true) @QueryParam("UUID of network") final String networkUUID) {
+    public Response getOverlayNetwork(@PathParam("id") final String id, @Parameter(description="UUID of database", required = true) @QueryParam("databaseUUID") final String databaseUUID,
+            @Parameter(description="UUID of network", required = true) @QueryParam("networkUUID") final String networkUUID) {
         ObjectMapper omappy = new ObjectMapper();
 
         try {
@@ -212,4 +202,5 @@ public class Enrichment {
             }
         }
     }
+    
 }

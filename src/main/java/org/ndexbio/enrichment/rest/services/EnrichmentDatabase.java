@@ -10,12 +10,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.core.Response;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
-import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.ErrorResponse;
 
 /**
@@ -45,7 +43,7 @@ public class EnrichmentDatabase {
                                 content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                   schema = @Schema(implementation = ErrorResponse.class)))
                })
-    public Response getDatbaseResults() {
+    public Response getDatabaseResults() {
         ObjectMapper omappy = new ObjectMapper();
 
         try {
