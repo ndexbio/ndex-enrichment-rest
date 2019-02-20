@@ -53,7 +53,6 @@ public class Status {
             sObj.setStatus(ServerStatus.OK_STATUS);
             sObj.setRestVersion(version);
             OperatingSystemMXBean omb = ManagementFactory.getOperatingSystemMXBean();
-            sObj.setSystemLoad(omb.getSystemLoadAverage());
             return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(sObj)).build();
         }
         catch(Exception ex){

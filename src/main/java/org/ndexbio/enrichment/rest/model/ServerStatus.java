@@ -5,6 +5,7 @@
  */
 package org.ndexbio.enrichment.rest.model;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 
 /**
  * Represents status of the server
@@ -18,8 +19,10 @@ public class ServerStatus {
     
     private String _status;
     private int _pcDiskFull;
-    private double _systemLoad;
+    private List<Float> _load;
+    private List<Integer> _queries;
     private String _restVersion;
+    
 
     public ServerStatus(){
     }
@@ -35,15 +38,6 @@ public class ServerStatus {
         return _status;
     }
 
-    @Schema(description="Gets load of server")
-    public double getSystemLoad() {
-        return _systemLoad;
-    }
-
-    public void setSystemLoad(double _systemLoad) {
-        this._systemLoad = _systemLoad;
-    }
-
     public void setStatus(String _status) {
         this._status = _status;
     }
@@ -57,6 +51,25 @@ public class ServerStatus {
         this._pcDiskFull = _pcDiskFull;
     }
 
+    @Schema(description="List of 3 floats containing 1 minute, 5 minute, 15minute load")
+    public List<Float> getLoad() {
+        return _load;
+    }
+
+    public void setLoad(List<Float> _load) {
+        this._load = _load;
+    }
+
+    @Schema(description="List of 5 integers containing # queries in last minute, 5 minutes, 15 minutes, hour, 24 hours")
+    public List<Integer> getQueries() {
+        return _queries;
+    }
+
+    public void setQueries(List<Integer> _queries) {
+        this._queries = _queries;
+    }
+
+   
     @Schema(description="Gets version of this service")
     public String getRestVersion() {
         return _restVersion;

@@ -89,6 +89,8 @@ public class Enrichment {
                            description = "Success",
                            content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                 schema = @Schema(implementation = EnrichmentQueryResults.class))),
+                   @ApiResponse(responseCode = "410",
+                           description = "Task not found"),
                    @ApiResponse(responseCode = "500", description = "Server Error",
                                 content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                 schema = @Schema(implementation = ErrorResponse.class)))
@@ -123,6 +125,8 @@ public class Enrichment {
                            description = "Success",
                            content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                 schema = @Schema(implementation = EnrichmentQueryStatus.class))),
+                   @ApiResponse(responseCode = "410",
+                           description = "Task not found"),
                    @ApiResponse(responseCode = "500", description = "Server Error",
                                 content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                 schema = @Schema(implementation = ErrorResponse.class)))
@@ -143,8 +147,7 @@ public class Enrichment {
             }
         }
     }
-    
-    
+
     @DELETE 
     @Path("/{id}")
     @Operation(summary = "Deletes task associated with {id} passed in",
@@ -152,6 +155,8 @@ public class Enrichment {
                responses = {
                    @ApiResponse(responseCode = "200",
                            description = "Delete request successfully received"),
+                   @ApiResponse(responseCode = "400",
+                           description = "Invalid delete request"),
                    @ApiResponse(responseCode = "500", description = "Server Error",
                                 content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                 schema = @Schema(implementation = ErrorResponse.class)))
@@ -173,7 +178,6 @@ public class Enrichment {
         }
     }
     
-    
     @GET 
     @Path("/{id}/overlaynetwork")
     @Operation(summary = "Gets result of enrichment from a specific database and network as CX",
@@ -181,11 +185,13 @@ public class Enrichment {
                responses = {
                    @ApiResponse(responseCode = "200",
                            description = "Delete request successfully received"),
+                   @ApiResponse(responseCode = "410",
+                           description = "Task not found"),
                    @ApiResponse(responseCode = "500", description = "Server Error",
                                 content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                 schema = @Schema(implementation = ErrorResponse.class)))
                })
-    public Response getOverlayNetwork(@PathParam("id") final String id, @Parameter(description="UUID of database", required = true) @QueryParam("databaseUUID") final String databaseUUID,
+    public Response getOverlayNetwork(@PathParam("id") final String id, @Parameter(description="UUID of database") @QueryParam("databaseUUID") final String databaseUUID,
             @Parameter(description="UUID of network", required = true) @QueryParam("networkUUID") final String networkUUID) {
         ObjectMapper omappy = new ObjectMapper();
 

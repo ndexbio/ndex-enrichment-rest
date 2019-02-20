@@ -42,7 +42,6 @@ public class TestStatus {
         ServerStatus ss = mapper.readValue(response.getOutput(),
                 ServerStatus.class);
         assertEquals("unknown", ss.getRestVersion());
-        assertTrue(ss.getSystemLoad() > 0.0);
     }
     
 }
