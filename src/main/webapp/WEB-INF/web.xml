@@ -19,6 +19,7 @@
             <param-name>javax.ws.rs.Application</param-name>
             <param-value>org.ndexbio.enrichment.rest.EnrichmentApplication</param-value>
         </init-param>
+        <load-on-startup>1</load-on-startup>
     </servlet>
 <servlet-mapping>
         <servlet-name>resteasy-servlet</servlet-name>
