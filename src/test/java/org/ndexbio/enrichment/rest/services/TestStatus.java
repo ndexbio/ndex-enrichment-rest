@@ -41,7 +41,7 @@ public class TestStatus {
         ObjectMapper mapper = new ObjectMapper();
         ServerStatus ss = mapper.readValue(response.getOutput(),
                 ServerStatus.class);
-        assertEquals("unknown", ss.getRestVersion());
+        assertTrue(ss.getRestVersion() != null);
     }
     
 }

@@ -14,6 +14,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.lang.management.OperatingSystemMXBean;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import org.ndexbio.enrichment.rest.model.ErrorResponse;
 import org.ndexbio.enrichment.rest.model.ServerStatus;
@@ -25,7 +27,7 @@ import org.ndexbio.enrichment.rest.model.ServerStatus;
 @Path("/enrichment")
 public class Status {
     
-    static Logger logger = LoggerFactory.getLogger(Status.class);
+    static Logger _logger = LoggerFactory.getLogger(Status.class);
     
     /**
      * Returns status of server 
@@ -51,7 +53,7 @@ public class Status {
             String version = "unknown";
             ServerStatus sObj = new ServerStatus();
             sObj.setStatus(ServerStatus.OK_STATUS);
-            sObj.setRestVersion(version);
+            sObj.setRestVersion(EnrichmentHttpServletDispatcher.getVersion());
             OperatingSystemMXBean omb = ManagementFactory.getOperatingSystemMXBean();
             return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(sObj)).build();
         }
