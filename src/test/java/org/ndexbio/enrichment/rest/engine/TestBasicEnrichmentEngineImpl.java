@@ -5,7 +5,6 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,12 +15,15 @@ import org.jboss.resteasy.mock.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
+import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
+import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
 
 /**
  *
@@ -92,7 +94,7 @@ public class TestBasicEnrichmentEngineImpl {
     public void testremapNetworksToGenes(){
         BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         
-        List<String> networktp = new LinkedList<String>();
+        LinkedList<String> networktp = new LinkedList<String>();
         networktp.add("uuid1");
         networktp.add("uuid2");
         networktp.add("uuid3");
@@ -194,10 +196,39 @@ public class TestBasicEnrichmentEngineImpl {
         }
         assertEquals(6, netSet.size());
         assertTrue(netSet.containsAll(Arrays.asList("uuid1", "uuid2", "uuid3",
-                "uuid5", "uuid6", "uuid7")));
-        //ObjectMapper om = new ObjectMapper();
-        //String res = om.writeValueAsString(eqr);
-        //assertEquals("hi", res);
+                "uuid5", "uuid6", "uuid7")));        
+    }
+    
+    @Test
+    public void testQueryNoDatabases(){
+        try{
+            BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
+            EnrichmentQuery eq = new EnrichmentQuery();
+            enricher.query(eq);
+            fail("Expected exception");
+        }
+        catch(EnrichmentException ee){
+            assertTrue(ee.getMessage().equals("No databases selected"));
+        }
+    }
+    
+    @Test
+    public void testQuerySuccess() throws EnrichmentException {
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
+        EnrichmentQuery eq = new EnrichmentQuery();
+        eq.setDatabaseList(Arrays.asList("ncipid"));
+        eq.setGeneList(Arrays.asList("brca1"));
+        String res = enricher.query(eq);
+        assertTrue(res != null);
+        
+        EnrichmentQueryResults eqr = enricher.getQueryResults(res, 0, 0);
+        assertTrue(eqr != null);
+        assertEquals(EnrichmentQueryResults.SUBMITTED_STATUS, eqr.getStatus());
+        assertTrue(eqr.getStartTime() > 0);
+        
+        EnrichmentQueryStatus eqs = enricher.getQueryStatus(res);
+        assertEquals(EnrichmentQueryResults.SUBMITTED_STATUS, eqs.getStatus());
+        assertEquals(eqr.getStartTime(), eqs.getStartTime());
         
     }
 }

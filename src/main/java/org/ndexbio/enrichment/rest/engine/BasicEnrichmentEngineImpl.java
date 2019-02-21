@@ -5,6 +5,7 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -42,12 +43,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
      * This should be a map of <query UUID> => EnrichmentQueryResults object
      */
     private ConcurrentHashMap<String, EnrichmentQueryResults> _queryResults;
-    
-    /**
-     * This should be a map of <query UUID> => EnrichmentQueryStatus object
-     */
-    private ConcurrentHashMap<String, EnrichmentQueryStatus> _queryStatus;
-    
+        
     /**
      * This should be a map of <database UUID> => Map<Gene => Set of network UUIDs>
      */
@@ -62,7 +58,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         _client = client;
         _queryTasks = new ConcurrentHashMap<String, EnrichmentQuery>();
         _queryResults = new ConcurrentHashMap<String, EnrichmentQueryResults>();
-        _queryStatus = new ConcurrentHashMap<String, EnrichmentQueryStatus>();
         _databaseResults = new AtomicReference<>();
     }
     
@@ -73,7 +68,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
      * @param networkIds 
      */
     public void addGeneToDatabase(final String databaseId, final String gene,
-            List<String> networkIds){
+            Collection<String> networkIds){
         if (_databases == null){
             _databases = new ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>>();
         }
@@ -110,8 +105,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     protected void processQuery(final String id, EnrichmentQuery query){
         //check gene list
         List<EnrichmentQueryResult> enrichmentResult = new LinkedList<EnrichmentQueryResult>();
-        System.out.println("XXXXXXXXXXXX did i get here");
-        System.out.flush();
         for (String databaseName : query.getDatabaseList()){
             DatabaseResult dbres = null;
             for (DatabaseResult res : _databaseResults.get().getResults()){
@@ -129,7 +122,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             if (networkMap == null){
                 continue;
             }
-            
             // generate EnrichmentQueryResult from networkMap
             enrichmentResult.addAll(getEnrichmentQueryResultObjectsFromNetworkMap(dbres, networkMap, uniqueGeneList));
         }
@@ -139,22 +131,15 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         // replacing any existing entry
         EnrichmentQueryResults eqr = _queryResults.get(id);
         if (eqr == null){
-            eqr = new EnrichmentQueryResults();
+            eqr = new EnrichmentQueryResults(System.currentTimeMillis());
         }
         
         eqr.setProgress(100);
         eqr.setStatus(EnrichmentQueryResults.COMPLETE_STATUS);
         eqr.setNumberOfHits(enrichmentResult.size());
         eqr.setResults(enrichmentResult);
-        _queryResults.merge(id, eqr, (oldval, newval) -> newval);
-        
-        EnrichmentQueryStatus eqs = _queryStatus.get(id);
-        if (eqs == null){
-            eqs = new EnrichmentQueryStatus();
-        }
-        eqs.setProgress(100);
-        eqs.setStatus(EnrichmentQueryResults.COMPLETE_STATUS);
-        _queryStatus.merge(id, eqs, (oldval, newval) -> newval);
+        eqr.setWallTime(System.currentTimeMillis() - eqr.getStartTime());
+        _queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));        
     }
     
     /**
@@ -225,13 +210,15 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     @Override
     public String query(EnrichmentQuery thequery) throws EnrichmentException {
         
-         if (thequery.getDatabaseList() == null || thequery.getDatabaseList().isEmpty()){
+        if (thequery.getDatabaseList() == null || thequery.getDatabaseList().isEmpty()){
             throw new EnrichmentException("No databases selected");
-         }
-         String id = UUID.randomUUID().toString();
-         this._queryTasks.put(id, thequery);
-         
-         return id;
+        }
+        String id = UUID.randomUUID().toString();
+        this._queryTasks.put(id, thequery);
+        EnrichmentQueryResults eqr = new EnrichmentQueryResults(System.currentTimeMillis());
+        eqr.setStatus(EnrichmentQueryResults.SUBMITTED_STATUS);
+        _queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));        
+        return id;
     }
 
     @Override
@@ -249,16 +236,16 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 
     @Override
     public EnrichmentQueryStatus getQueryStatus(String id) throws EnrichmentException {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        if (_queryResults.containsKey(id) == false){
+            return null;
+        }
+        return (EnrichmentQueryStatus)_queryResults.get(id);
     }
 
     @Override
     public void delete(String id) throws EnrichmentException {
         if (_queryResults.containsKey(id) == true){
             _queryResults.remove(id);
-        }
-        if (_queryStatus.containsKey(id) == true){
-            _queryStatus.remove(id);
         }
         // @TODO remove any files from the filesystem
     }

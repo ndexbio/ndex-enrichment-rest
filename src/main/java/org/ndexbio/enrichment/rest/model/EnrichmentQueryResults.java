@@ -18,6 +18,18 @@ public class EnrichmentQueryResults extends EnrichmentQueryStatus {
     private int _size;
     private List<EnrichmentQueryResult> _results;
 
+    public EnrichmentQueryResults(){
+        super();
+    }
+    public EnrichmentQueryResults(long startTime){
+        super(startTime);
+    }
+    
+    public EnrichmentQueryResults updateStartTime(EnrichmentQueryResults eqs) {
+        super.updateStartTime(eqs);
+        return this;
+    }
+
     public int getNumberOfHits() {
         return _numberOfHits;
     }

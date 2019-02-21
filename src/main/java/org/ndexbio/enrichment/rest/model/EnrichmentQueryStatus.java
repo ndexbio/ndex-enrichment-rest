@@ -19,9 +19,27 @@ public class EnrichmentQueryStatus {
     private String _status;
     private String _message;
     private int _progress;
-    private int _wallTime;
+    private long _wallTime;
+    private long _startTime;
     
-        public String getStatus() {
+    public EnrichmentQueryStatus(){
+        
+    }
+    public EnrichmentQueryStatus(long startTime){
+        _startTime = startTime;
+    }
+ 
+    public EnrichmentQueryStatus updateStartTime(EnrichmentQueryStatus eqs){
+        if (eqs == null){
+            return this;
+        }
+        if (eqs.getStartTime() > _startTime){
+            _startTime = eqs.getStartTime();
+        }
+        return this;
+    }
+    
+    public String getStatus() {
         return _status;
     }
 
@@ -45,12 +63,19 @@ public class EnrichmentQueryStatus {
         this._progress = _progress;
     }
 
-    public int getWallTime() {
+    public long getWallTime() {
         return _wallTime;
     }
 
-    public void setWallTime(int _wallTime) {
+    public void setWallTime(long _wallTime) {
         this._wallTime = _wallTime;
     }
 
+    public long getStartTime() {
+        return _startTime;
+    }
+
+    public void setStartTime(long _startTime) {
+        this._startTime = _startTime;
+    }
 }
