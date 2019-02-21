@@ -111,23 +111,23 @@ public class TestBasicEnrichmentEngineImpl {
         
         HashMap<String, HashSet<String>> res = null;
         List<String> genelist = new LinkedList<String>();
-        genelist.add("yo");
-        genelist.add("tp53");
-        genelist.add("alpha");
+        genelist.add("YO");
+        genelist.add("TP53");
+        genelist.add("ALPHA");
         res = enricher.remapNetworksToGenes("ncipid", genelist);
         assertEquals(4, res.size());
         assertEquals(2, res.get("uuid1").size());
-        assertTrue(res.get("uuid1").contains("tp53"));
-        assertTrue(res.get("uuid1").contains("alpha"));
+        assertTrue(res.get("uuid1").contains("TP53"));
+        assertTrue(res.get("uuid1").contains("ALPHA"));
         
         assertEquals(1, res.get("uuid2").size());
-        assertTrue(res.get("uuid2").contains("tp53"));
+        assertTrue(res.get("uuid2").contains("TP53"));
         
         assertEquals(1, res.get("uuid3").size());
-        assertTrue(res.get("uuid3").contains("tp53"));
+        assertTrue(res.get("uuid3").contains("TP53"));
         
         assertEquals(1, res.get("uuid4").size());
-        assertTrue(res.get("uuid4").contains("alpha"));
+        assertTrue(res.get("uuid4").contains("ALPHA"));
     }
     
     @Test
@@ -189,8 +189,8 @@ public class TestBasicEnrichmentEngineImpl {
                 assertEquals("ncipid", eRes.getDatabaseName());
                 assertEquals("ncipid1234", eRes.getDatabaseUUID());
                 assertEquals(2, eRes.getHitGenes().size());
-                assertTrue(eRes.getHitGenes().contains("tp53"));
-                assertTrue(eRes.getHitGenes().contains("alpha"));
+                assertTrue(eRes.getHitGenes().contains("TP53"));
+                assertTrue(eRes.getHitGenes().contains("ALPHA"));
             }
             netSet.add(eRes.getNetworkUUID());
         }
