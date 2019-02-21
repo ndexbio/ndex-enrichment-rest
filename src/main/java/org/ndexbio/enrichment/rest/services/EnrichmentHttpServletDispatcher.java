@@ -12,6 +12,8 @@ import java.util.jar.Manifest;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
+import org.ndexbio.enrichment.rest.engine.BasicEnrichmentEngineFactory;
+import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -24,23 +26,61 @@ public class EnrichmentHttpServletDispatcher extends HttpServletDispatcher {
 
     private static String _version = "";
     private static String _buildNumber = "";
-
+    private EnrichmentEngine _enrichmentEngine;
+    private Thread _enrichmentEngineThread;
+    
+    
     public EnrichmentHttpServletDispatcher(){
         super();
         _logger.info("In constructor");
+        createAndStartEnrichmentEngine();
+    }
+    
+    protected void createAndStartEnrichmentEngine() {
+        BasicEnrichmentEngineFactory fac = new BasicEnrichmentEngineFactory(Configuration.getInstance());
+        
+        try {
+            _logger.debug("Creating Enrichment Engine from factory");
+            _enrichmentEngine = fac.getEnrichmentEngine();
+            _logger.debug("Starting Enrichment Engine thread");
+            _enrichmentEngineThread = new Thread(_enrichmentEngine);
+            _enrichmentEngineThread.start();
+            _logger.debug("Enrichment Engine thread running id => " + Long.toString(_enrichmentEngineThread.getId()));
+            Configuration.getInstance().setEnrichmentEngine(_enrichmentEngine);
+        }
+        catch(Exception ex){
+            _logger.error("Unable to start enrichment engine", ex);
+        }
     }
 
     @Override
     public void init(javax.servlet.ServletConfig servletConfig) throws ServletException {
         super.init(servletConfig);
-        _logger.info("In init");
+        _logger.info("Entering init()");
         updateVersion();
+        
+        _logger.info("Exiting init()");
     }
     
     @Override
     public void destroy() {
         super.destroy();
         _logger.info("In destroy()");
+        if (_enrichmentEngine != null){
+            _enrichmentEngine.shutdown();
+            _logger.info("Waiting for enrichment engine to shutdown");
+            try {
+                if (_enrichmentEngineThread != null){
+                    _enrichmentEngineThread.join(10000);
+                }
+            }
+            catch(InterruptedException ie){
+                _logger.error("Caught exception waiting for enrichment engine to exit", ie);
+            }
+        } else {
+            _logger.error("No enrichment engine found to destroy");
+        
+        }
     }
     
     /**
@@ -64,7 +104,10 @@ public class EnrichmentHttpServletDispatcher extends HttpServletDispatcher {
                 } catch (IOException e) {
                     _logger.error("failed to read MANIFEST.MF", e);
                 }     
-            }    
+            }
+            else {
+                _logger.error("Unable to get /META-INF/MANIFEST.MF");
+            }
         } catch (IOException e1) {
             _logger.error("Failed to close InputStream from MANIFEST.MF", e1);
         }
