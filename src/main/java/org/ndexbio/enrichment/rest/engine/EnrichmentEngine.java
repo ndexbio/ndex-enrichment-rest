@@ -15,7 +15,7 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
  *
  * @author churas
  */
-public interface EnrichmentEngine {
+public interface EnrichmentEngine extends Runnable {
     
     /**
      * Submits query for processing
@@ -68,6 +68,9 @@ public interface EnrichmentEngine {
     public String getNetworkOverlayAsCX(final String id, final String databaseUUID, final String networkUUID) throws EnrichmentException;
 
     
-    
+    /**
+     * Tells implementing objects to shutdown
+     */
+    public void shutdown();
     
 }
