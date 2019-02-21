@@ -13,6 +13,7 @@ import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
+import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -26,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BasicEnrichmentEngineFactory {
     
-    static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineImpl.class);
+    static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineFactory.class);
 
     private String _tmpDir;
     private NdexRestClientModelAccessLayer _client;
@@ -38,15 +39,14 @@ public class BasicEnrichmentEngineFactory {
      * Temp directory where query results will temporarily be stored.
      * @param tmpDir 
      */
-    public BasicEnrichmentEngineFactory(final String tmpDir, NdexRestClientModelAccessLayer client,
-            Map<String, String> databaseOwnerNameMap,
-            DatabaseResults databaseResults){
-        _tmpDir = tmpDir;
-        _client = client;
-        _ownerNameMap = databaseOwnerNameMap;
-        _databaseResults = databaseResults;
+    public BasicEnrichmentEngineFactory(Configuration config){
         
+        _tmpDir = config.getEnrichmentDataDirectory();
+        _client = config.getNDExClient();
+        _ownerNameMap = config.getNDExDatabaseOwnerMap();
+        _databaseResults = config.getNDExDatabases();
     }
+    
     
     /**
      * Creates EnrichmentEngine
@@ -59,6 +59,7 @@ public class BasicEnrichmentEngineFactory {
         for (DatabaseResult dr : _databaseResults.getResults()){
             _logger.debug("Processing: " + dr.getName());
             addGeneMapToEnricher(enricher, dr);
+            _logger.debug("Done with processing");
         }
         return enricher;
     }
@@ -70,6 +71,7 @@ public class BasicEnrichmentEngineFactory {
             _logger.error("Unable to find account for database: " + dr.getName() + " with uuid: " + dr.getUuid());
             return;
         }
+        
         HashMap<String, HashSet<String>> geneMap = buildMap(networkOwner, dr);
         for (String gene : geneMap.keySet()){
             enricher.addGeneToDatabase(dr.getUuid(), gene, geneMap.get(gene));
@@ -79,11 +81,12 @@ public class BasicEnrichmentEngineFactory {
     protected HashMap<String, HashSet<String>> buildMap(final String networkOwner,
             DatabaseResult drToUpdate) throws Exception{
                 HashMap<String, HashSet<String>> mappy = new HashMap<>();
+        _logger.debug("Looking for networks owned by user: " + networkOwner);
         NetworkSearchResult nrs = _client.findNetworks("", networkOwner, 0, 0);
         
         //set number of networks in this database
         drToUpdate.setNumberOfNetworks(Integer.toString(nrs.getNetworks().size()));
-        
+        _logger.debug("Found: " + drToUpdate.getNumberOfNetworks() + " networks");
         for (NetworkSummary ns :  nrs.getNetworks()){
             _logger.debug(ns.getName() + " Nodes => " + Integer.toString(ns.getNodeCount()) + " Edges => " + Integer.toString(ns.getEdgeCount()));
             NiceCXNetwork network = _client.getNetwork(ns.getExternalId());
@@ -113,7 +116,7 @@ public class BasicEnrichmentEngineFactory {
                 if (mappy.containsKey(name) == false){
                     mappy.put(name, new HashSet<String>());
                 }
-                if (mappy.get(name).contains(ns.getExternalId()) == false){
+                if (mappy.get(name).contains(ns.getExternalId().toString()) == false){
                     mappy.get(name).add(ns.getExternalId().toString());
                 }
             }
