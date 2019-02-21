@@ -25,6 +25,7 @@
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
         <guava.version>27.0.1-jre</guava.version>
+        <javax.servlet.version>4.0.1</javax.servlet.version>
     </properties>
     
     <repositories>
@@ -34,6 +35,12 @@
         </repository>
     </repositories>
     <dependencies>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${javax.servlet.version}</version>
+                <scope>provided</scope>
+        </dependency>
         <!-- If i didn't include this guava then I would get weird reflection errors -->
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -148,7 +155,9 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    <scm>
+	  <connection>scm:git:https://github.com/coleslaw481/ndex-enrichment-rest.git</connection>
+    </scm>
     <build>
         <pluginManagement>
             <plugins>
@@ -215,6 +224,17 @@
                 <version>2.3</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <shortRevisionLength>5</shortRevisionLength>
+                    <archiveClasses>true</archiveClasses>
+		    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <NDExEnrichment-Version>${project.version}</NDExEnrichment-Version>
+                            <NDExEnrichment-Build>${buildNumber}</NDExEnrichment-Build>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
             <plugin>
@@ -264,6 +284,35 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+        <revisiononscmfailure>
+	     <!--
+	      Generate sequence build number based on:
+	      build number and timestamp     
+	     -->
+	     <format>Build: #{0} ({1,date})</format>
+	     <items>
+	      <item>buildNumber\d*</item>
+	      <item>timestamp</item>
+	     </items>
+	    </revisiononscmfailure>
+                
+          <doCheck>false</doCheck>
+          <doUpdate>false</doUpdate>
+        </configuration>
+      </plugin>
         </plugins>
     </build>
     <reporting>
