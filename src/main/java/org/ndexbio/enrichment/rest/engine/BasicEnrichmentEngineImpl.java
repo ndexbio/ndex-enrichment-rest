@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
@@ -33,11 +34,14 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineImpl.class);
 
     private String _tmpDir;
+    private boolean _shutdown;
     
     /**
      * This should be a map of <query UUID> => EnrichmentQuery object
      */
     private ConcurrentHashMap<String, EnrichmentQuery> _queryTasks;
+    
+    private ConcurrentLinkedQueue<String> _queryTaskIds;
     
     /**
      * This should be a map of <query UUID> => EnrichmentQueryResults object
@@ -52,13 +56,55 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     private AtomicReference<DatabaseResults> _databaseResults;
     private NdexRestClientModelAccessLayer _client;
     
+    private long _threadSleep = 10;
+    
     public BasicEnrichmentEngineImpl(final String tmpDir,
             NdexRestClientModelAccessLayer client){
+        _shutdown = false;
         _tmpDir = tmpDir;
         _client = client;
-        _queryTasks = new ConcurrentHashMap<String, EnrichmentQuery>();
-        _queryResults = new ConcurrentHashMap<String, EnrichmentQueryResults>();
+        _queryTasks = new ConcurrentHashMap<>();
+        _queryResults = new ConcurrentHashMap<>();
         _databaseResults = new AtomicReference<>();
+        _queryTaskIds = new ConcurrentLinkedQueue<>();
+    }
+    
+    /**
+     * Sets milliseconds thread should sleep if no work needs to be done.
+     * @param sleepTime 
+     */
+    public void updateThreadSleepTime(long sleepTime){
+        _threadSleep = sleepTime;
+    }
+
+    protected void threadSleep(){
+        try {
+            Thread.sleep(_threadSleep);
+        }
+        catch(InterruptedException ie){
+
+        }
+    }
+    
+    /**
+     * Processes any query tasks, looping until {@link #shutdown()} is invoked
+     */
+    @Override
+    public void run() {
+        while(_shutdown == false){
+            String id = _queryTaskIds.poll();
+            if (id == null){
+                threadSleep();
+                continue;
+            }
+            processQuery(id,_queryTasks.remove(id));            
+        }
+        _logger.debug("Shutdown was invoked");
+    }
+
+    @Override
+    public void shutdown() {
+        _shutdown = true;
     }
     
     /**
@@ -70,22 +116,22 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     public void addGeneToDatabase(final String databaseId, final String gene,
             Collection<String> networkIds){
         if (_databases == null){
-            _databases = new ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>>();
+            _databases = new ConcurrentHashMap<>();
         }
+        String geneUpperCase = gene.toUpperCase();
         ConcurrentHashMap<String, HashSet<String>> dbHash = _databases.get(databaseId);
         if (dbHash == null){
             dbHash = new ConcurrentHashMap<String, HashSet<String>>();
             _databases.put(databaseId, dbHash);
         }
-        HashSet<String> geneSet = dbHash.get(gene);
+        HashSet<String> geneSet = dbHash.get(geneUpperCase);
         if (geneSet == null){
             geneSet = new HashSet<String>();
-            dbHash.put(gene, geneSet);
+            dbHash.put(geneUpperCase, geneSet);
         }
         geneSet.clear();
         geneSet.addAll(networkIds);
     }
-    // @TODO need worker that runs synchronized on processing query list
     
     public void setDatabaseResults(DatabaseResults dr){
         _databaseResults.set(dr);
@@ -95,7 +141,10 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         if (geneList == null){
             return null;
         }
-        HashSet<String> uniqueGenes = new HashSet<String>(geneList);
+        HashSet<String> uniqueGenes = new HashSet<>();
+        for (String gene : geneList){
+            uniqueGenes.add(gene.toUpperCase());
+        }
         return new LinkedList<String>(uniqueGenes);
     }
     /**
@@ -214,7 +263,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             throw new EnrichmentException("No databases selected");
         }
         String id = UUID.randomUUID().toString();
-        this._queryTasks.put(id, thequery);
+        _queryTasks.put(id, thequery);
+        _queryTaskIds.add(id);
         EnrichmentQueryResults eqr = new EnrichmentQueryResults(System.currentTimeMillis());
         eqr.setStatus(EnrichmentQueryResults.SUBMITTED_STATUS);
         _queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));        
