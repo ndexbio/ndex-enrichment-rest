@@ -95,14 +95,17 @@ public class Configuration {
         return _enrichTaskDir;
     }
 
+    public File getDatabaseResultsFile(){
+        return new File(getEnrichmentDatabaseDirectory() + File.separator +
+                              Configuration.DATABASE_RESULTS_JSON_FILE);
+    }
     /**
      * 
      * @return 
      */
     public InternalDatabaseResults getNDExDatabases(){
         ObjectMapper mapper = new ObjectMapper();
-        File dbres = new File(getEnrichmentDatabaseDirectory() + File.separator +
-                              Configuration.DATABASE_RESULTS_JSON_FILE);
+        File dbres = getDatabaseResultsFile();
         try {
             return mapper.readValue(dbres, InternalDatabaseResults.class);
         }

@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -178,7 +179,7 @@ public class App {
         NdexRestClientModelAccessLayer client = config.getNDExClient();
         InternalDatabaseResults idr = config.getNDExDatabases();
         ObjectMapper mappy = new ObjectMapper();
-        
+        List<InternalGeneMap> geneMapList = new LinkedList<InternalGeneMap>();
         for (DatabaseResult dr : idr.getResults()){
             InternalGeneMap geneMap = new InternalGeneMap();
             geneMap.setDatabaseUUID(dr.getUuid());
@@ -194,10 +195,11 @@ public class App {
                 NiceCXNetwork network = saveNetwork(ns.getExternalId(), databasedir);
                 updateGeneMap(network, ns.getExternalId().toString(), geneMap);
             }
-            File geneMapFile = new File(config.getEnrichmentDatabaseDirectory() + File.separator + dr.getUuid() + ".genemap.json");
-            _logger.debug("Attemptign to write to: " + geneMapFile.getAbsolutePath());
-            mappy.writerWithDefaultPrettyPrinter().writeValue(geneMapFile, geneMap);
+            geneMapList.add(geneMap);
         }
+        idr.setGeneMapList(geneMapList);
+        _logger.debug("Attempting to write: " + config.getDatabaseResultsFile().getAbsolutePath());
+        mappy.writerWithDefaultPrettyPrinter().writeValue(config.getDatabaseResultsFile(), idr);
         return;
     }
     
