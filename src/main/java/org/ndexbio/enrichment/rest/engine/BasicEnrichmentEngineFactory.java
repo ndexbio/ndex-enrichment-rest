@@ -24,6 +24,7 @@ public class BasicEnrichmentEngineFactory {
     static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineFactory.class);
 
     private String _dbDir;
+    private String _taskDir;
     private NdexRestClientModelAccessLayer _client;
     private InternalDatabaseResults _databaseResults;
     
@@ -34,6 +35,7 @@ public class BasicEnrichmentEngineFactory {
     public BasicEnrichmentEngineFactory(Configuration config){
         
         _dbDir = config.getEnrichmentDatabaseDirectory();
+        _taskDir = config.getEnrichmentTaskDirectory();
         _databaseResults = config.getNDExDatabases();
         _client = config.getNDExClient();
     }
@@ -45,7 +47,7 @@ public class BasicEnrichmentEngineFactory {
      */
     public EnrichmentEngine getEnrichmentEngine() throws Exception {
         BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(_dbDir,
-                                                                           _client);
+                _taskDir,_client);
         enricher.setDatabaseResults(_databaseResults);
         for (DatabaseResult dr : _databaseResults.getResults()){
             _logger.debug("Loading: " + dr.getName());

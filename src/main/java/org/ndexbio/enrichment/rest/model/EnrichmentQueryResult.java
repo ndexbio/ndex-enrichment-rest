@@ -64,11 +64,11 @@ public class EnrichmentQueryResult {
         this._edges = _edges;
     }
 
-    public float getpValue() {
+    public double getpValue() {
         return _pValue;
     }
 
-    public void setpValue(float _pValue) {
+    public void setpValue(double _pValue) {
         this._pValue = _pValue;
     }
 
@@ -90,7 +90,7 @@ public class EnrichmentQueryResult {
     private int _percentOverlap;
     private int _nodes;
     private int _edges;
-    private float _pValue;
+    private double _pValue;
     private int _rank;
     private List<String> _hitGenes;
 }

@@ -5,6 +5,10 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,6 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import org.apache.commons.math3.distribution.HypergeometricDistribution;
+import org.ndexbio.cxio.core.NdexCXNetworkWriter;
 import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
@@ -21,7 +27,9 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
+import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+import org.ndexbio.rest.client.NdexRestClientUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +41,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 
     static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineImpl.class);
 
-    private String _tmpDir;
+    private String _dbDir;
+    private String _taskDir;
     private boolean _shutdown;
     
     /**
@@ -58,10 +67,12 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     
     private long _threadSleep = 10;
     
-    public BasicEnrichmentEngineImpl(final String tmpDir,
+    public BasicEnrichmentEngineImpl(final String dbDir,
+            final String taskDir,
             NdexRestClientModelAccessLayer client){
         _shutdown = false;
-        _tmpDir = tmpDir;
+        _dbDir = dbDir;
+        _taskDir = taskDir;
         _client = client;
         _queryTasks = new ConcurrentHashMap<>();
         _queryResults = new ConcurrentHashMap<>();
@@ -152,6 +163,10 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
      * @param id 
      */
     protected void processQuery(final String id, EnrichmentQuery query){
+        
+        File taskDir = new File(this._taskDir + File.separator + id);
+        taskDir.mkdirs();
+        
         //check gene list
         List<EnrichmentQueryResult> enrichmentResult = new LinkedList<EnrichmentQueryResult>();
         for (String databaseName : query.getDatabaseList()){
@@ -172,7 +187,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
                 continue;
             }
             // generate EnrichmentQueryResult from networkMap
-            enrichmentResult.addAll(getEnrichmentQueryResultObjectsFromNetworkMap(dbres, networkMap, uniqueGeneList));
+            enrichmentResult.addAll(getEnrichmentQueryResultObjectsFromNetworkMap(taskDir, dbres, networkMap, uniqueGeneList));
         }
 
         // combine all EnrichmentQueryResults generated above and create
@@ -199,7 +214,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
      * @param uniqueGeneList Unique list of genes
      * @return List of EnrichmentQueryResult objects 
      */
-    protected List<EnrichmentQueryResult> getEnrichmentQueryResultObjectsFromNetworkMap(DatabaseResult dbres,
+    protected List<EnrichmentQueryResult> getEnrichmentQueryResultObjectsFromNetworkMap(File taskDir, DatabaseResult dbres,
             HashMap<String, HashSet<String>> networkMap, List<String> uniqueGeneList){
         if (dbres == null){
             _logger.error("DatabaseResult is null");
@@ -215,6 +230,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             _logger.error("Unique Gene List is null");
             return null;
         }
+        int numGenesInQuery = uniqueGeneList.size();
         List<EnrichmentQueryResult> eqrList = new LinkedList<EnrichmentQueryResult>();
         for (String network : networkMap.keySet()){
             EnrichmentQueryResult eqr = new EnrichmentQueryResult();
@@ -222,12 +238,67 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             eqr.setDatabaseUUID(dbres.getUuid());
             eqr.setHitGenes(new LinkedList<String>(networkMap.get(network)));
             eqr.setNetworkUUID(network);
-            eqr.setPercentOverlap(0); //need to pass in # of genes to figure this out
-            eqr.setRank(0); //needs to be set later once we get all the pvalues
-            eqr.setpValue(0); //need a method to get this
+            NiceCXNetwork cxNetwork = getNetwork(dbres.getUuid(), network);
+            if (cxNetwork == null){
+                _logger.error("Unable to get network: " + network + " skipping...");
+                continue;
+            }
+            updateStatsAboutNetwork(cxNetwork, eqr, numGenesInQuery);
             eqrList.add(eqr);
         }
         return eqrList;
+    }
+    
+    public void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
+        try {
+           
+            NdexCXNetworkWriter writer = new NdexCXNetworkWriter(new FileOutputStream(destFile), false);
+            
+        }
+        catch(IOException ex){
+            _logger.error("problems writing cx", ex);
+        }
+    }
+    
+    /**
+     * TODO FIX THIS, NEED TO FIGURE OUT WHAT the arguments are supposed to be...
+     * @param totalGenesInNetwork
+     * @param numberGenesInQuery
+     * @param numGenesMatch
+     * @return 
+     */
+    protected double getPvalue(int totalGenesInNetwork, int numberGenesInQuery, int numGenesMatch){
+        HypergeometricDistribution hd = new HypergeometricDistribution(2500, 
+                                                                       totalGenesInNetwork, numberGenesInQuery);
+        return ((double)1.0 - hd.cumulativeProbability(numGenesMatch));
+    }
+    protected void updateStatsAboutNetwork(NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr,
+            int numGenesInQuery){
+        eqr.setNodes(cxNetwork.getNodes().size());
+        eqr.setEdges(cxNetwork.getEdges().size());
+        int numHitGenes = eqr.getHitGenes().size();
+        eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)numGenesInQuery)*(float)100));
+        eqr.setpValue(getPvalue(eqr.getNodes(), numGenesInQuery, numHitGenes));
+    }
+    
+    protected NiceCXNetwork getNetwork(final String databaseUUID, final String networkUUID){
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(new File(this._dbDir + File.separator + databaseUUID + File.separator + networkUUID + ".cx"));
+            return NdexRestClientUtilities.getCXNetworkFromStream(fis);
+        }
+        catch(IOException ex){
+            _logger.error("error reading ", ex);
+        }
+        finally {
+            try{
+                fis.close();
+            }
+            catch(IOException io){
+                _logger.error("unable to close stream", io);
+            }
+        }
+        return null;
     }
 
     protected HashMap<String, HashSet<String>> remapNetworksToGenes(final String databaseId, final List<String> geneList){
