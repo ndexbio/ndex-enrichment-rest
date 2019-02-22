@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.core.Response;
+import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.ErrorResponse;
 
@@ -47,12 +48,13 @@ public class EnrichmentDatabase {
         ObjectMapper omappy = new ObjectMapper();
 
         try {
-            return Response.status(202).header("Location","someurl needs to go here").build();
+           EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
+           return Response.ok(omappy.writeValueAsString(enricher.getDatabaseResults()), MediaType.APPLICATION_JSON).build();
         }
         catch(Exception ex){
             ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
             try {
-                return Response.serverError().type(MediaType.APPLICATION_JSON).encoding(omappy.writeValueAsString(er)).build();
+                return Response.serverError().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
             }
             catch(JsonProcessingException jpe){
                 return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();

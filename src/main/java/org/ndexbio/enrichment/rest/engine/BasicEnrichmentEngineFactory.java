@@ -5,6 +5,7 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +13,7 @@ import java.util.Map;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
-import org.ndexbio.enrichment.rest.model.DatabaseResults;
+import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.object.NetworkSearchResult;
@@ -29,11 +30,9 @@ public class BasicEnrichmentEngineFactory {
     
     static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineFactory.class);
 
-    private String _tmpDir;
+    private String _dbDir;
     private NdexRestClientModelAccessLayer _client;
-    
-    private Map<String, String> _ownerNameMap;
-    private DatabaseResults _databaseResults;
+    private InternalDatabaseResults _databaseResults;
     
     /**
      * Temp directory where query results will temporarily be stored.
@@ -41,9 +40,7 @@ public class BasicEnrichmentEngineFactory {
      */
     public BasicEnrichmentEngineFactory(Configuration config){
         
-        _tmpDir = config.getEnrichmentDataDirectory();
-        _client = config.getNDExClient();
-        _ownerNameMap = config.getNDExDatabaseOwnerMap();
+        _dbDir = config.getEnrichmentDatabaseDirectory();
         _databaseResults = config.getNDExDatabases();
     }
     
@@ -53,7 +50,7 @@ public class BasicEnrichmentEngineFactory {
      * @return 
      */
     public EnrichmentEngine getEnrichmentEngine() throws Exception {
-        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(_tmpDir,
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(_dbDir,
                                                                            _client);
         enricher.setDatabaseResults(_databaseResults);
         for (DatabaseResult dr : _databaseResults.getResults()){
@@ -66,7 +63,7 @@ public class BasicEnrichmentEngineFactory {
     
     protected void addGeneMapToEnricher(BasicEnrichmentEngineImpl enricher,
             DatabaseResult dr) throws Exception{
-        String networkOwner = _ownerNameMap.get(dr.getUuid());
+        String networkOwner = _databaseResults.getDatabaseAccountOwnerMap().get(dr.getUuid());
         if (networkOwner == null){
             _logger.error("Unable to find account for database: " + dr.getName() + " with uuid: " + dr.getUuid());
             return;
@@ -80,14 +77,19 @@ public class BasicEnrichmentEngineFactory {
     
     protected HashMap<String, HashSet<String>> buildMap(final String networkOwner,
             DatabaseResult drToUpdate) throws Exception{
+        /**
                 HashMap<String, HashSet<String>> mappy = new HashMap<>();
         _logger.debug("Looking for networks owned by user: " + networkOwner);
-        NetworkSearchResult nrs = _client.findNetworks("", networkOwner, 0, 0);
+        File dbdir = new File(_dbDir + File.separator + drToUpdate.getUuid());
+        String[] list = dbdir.list((dir, name) -> name.endsWith(".cx"));
         
         //set number of networks in this database
-        drToUpdate.setNumberOfNetworks(Integer.toString(nrs.getNetworks().size()));
+        drToUpdate.setNumberOfNetworks(Integer.toString(list.length));
         _logger.debug("Found: " + drToUpdate.getNumberOfNetworks() + " networks");
-        for (NetworkSummary ns :  nrs.getNetworks()){
+        for (String entry : list){
+            String path = dbdir.getAbsolutePath() + File.separator + entry;
+            _logger.debug("Path: " + path);
+            
             _logger.debug(ns.getName() + " Nodes => " + Integer.toString(ns.getNodeCount()) + " Edges => " + Integer.toString(ns.getEdgeCount()));
             NiceCXNetwork network = _client.getNetwork(ns.getExternalId());
             Map<Long, Collection<NodeAttributesElement>> attribMap = network.getNodeAttributes();
@@ -120,8 +122,10 @@ public class BasicEnrichmentEngineFactory {
                     mappy.get(name).add(ns.getExternalId().toString());
                 }
             }
-        }        
-        return mappy;
+            */
+       // }     
+       return null;
+        //return mappy;
     }
     
 }
