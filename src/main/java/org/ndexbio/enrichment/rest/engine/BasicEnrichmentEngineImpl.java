@@ -19,7 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.math3.distribution.HypergeometricDistribution;
+import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
+import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.core.NdexCXNetworkWriter;
+import org.ndexbio.cxio.core.writers.FullCXNiceCXNetworkWriter;
 import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
@@ -28,6 +31,7 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
 import org.ndexbio.model.cx.NiceCXNetwork;
+
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.client.NdexRestClientUtilities;
 import org.slf4j.Logger;
@@ -250,9 +254,23 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     }
     
     public void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
-        try {
+        try (FileOutputStream fos = new FileOutputStream(destFile)) {
            
-            NdexCXNetworkWriter writer = new NdexCXNetworkWriter(new FileOutputStream(destFile), false);
+            long nodeAttrCntr = cxNetwork.getMetadata().getIdCounter(NodeAttributesElement.ASPECT_NAME);
+            for(Long nodeId : cxNetwork.getNodes().keySet()){
+                // find matching gene in network
+                if (eqr.getHitGenes().contains(cxNetwork.getNodes().get(nodeId).getNodeName())){
+                    // we found a gene.
+                    NodeAttributesElement nae = new NodeAttributesElement(nodeId, "querynode", "true",
+                    ATTRIBUTE_DATA_TYPE.BOOLEAN);
+                    nae.setSingleStringValue(_dbDir);
+                    cxNetwork.addNodeAttribute(nae);
+                    nodeAttrCntr++;
+                }
+            }
+            // @TODO update metadata
+            NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(fos, false);
+            FullCXNiceCXNetworkWriter writer = new FullCXNiceCXNetworkWriter(ndexwriter);
             
         }
         catch(IOException ex){
