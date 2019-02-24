@@ -5,10 +5,13 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,12 +21,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.math3.distribution.HypergeometricDistribution;
 import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.core.NdexCXNetworkWriter;
 import org.ndexbio.cxio.core.writers.FullCXNiceCXNetworkWriter;
-import org.ndexbio.cxio.metadata.MetaDataCollection;
 import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
@@ -45,6 +48,8 @@ import org.slf4j.LoggerFactory;
  */
 public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 
+    public static final String EQR_JSON_FILE = "enrichmentqueryresults.json";
+    
     static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineImpl.class);
 
     private String _dbDir;
@@ -194,6 +199,25 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         return eqr;
     }
     
+    protected EnrichmentQueryResults getEnrichmentQueryResultsFromDbOrFilesystem(final String id){
+        EnrichmentQueryResults eqr = _queryResults.get(id);
+        if (eqr != null){
+            return eqr;
+        }
+        ObjectMapper mappy = new ObjectMapper();
+        File eqrFile = new File(getEnrichmentQueryResultsFilePath(id));
+        if (eqrFile.isFile() == false){
+            _logger.error(eqrFile.getAbsolutePath() + " is not a file");
+            return null;
+        }
+        try {
+            return mappy.readValue(eqrFile, EnrichmentQueryResults.class);
+        }catch(IOException io){
+            _logger.error("Caught exception trying to load " + eqrFile.getAbsolutePath(), io);
+        }
+        return null;
+    }
+    
     protected DatabaseResult getDatabaseResultFromDb(final String dbName){
         String dbNameLower = dbName.toLowerCase();
         for (DatabaseResult res : _databaseResults.get().getResults()){
@@ -242,8 +266,26 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         // EnrichmentQueryResults object and store in _queryResults 
         // replacing any existing entry
         updateEnrichmentQueryResultsInDb(id, EnrichmentQueryResults.COMPLETE_STATUS, 100, enrichmentResult);
+        saveEnrichmentQueryResultsToFilesystem(id);
     }
     
+    protected String getEnrichmentQueryResultsFilePath(final String id){
+        return this._taskDir + File.separator + id + File.separator + BasicEnrichmentEngineImpl.EQR_JSON_FILE;
+    }
+    protected void saveEnrichmentQueryResultsToFilesystem(final String id){
+        EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDb(id);
+        if (eqr == null){
+            return;
+        }
+        File destFile = new File(getEnrichmentQueryResultsFilePath(id));
+        ObjectMapper mappy = new ObjectMapper();
+        try (FileOutputStream out = new FileOutputStream(destFile)){
+            mappy.writeValue(out, eqr);
+        } catch(IOException io){
+            _logger.error("Caught exception writing " + destFile.getAbsolutePath(), io);
+        }
+        _queryResults.remove(id);
+    }
     /**
      * Generates EnrichmentQueryResult objects from data passed in
      * @param dbres Database associated with this result
@@ -407,31 +449,50 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     
     @Override
     public EnrichmentQueryResults getQueryResults(String id, int start, int size) throws EnrichmentException {
-        if (_queryResults.containsKey(id) == false){
-            return null;
-        }
-        return _queryResults.get(id);
+        EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDbOrFilesystem(id);
+        return eqr;
     }
 
     @Override
     public EnrichmentQueryStatus getQueryStatus(String id) throws EnrichmentException {
-        if (_queryResults.containsKey(id) == false){
+        EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDbOrFilesystem(id);
+        if (eqr == null){
             return null;
         }
-        return (EnrichmentQueryStatus)_queryResults.get(id);
+        return new EnrichmentQueryStatus(eqr);
     }
 
     @Override
     public void delete(String id) throws EnrichmentException {
+        _logger.debug("Deleting task " + id);
         if (_queryResults.containsKey(id) == true){
             _queryResults.remove(id);
         }
-        // @TODO remove any files from the filesystem
+        File thisTaskDir = new File(this._taskDir + File.separator + id);
+        if (thisTaskDir.exists() == false){
+            return;
+        }
+        _logger.debug("Attempting to delete task from filesystem: " + thisTaskDir.getAbsolutePath());
+        if (FileUtils.deleteQuietly(thisTaskDir) == false){
+            _logger.error("There was a problem deleting the directory: " + thisTaskDir.getAbsolutePath());
+        }
     }
 
     @Override
-    public String getNetworkOverlayAsCX(String id, String databaseUUID, String networkUUID) throws EnrichmentException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public InputStream getNetworkOverlayAsCX(String id, String databaseUUID, String networkUUID) throws EnrichmentException {
+        File cxFile = new File(this._taskDir + File.separator + id + File.separator + networkUUID + ".cx");
+        
+        if (cxFile.isFile() == false){
+            _logger.debug(cxFile.getAbsolutePath() + " is not a file or does not exist");
+            return null;
+        }
+        _logger.debug("returning " + cxFile.getAbsolutePath() + " cx file");
+        try {
+            return new FileInputStream(cxFile);
+        }catch(FileNotFoundException ex){
+            _logger.error("caught file not found exception ", ex);
+        }
+        return null;
     }
     
 }
