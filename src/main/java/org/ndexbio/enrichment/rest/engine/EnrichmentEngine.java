@@ -5,6 +5,7 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
+import java.io.InputStream;
 import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
@@ -65,7 +66,7 @@ public interface EnrichmentEngine extends Runnable {
      * @return
      * @throws EnrichmentException 
      */
-    public String getNetworkOverlayAsCX(final String id, final String databaseUUID, final String networkUUID) throws EnrichmentException;
+    public InputStream getNetworkOverlayAsCX(final String id, final String databaseUUID, final String networkUUID) throws EnrichmentException;
 
     
     /**
