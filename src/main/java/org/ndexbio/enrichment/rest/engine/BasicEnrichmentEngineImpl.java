@@ -23,6 +23,7 @@ import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.core.NdexCXNetworkWriter;
 import org.ndexbio.cxio.core.writers.FullCXNiceCXNetworkWriter;
+import org.ndexbio.cxio.metadata.MetaDataCollection;
 import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
@@ -31,6 +32,7 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
 import org.ndexbio.model.cx.NiceCXNetwork;
+import org.ndexbio.model.exceptions.NdexException;
 
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.client.NdexRestClientUtilities;
@@ -162,6 +164,46 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         }
         return new LinkedList<String>(uniqueGenes);
     }
+    
+    protected void updateEnrichmentQueryResultsInDb(final String id,
+            final String status, int progress,
+            List<EnrichmentQueryResult> result){
+        EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDb(id);
+        
+        eqr.setProgress(progress);
+        eqr.setStatus(status);
+        if (result != null){
+            eqr.setNumberOfHits(result.size());
+            eqr.setResults(result);
+        }
+        eqr.setWallTime(System.currentTimeMillis() - eqr.getStartTime());
+        _queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));        
+    }
+    /**
+     * First tries to get EnrichmentQueryResults from _queryResults list
+     * and if that fails method creates a new EnrichmentQueryResults setting
+     * current time in constructor.
+     * @param id
+     * @return 
+     */
+    protected EnrichmentQueryResults getEnrichmentQueryResultsFromDb(final String id){
+        EnrichmentQueryResults eqr = _queryResults.get(id);
+        if (eqr == null){
+            eqr = new EnrichmentQueryResults(System.currentTimeMillis());
+        }
+        return eqr;
+    }
+    
+    protected DatabaseResult getDatabaseResultFromDb(final String dbName){
+        String dbNameLower = dbName.toLowerCase();
+        for (DatabaseResult res : _databaseResults.get().getResults()){
+            if (res.getName().toLowerCase().equals(dbNameLower)){
+                return res;
+            }
+        }
+        return null;
+    }
+    
     /**
      * Runs enrichment on query storing results in _queryResults and _queryStatus
      * @param id 
@@ -169,22 +211,24 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     protected void processQuery(final String id, EnrichmentQuery query){
         
         File taskDir = new File(this._taskDir + File.separator + id);
-        taskDir.mkdirs();
+        _logger.debug("Creating new task directory:" + taskDir.getAbsolutePath());
+
+        if (taskDir.mkdirs() == false){
+            _logger.error("Unable to create task directory: " + taskDir.getAbsolutePath());
+            updateEnrichmentQueryResultsInDb(id, EnrichmentQueryResults.FAILED_STATUS, 100, null);
+            return;
+        }
         
         //check gene list
         List<EnrichmentQueryResult> enrichmentResult = new LinkedList<EnrichmentQueryResult>();
         for (String databaseName : query.getDatabaseList()){
-            DatabaseResult dbres = null;
-            for (DatabaseResult res : _databaseResults.get().getResults()){
-                if (res.getName().toLowerCase().equals(databaseName.toLowerCase())){
-                    dbres = res;
-                    break;
-                }
-            }
+            DatabaseResult dbres = getDatabaseResultFromDb(databaseName);
+
             if (dbres == null){
                 _logger.error("No database matching: " + databaseName + " found. Skipping");
                 continue;
             }
+            _logger.debug("Querying database: " + databaseName);
             List<String> uniqueGeneList = getUniqueGeneList(query.getGeneList());
             HashMap<String, HashSet<String>> networkMap = remapNetworksToGenes(dbres.getUuid(), uniqueGeneList);
             if (networkMap == null){
@@ -195,19 +239,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         }
 
         // combine all EnrichmentQueryResults generated above and create
-        // EnrichmentQueryResults object and store in _queryResults and _queryStatus
+        // EnrichmentQueryResults object and store in _queryResults 
         // replacing any existing entry
-        EnrichmentQueryResults eqr = _queryResults.get(id);
-        if (eqr == null){
-            eqr = new EnrichmentQueryResults(System.currentTimeMillis());
-        }
-        
-        eqr.setProgress(100);
-        eqr.setStatus(EnrichmentQueryResults.COMPLETE_STATUS);
-        eqr.setNumberOfHits(enrichmentResult.size());
-        eqr.setResults(enrichmentResult);
-        eqr.setWallTime(System.currentTimeMillis() - eqr.getStartTime());
-        _queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));        
+        updateEnrichmentQueryResultsInDb(id, EnrichmentQueryResults.COMPLETE_STATUS, 100, enrichmentResult);
     }
     
     /**
@@ -248,6 +282,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
                 continue;
             }
             updateStatsAboutNetwork(cxNetwork, eqr, numGenesInQuery);
+            File destFile = new File(taskDir.getAbsolutePath() + File.separator + network + ".cx");
+            annotateAndSaveNetwork(destFile, cxNetwork, eqr);
             eqrList.add(eqr);
         }
         return eqrList;
@@ -255,7 +291,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     
     public void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
         try (FileOutputStream fos = new FileOutputStream(destFile)) {
-           
+            _logger.debug("Writing updated network to file: " + destFile.getAbsolutePath());
             long nodeAttrCntr = cxNetwork.getMetadata().getIdCounter(NodeAttributesElement.ASPECT_NAME);
             for(Long nodeId : cxNetwork.getNodes().keySet()){
                 // find matching gene in network
@@ -263,18 +299,22 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
                     // we found a gene.
                     NodeAttributesElement nae = new NodeAttributesElement(nodeId, "querynode", "true",
                     ATTRIBUTE_DATA_TYPE.BOOLEAN);
-                    nae.setSingleStringValue(_dbDir);
                     cxNetwork.addNodeAttribute(nae);
                     nodeAttrCntr++;
                 }
             }
-            // @TODO update metadata
+            _logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
+            cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
             NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(fos, false);
             FullCXNiceCXNetworkWriter writer = new FullCXNiceCXNetworkWriter(ndexwriter);
+            writer.writeNiceCXNetwork(cxNetwork);
             
         }
         catch(IOException ex){
             _logger.error("problems writing cx", ex);
+        }
+        catch(NdexException nex){
+            _logger.error("Problems writing network as cx", nex);
         }
     }
     
