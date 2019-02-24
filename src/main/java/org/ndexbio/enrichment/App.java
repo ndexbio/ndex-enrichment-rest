@@ -26,6 +26,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
+import org.ndexbio.cxio.core.NdexCXNetworkWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +94,7 @@ public class App {
             }
             
             String mode = optionSet.valueOf(MODE).toString();
-            
+
             if (mode.equals(EXAMPLE_CONF_MODE)){
                 System.out.println(generateExampleConfiguration());
                 System.out.flush();
@@ -180,6 +181,7 @@ public class App {
         InternalDatabaseResults idr = config.getNDExDatabases();
         ObjectMapper mappy = new ObjectMapper();
         List<InternalGeneMap> geneMapList = new LinkedList<InternalGeneMap>();
+        Map<String, Integer> databaseUniqueGeneCount = new HashMap<>();
         for (DatabaseResult dr : idr.getResults()){
             InternalGeneMap geneMap = new InternalGeneMap();
             geneMap.setDatabaseUUID(dr.getUuid());
@@ -190,20 +192,26 @@ public class App {
                 databasedir.mkdirs();
             }
             NetworkSearchResult nrs = client.findNetworks("", networkOwner, 0, 0);
+            Set<String> uniqueGeneSet = new HashSet<>();
             for (NetworkSummary ns :  nrs.getNetworks()){
                 _logger.debug(ns.getName() + " Nodes => " + Integer.toString(ns.getNodeCount()) + " Edges => " + Integer.toString(ns.getEdgeCount()));
                 NiceCXNetwork network = saveNetwork(ns.getExternalId(), databasedir);
-                updateGeneMap(network, ns.getExternalId().toString(), geneMap);
+                updateGeneMap(network, ns.getExternalId().toString(), geneMap,
+                        uniqueGeneSet);
             }
             geneMapList.add(geneMap);
+            databaseUniqueGeneCount.put(dr.getUuid(), uniqueGeneSet.size());
+            uniqueGeneSet.clear();
         }
+        idr.setDatabaseUniqueGeneCount(databaseUniqueGeneCount);
         idr.setGeneMapList(geneMapList);
         _logger.debug("Attempting to write: " + config.getDatabaseResultsFile().getAbsolutePath());
         mappy.writerWithDefaultPrettyPrinter().writeValue(config.getDatabaseResultsFile(), idr);
         return;
     }
     
-    public static void updateGeneMap(final NiceCXNetwork network, final String externalId, InternalGeneMap geneMap) throws Exception {
+    public static void updateGeneMap(final NiceCXNetwork network, final String externalId, InternalGeneMap geneMap,
+            final Set<String> uniqueGeneSet) throws Exception {
         
         Map<Long, Collection<NodeAttributesElement>> attribMap = network.getNodeAttributes();
         Map<String, Set<String>> mappy = geneMap.getGeneMap();
@@ -240,6 +248,7 @@ public class App {
             if (mappy.get(name).contains(externalId) == false){
                 mappy.get(name).add(externalId);
             }
+            uniqueGeneSet.add(name);
         }
     }
     
@@ -272,47 +281,4 @@ public class App {
         FileInputStream fis = new FileInputStream(dest);
         return NdexRestClientUtilities.getCXNetworkFromStream(fis);
     }
-    /**
-    public static void buildDatabase() throws Exception {
-        
-        HashMap<String, HashSet<String>> mappy = new HashMap<String, HashSet<String>>();
-        NetworkSearchResult nrs = client.findNetworks("", networkOwner, 0, 0);
-        for (NetworkSummary ns :  nrs.getNetworks()){
-            System.out.println(ns.getName() + " Nodes => " + Integer.toString(ns.getNodeCount()) + " Edges => " + Integer.toString(ns.getEdgeCount()));
-            NiceCXNetwork network = client.getNetwork(ns.getExternalId());
-            Map<Long, Collection<NodeAttributesElement>> attribMap = network.getNodeAttributes();
-            for (NodesElement ne : network.getNodes().values()){
-                Collection<NodeAttributesElement> nodeAttribs = attribMap.get(ne.getId());
-                
-                // If there are node attributes and one is named "type" then
-                // only include the node name if type is gene or protein
-                if (nodeAttribs != null){
-                    boolean validgene = false;
-                    for (NodeAttributesElement nae : nodeAttribs){
-                        if (nae.getName().toLowerCase().equals("type")){
-                            if (nae.getValue().toLowerCase().equals("gene") ||
-                                  nae.getValue().toLowerCase().equals("protein")){
-                                validgene = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (validgene == false){
-                        continue;
-                    }
-                }
-                String name = ne.getNodeName();
-             
-                if (mappy.containsKey(name) == false){
-                    mappy.put(name, new HashSet<String>());
-                }
-                if (mappy.get(name).contains(ns.getExternalId()) == false){
-                    mappy.get(name).add(ns.getExternalId().toString());
-                }
-            }
-        }
-        return mappy;
-    }
-    */
-        
 }
