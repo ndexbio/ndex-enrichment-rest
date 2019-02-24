@@ -20,6 +20,7 @@
         <jackson.version>2.9.8</jackson.version>
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
+        <commons-io.version>2.6</commons-io.version>
         <ndex-object-model.version>2.4.0</ndex-object-model.version>
         <ndex-java-client.version>2.4.0</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
@@ -66,6 +67,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>${commons-math3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
         </dependency>
         <!-- Jackson -->
         <dependency>
