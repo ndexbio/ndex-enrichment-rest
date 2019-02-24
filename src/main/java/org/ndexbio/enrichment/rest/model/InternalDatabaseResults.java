@@ -16,6 +16,7 @@ public class InternalDatabaseResults extends DatabaseResults {
     
     private Map<String, String> _databaseAccountOwnerMap;
     private List<InternalGeneMap> _geneMapList;
+    private Map<String, Integer> _databaseUniqueGeneCount;
 
     /**
      * Gets map of account owner for networks on NDEx for given databases
@@ -41,6 +42,14 @@ public class InternalDatabaseResults extends DatabaseResults {
 
     public void setGeneMapList(List<InternalGeneMap> _geneMapList) {
         this._geneMapList = _geneMapList;
+    }
+
+    public Map<String, Integer> getDatabaseUniqueGeneCount() {
+        return _databaseUniqueGeneCount;
+    }
+
+    public void setDatabaseUniqueGeneCount(Map<String, Integer> _databaseUniqueGeneCount) {
+        this._databaseUniqueGeneCount = _databaseUniqueGeneCount;
     }
 
     
