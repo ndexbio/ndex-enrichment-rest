@@ -73,9 +73,9 @@ public class Enrichment {
             Task t = new Task();
             t.setId(id);
             return Response.status(202).location(new URI("enrichment/" + id)).entity(omappy.writeValueAsString(t)).build();
-        }
-        catch(Exception ex){
-            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
+        } catch(Exception ex){
+            ErrorResponse er = new ErrorResponse("Error requesting enrichment: " + ex.getMessage(), ex);
+            
             try {
                 return Response.serverError().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
             }
@@ -111,7 +111,10 @@ public class Enrichment {
 
         try {
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
-            EnrichmentQueryResults eqr = enricher.getQueryResults(id, 0, 0);
+            EnrichmentQueryResults eqr = enricher.getQueryResults(id, start, size);
+            if (eqr == null){
+                return Response.status(410).build();
+            }
             return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(eqr)).build();
         }
         catch(Exception ex){
@@ -124,8 +127,7 @@ public class Enrichment {
             }
         }
     }
-    
-    
+
     @GET 
     @Path("/{id}/status")
     @Produces(MediaType.APPLICATION_JSON)
@@ -148,7 +150,11 @@ public class Enrichment {
         try {
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
             EnrichmentQueryResults eqr = enricher.getQueryResults(id, 0, 0);
-            return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString((EnrichmentQueryStatus)eqr)).build();
+            if (eqr ==  null){
+                Response.status(410).build();
+            }
+            EnrichmentQueryStatus eqs = new EnrichmentQueryStatus(eqr);
+            return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(eqs)).build();
 
         }
         catch(Exception ex){
