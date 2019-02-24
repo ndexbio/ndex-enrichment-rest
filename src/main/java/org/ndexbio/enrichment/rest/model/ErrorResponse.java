@@ -23,7 +23,16 @@ public class ErrorResponse {
     public ErrorResponse(final String message, Exception ex){
         _message = message;
         _description = ex.getMessage();
-        _stackTrace = ex.getStackTrace().toString();
+        StringBuilder stackTraceStr = new StringBuilder();
+        int counter = 0;
+        for (StackTraceElement ste : ex.getStackTrace()){
+            stackTraceStr.append(ste.toString() + "\n");
+            if (counter > 2){
+                break;
+            }
+            counter++;
+        }
+        _stackTrace = stackTraceStr.toString();
         _threadId = Long.toString(Thread.currentThread().getId());
         
         
