@@ -15,6 +15,14 @@ public class EnrichmentQueryResult {
     private String _networkUUID;
     private String _databaseUUID;
     private String _databaseName;
+    private String _description;
+    private int _percentOverlap;
+    private int _nodes;
+    private int _edges;
+    private double _pValue;
+    private int _rank;
+    private List<String> _hitGenes;
+
 
     public String getNetworkUUID() {
         return _networkUUID;
@@ -38,6 +46,14 @@ public class EnrichmentQueryResult {
 
     public void setDatabaseName(String _databaseName) {
         this._databaseName = _databaseName;
+    }
+
+    public String getDescription() {
+        return _description;
+    }
+
+    public void setDescription(String _description) {
+        this._description = _description;
     }
 
     public int getPercentOverlap() {
@@ -87,10 +103,4 @@ public class EnrichmentQueryResult {
     public void setHitGenes(List<String> _hitGenes) {
         this._hitGenes = _hitGenes;
     }
-    private int _percentOverlap;
-    private int _nodes;
-    private int _edges;
-    private double _pValue;
-    private int _rank;
-    private List<String> _hitGenes;
 }

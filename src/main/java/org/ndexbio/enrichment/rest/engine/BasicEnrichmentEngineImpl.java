@@ -376,6 +376,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             int numGenesInQuery){
         eqr.setNodes(cxNetwork.getNodes().size());
         eqr.setEdges(cxNetwork.getEdges().size());
+        eqr.setDescription(cxNetwork.getNetworkName());
         int numHitGenes = eqr.getHitGenes().size();
         eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)numGenesInQuery)*(float)100));
         eqr.setpValue(getPvalue(eqr.getNodes(), numGenesInQuery, numHitGenes));
