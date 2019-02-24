@@ -434,6 +434,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         if (thequery.getDatabaseList() == null || thequery.getDatabaseList().isEmpty()){
             throw new EnrichmentException("No databases selected");
         }
+        // @TODO get Jing's uuid generator code that can be a poormans cache
         String id = UUID.randomUUID().toString();
         _queryTasks.put(id, thequery);
         _queryTaskIds.add(id);
