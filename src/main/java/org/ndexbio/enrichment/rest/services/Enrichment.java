@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.io.InputStream;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -149,13 +150,11 @@ public class Enrichment {
 
         try {
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
-            EnrichmentQueryResults eqr = enricher.getQueryResults(id, 0, 0);
-            if (eqr ==  null){
+            EnrichmentQueryStatus eqs = enricher.getQueryStatus(id);
+            if (eqs ==  null){
                 Response.status(410).build();
             }
-            EnrichmentQueryStatus eqs = new EnrichmentQueryStatus(eqr);
             return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(eqs)).build();
-
         }
         catch(Exception ex){
             ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
@@ -216,9 +215,14 @@ public class Enrichment {
     public Response getOverlayNetwork(@PathParam("id") final String id, @Parameter(description="UUID of database") @QueryParam("databaseUUID") final String databaseUUID,
             @Parameter(description="UUID of network", required = true) @QueryParam("networkUUID") final String networkUUID) {
         ObjectMapper omappy = new ObjectMapper();
-
+        InputStream in = null;
         try {
-            return Response.status(202).header("Location","someurl needs to go here").build();
+            EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
+            in = enricher.getNetworkOverlayAsCX(id, databaseUUID, networkUUID);
+            if (in == null){
+                Response.status(410).build();
+            }
+            return Response.ok().type(MediaType.APPLICATION_JSON).entity(in).build();
         }
         catch(Exception ex){
             ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
@@ -229,6 +233,19 @@ public class Enrichment {
                 return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
             }
         }
+        /**
+         * @TODO CHECK INTO THIS CAUSE IF I INCLUDE A CLOSE THIS DOESNT WORK
+        finally {
+            if (in != null){
+                try {
+                    in.close();
+                }
+                catch(IOException io){
+                    logger.error("caught exception trying to close stream", io);
+                }
+            }
+        }
+        */
     }
     
 }
