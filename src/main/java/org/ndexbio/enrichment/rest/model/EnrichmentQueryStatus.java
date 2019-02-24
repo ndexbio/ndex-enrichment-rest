@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.ndexbio.enrichment.rest.model;
 
 /**
@@ -25,10 +20,38 @@ public class EnrichmentQueryStatus {
     public EnrichmentQueryStatus(){
         
     }
+    
+    /**
+     * Creates new {@link #EnrichmentQueryStatus} object setting {@link #getStartTime() }
+     * to {@code startTime} passed into this method.
+     * @param startTime Current time in milliseconds, usually set with value from {@link java.lang.System.currentTimeMillis()}
+     */
     public EnrichmentQueryStatus(long startTime){
         _startTime = startTime;
     }
+    
+    /**
+     * Creates new {@link #EnrichmentQueryStatus} by copying data
+     * from {@code eqr} passed in
+     * @param eqr {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResults} to copy from
+     */
+    public EnrichmentQueryStatus(EnrichmentQueryResults eqr){
+        if (eqr == null){
+            return;
+        }
+        _status = eqr.getStatus();
+        _message = eqr.getMessage();
+        _progress = eqr.getProgress();
+        _wallTime = eqr.getWallTime();
+        _startTime = eqr.getStartTime();
+    }
  
+    /**
+     * Updates start time with value from {@code eqs} passed in if that
+     * time is greater then the time in this object.
+     * @param eqs
+     * @return Returns this object
+     */
     public EnrichmentQueryStatus updateStartTime(EnrichmentQueryStatus eqs){
         if (eqs == null){
             return this;
