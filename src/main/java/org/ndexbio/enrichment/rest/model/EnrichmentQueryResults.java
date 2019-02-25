@@ -25,6 +25,22 @@ public class EnrichmentQueryResults extends EnrichmentQueryStatus {
         super(startTime);
     }
     
+    /**
+     * Copy constructor that copies the {@code eqr} data with exception of the
+     * {@link #getResults()} data. That is set to value of {@code results} parameter
+     * passed in.
+     * @param eqr {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResults} to copy data from
+     * @param results List of {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult} 
+     *        to set as results for this object
+     */
+    public EnrichmentQueryResults(EnrichmentQueryResults eqr, List<EnrichmentQueryResult> results){
+        super(eqr);
+        this._numberOfHits = eqr.getNumberOfHits();
+        this._start = eqr.getStart();
+        this._size = eqr.getSize();
+        _results = results;
+    }
+    
     public EnrichmentQueryResults updateStartTime(EnrichmentQueryResults eqs) {
         super.updateStartTime(eqs);
         return this;
