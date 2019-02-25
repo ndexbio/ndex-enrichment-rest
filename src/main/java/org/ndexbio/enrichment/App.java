@@ -180,6 +180,7 @@ public class App {
         NdexRestClientModelAccessLayer client = config.getNDExClient();
         InternalDatabaseResults idr = config.getNDExDatabases();
         ObjectMapper mappy = new ObjectMapper();
+        Set<String> universeUniqueGeneSet = new HashSet<>();
         List<InternalGeneMap> geneMapList = new LinkedList<InternalGeneMap>();
         Map<String, Integer> databaseUniqueGeneCount = new HashMap<>();
         for (DatabaseResult dr : idr.getResults()){
@@ -199,10 +200,12 @@ public class App {
                 updateGeneMap(network, ns.getExternalId().toString(), geneMap,
                         uniqueGeneSet);
             }
+            universeUniqueGeneSet.addAll(uniqueGeneSet);
             geneMapList.add(geneMap);
             databaseUniqueGeneCount.put(dr.getUuid(), uniqueGeneSet.size());
             uniqueGeneSet.clear();
         }
+        idr.setUniverseUniqueGeneCount(universeUniqueGeneSet.size());
         idr.setDatabaseUniqueGeneCount(databaseUniqueGeneCount);
         idr.setGeneMapList(geneMapList);
         _logger.debug("Attempting to write: " + config.getDatabaseResultsFile().getAbsolutePath());
