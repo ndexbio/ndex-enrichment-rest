@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -34,6 +35,8 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
+import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
+import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.NdexException;
 
@@ -55,6 +58,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     private String _dbDir;
     private String _taskDir;
     private boolean _shutdown;
+    private EnrichmentQueryResultByPvalue _pvalueComparator;
     
     /**
      * This should be a map of <query UUID> => EnrichmentQuery object
@@ -89,6 +93,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         _queryResults = new ConcurrentHashMap<>();
         _databaseResults = new AtomicReference<>();
         _queryTaskIds = new ConcurrentLinkedQueue<>();
+        _pvalueComparator = new EnrichmentQueryResultByPvalue();
     }
     
     /**
@@ -272,6 +277,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     protected String getEnrichmentQueryResultsFilePath(final String id){
         return this._taskDir + File.separator + id + File.separator + BasicEnrichmentEngineImpl.EQR_JSON_FILE;
     }
+
     protected void saveEnrichmentQueryResultsToFilesystem(final String id){
         EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDb(id);
         if (eqr == null){
@@ -328,7 +334,23 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             annotateAndSaveNetwork(destFile, cxNetwork, eqr);
             eqrList.add(eqr);
         }
+        sortEnrichmentQueryResultByPvalueAndRank(eqrList);
         return eqrList;
+    }
+    
+    /**
+     * Sorts in place list of {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult}
+     * by pvalue and sets the rank starting from 0 for each object based on sorting
+     * with lowest pvalue having highest rank which in this case is 0.
+     * @param eqrList list of {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult} objects to sort by 
+     *                        {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult#getpValue()}
+     */
+    protected void sortEnrichmentQueryResultByPvalueAndRank(List<EnrichmentQueryResult> eqrList){
+        Collections.sort(eqrList, _pvalueComparator);
+        int rank = 0;
+        for(EnrichmentQueryResult eqr : eqrList){
+            eqr.setRank(rank++);
+        }
     }
     
     public void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
@@ -367,8 +389,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
      * @param numGenesMatch
      * @return 
      */
-    protected double getPvalue(int totalGenesInNetwork, int numberGenesInQuery, int numGenesMatch){
-        HypergeometricDistribution hd = new HypergeometricDistribution(2500, 
+    protected double getPvalue(int totalGenesInUniverse, int totalGenesInNetwork, int numberGenesInQuery, int numGenesMatch){
+        HypergeometricDistribution hd = new HypergeometricDistribution(totalGenesInUniverse, 
                                                                        totalGenesInNetwork, numberGenesInQuery);
         return ((double)1.0 - hd.cumulativeProbability(numGenesMatch));
     }
@@ -378,8 +400,10 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         eqr.setEdges(cxNetwork.getEdges().size());
         eqr.setDescription(cxNetwork.getNetworkName());
         int numHitGenes = eqr.getHitGenes().size();
-        eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)numGenesInQuery)*(float)100));
-        eqr.setpValue(getPvalue(eqr.getNodes(), numGenesInQuery, numHitGenes));
+        InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
+        int totalGenesInUniverse = idr.getDatabaseUniqueGeneCount().get(eqr.getDatabaseUUID());
+        eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)eqr.getEdges())*(float)100));
+        eqr.setpValue(getPvalue(totalGenesInUniverse, eqr.getNodes(), numGenesInQuery, numHitGenes));
     }
     
     protected NiceCXNetwork getNetwork(final String databaseUUID, final String networkUUID){
@@ -449,10 +473,42 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         return _databaseResults.get();
     }
     
+    /**
+     * Returns
+     * @param id Id of the query. 
+     * @param start starting index to return from. Starting index is 0.
+     * @param size Number of results to return. If 0 means all from starting index so
+     *             to get all set both {@code start} and {@code size} to 0.
+     * @return {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResults} object
+     *         or null if no result could be found. 
+     * @throws EnrichmentException If there was an error getting the results
+     */
     @Override
     public EnrichmentQueryResults getQueryResults(String id, int start, int size) throws EnrichmentException {
         EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDbOrFilesystem(id);
-        return eqr;
+        if (start < 0){
+            throw new EnrichmentException("start parameter must be value of 0 or greater");
+        }
+        if (size < 0){
+            throw new EnrichmentException("size parameter must be value of 0 or greater");
+        }
+
+        if (start == 0 && size == 0){
+            return eqr;
+        }
+        List<EnrichmentQueryResult> eqrSubList = new LinkedList<>();
+        int numElementsAdded = 0;
+        for (EnrichmentQueryResult element : eqr.getResults()){
+            if (element.getRank() < start){
+                continue;
+            }
+            eqrSubList.add(element);
+            numElementsAdded++;
+            if (numElementsAdded >= size){
+                break;
+            }
+        }
+        return new EnrichmentQueryResults(eqr, eqrSubList);
     }
 
     @Override
