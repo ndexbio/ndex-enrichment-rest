@@ -400,9 +400,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         eqr.setEdges(cxNetwork.getEdges().size());
         eqr.setDescription(cxNetwork.getNetworkName());
         int numHitGenes = eqr.getHitGenes().size();
+        eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)eqr.getNodes())*(float)100));
         InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
-        int totalGenesInUniverse = idr.getDatabaseUniqueGeneCount().get(eqr.getDatabaseUUID());
-        eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)eqr.getEdges())*(float)100));
+        int totalGenesInUniverse = idr.getUniverseUniqueGeneCount();
         eqr.setpValue(getPvalue(totalGenesInUniverse, eqr.getNodes(), numGenesInQuery, numHitGenes));
     }
     
