@@ -6,12 +6,16 @@
 package org.ndexbio.enrichment;
 
 
+import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Properties;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,7 +30,10 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
-import org.ndexbio.cxio.core.NdexCXNetworkWriter;
+import org.eclipse.jetty.util.RolloverFileOutputStream;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,10 +62,12 @@ public class App {
     public static final String CREATEDB_MODE = "createdb";
     public static final String EXAMPLE_CONF_MODE = "exampleconf";
     public static final String EXAMPLE_DBRES_MODE = "exampledbresults";
+    public static final String RUNSERVER_MODE = "runserver";
     
     public static final String SUPPORTED_MODES = CREATEDB_MODE +
                                                     ", " + EXAMPLE_CONF_MODE +
-                                                    ", " + EXAMPLE_DBRES_MODE;
+                                                    ", " + EXAMPLE_DBRES_MODE +
+                                                    ", " + RUNSERVER_MODE;
     
     public static void main(String[] args){
 
@@ -116,11 +125,48 @@ public class App {
                 return;
             }
             
+            if (mode.equals(RUNSERVER_MODE)){
+                Configuration.setAlternateConfigurationFile(optionSet.valueOf(CONF).toString());
+                Properties props = getPropertiesFromConf(optionSet.valueOf(CONF).toString());
+                ch.qos.logback.classic.Logger rootLog = 
+        		(ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+		rootLog.setLevel(Level.INFO);
+                String logDir = props.getProperty("runserver.log.dir", "enrich_yyyy_mm_dd.log");
+                RolloverFileOutputStream os = new RolloverFileOutputStream(logDir + File.separator + "enrich_yyyy_mm_dd.log", true);
+		
+		//We are creating a print stream based on our RolloverFileOutputStream
+		PrintStream logStream = new PrintStream(os);
+
+		//We are redirecting system out and system error to our print stream.
+		System.setOut(logStream);
+		System.setErr(logStream);
+                final int port = Integer.valueOf(props.getProperty("runserver.port", "8080"));
+                final Server server = new Server(port);
+
+                WebAppContext context = new WebAppContext();
+                context.setContextPath("/");
+
+                context.setWar(props.getProperty("runserver.war"));
+                server.setHandler(context);
+                server.start();
+                Log.getRootLogger().info("Embedded Jetty logging started.", new Object[]{});
+	    
+                System.out.println("Server started on port " + port);
+                server.join();
+                return;
+            }
+            
         }
         catch(Exception ex){
             ex.printStackTrace();
         }
 
+    }
+    
+    public static Properties getPropertiesFromConf(final String path) throws IOException, FileNotFoundException {
+        Properties props = new Properties();
+        props.load(new FileInputStream(path));
+        return props;
     }
     
     /**
