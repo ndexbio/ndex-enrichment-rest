@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+import javax.naming.InitialContext;
 import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
 import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
@@ -152,10 +153,20 @@ public class Configuration {
     	if ( INSTANCE == null)  { 
             
             try {
-                String configPath = System.getenv(Configuration.NDEX_ENRICH_CONFIG);
+                String configPath = null;
+                try {
+                    configPath = System.getenv(Configuration.NDEX_ENRICH_CONFIG);
+                } catch(SecurityException se){
+                    _logger.error("Caught security exception ", se);
+                }
                 if (_alternateConfigurationFile != null){
                     configPath = _alternateConfigurationFile;
                     _logger.info("Alternate configuration path specified: " + configPath);
+                }
+                if (configPath == null){
+                    InitialContext ic = new InitialContext();
+                    configPath = (String) ic.lookup("java:comp/env/" + Configuration.NDEX_ENRICH_CONFIG); 
+
                 }
                 INSTANCE = new Configuration(configPath);
             } catch (Exception ex) {
