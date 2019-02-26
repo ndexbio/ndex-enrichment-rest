@@ -20,12 +20,14 @@ Requirements
 * [Java][java] 8+ **(jdk to build)**
 
 
-Running 
-=======
+Usage 
+=====
 
 
-Building NDEx Enrichment REST Service manually  
-==============================================
+
+
+Building NDEx Enrichment REST Service  
+=====================================
 
 NDEx Enrichment REST Service build requirements:
 
@@ -34,7 +36,7 @@ NDEx Enrichment REST Service build requirements:
 * [Maven][maven] 3.0 or higher **(to build)**
 
 
-Commands build Probability Map Viewer assuming machine has [Git][git] command line tools 
+Commands build NDEx Enrichment REST Service assuming machine has [Git][git] command line tools 
 installed:
 
 ```Bash
@@ -47,11 +49,16 @@ mvn clean test install
 # to try out locally run
 mvn jetty:run
 
-# then visit http://localhost:8080/test on your browser
+# or to directly run the war
+make runwar
+
+# then visit http://localhost:8080/enrichment/status on your browser
 ```
 
 The above command will create a jar file under **target/** named 
-**ndex-enrichment-rest-\<VERSION\>.war**
+**ndex-enrichment-rest.war** as well as a command line application 
+named **ndex-enrichment-rest-\<VERSION\>-jar-with-dependencies.jar**
+
 
 
 
