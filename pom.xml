@@ -22,7 +22,7 @@
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.6</commons-io.version>
-        <ndex-object-model.version>2.4.0</ndex-object-model.version>
+        <ndex-object-model.version>2.4.1a1</ndex-object-model.version>
         <ndex-java-client.version>2.4.0</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
@@ -229,6 +229,7 @@
                   <webApp>
                     <contextPath>/</contextPath>
                   </webApp>
+                  <war>${project.basedir}/target/ndex-enrichment-rest.war</war>
                 </configuration>
             </plugin>
             <plugin>
