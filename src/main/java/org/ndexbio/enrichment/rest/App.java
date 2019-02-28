@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.ndexbio.enrichment;
+package org.ndexbio.enrichment.rest;
 
 
 import ch.qos.logback.classic.Level;
@@ -38,7 +38,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Properties;
 import javax.naming.InitialContext;
 import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
-import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.rest.client.NdexRestClient;

@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.ndexbio</groupId>
+    <groupId>org.ndexbio.enrichment</groupId>
     <artifactId>ndex-enrichment-rest</artifactId>
     <version>0.1.0</version>
     <packaging>war</packaging>
@@ -23,6 +23,7 @@
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.6</commons-io.version>
         <ndex-object-model.version>2.4.1a1</ndex-object-model.version>
+        <ndex-enrichment-rest-model.version>0.1.0</ndex-enrichment-rest-model.version>
         <ndex-java-client.version>2.4.0</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
@@ -63,6 +64,11 @@
             <groupId>org.ndexbio</groupId>
             <artifactId>ndex-object-model</artifactId>
             <version>${ndex-object-model.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ndexbio.enrichment.rest.model</groupId>
+            <artifactId>ndex-enrichment-rest-model</artifactId>
+            <version>${ndex-enrichment-rest-model.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -294,7 +300,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.ndexbio.enrichment.App</mainClass>
+                            <mainClass>org.ndexbio.enrichment.rest.App</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

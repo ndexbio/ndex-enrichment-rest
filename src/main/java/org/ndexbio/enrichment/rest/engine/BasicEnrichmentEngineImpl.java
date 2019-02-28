@@ -28,7 +28,7 @@ import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.core.NdexCXNetworkWriter;
 import org.ndexbio.cxio.core.writers.NiceCXNetworkWriter;
-import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;

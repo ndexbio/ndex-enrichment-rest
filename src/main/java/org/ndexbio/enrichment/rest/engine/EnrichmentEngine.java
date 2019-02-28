@@ -6,7 +6,7 @@
 package org.ndexbio.enrichment.rest.engine;
 
 import java.io.InputStream;
-import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;

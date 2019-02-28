@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
-import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
