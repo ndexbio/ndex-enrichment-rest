@@ -27,7 +27,7 @@ import org.apache.commons.math3.distribution.HypergeometricDistribution;
 import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.core.NdexCXNetworkWriter;
-import org.ndexbio.cxio.core.writers.FullCXNiceCXNetworkWriter;
+import org.ndexbio.cxio.core.writers.NiceCXNetworkWriter;
 import org.ndexbio.enrichment.rest.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
@@ -370,7 +370,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             _logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
             cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
             NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(fos, false);
-            FullCXNiceCXNetworkWriter writer = new FullCXNiceCXNetworkWriter(ndexwriter);
+            NiceCXNetworkWriter writer = new NiceCXNetworkWriter(ndexwriter);
             writer.writeNiceCXNetwork(cxNetwork);
             
         }
