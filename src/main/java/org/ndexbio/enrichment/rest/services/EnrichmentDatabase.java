@@ -21,7 +21,7 @@ import org.ndexbio.enrichment.rest.model.ErrorResponse;
  * Returns status of Server
  * @author churas
  */
-@Path("/enrichment")
+@Path("/")
 public class EnrichmentDatabase {
     
     static Logger logger = LoggerFactory.getLogger(EnrichmentDatabase.class);

@@ -154,14 +154,15 @@ public class Configuration {
             
             try {
                 String configPath = null;
-                try {
-                    configPath = System.getenv(Configuration.NDEX_ENRICH_CONFIG);
-                } catch(SecurityException se){
-                    _logger.error("Caught security exception ", se);
-                }
                 if (_alternateConfigurationFile != null){
                     configPath = _alternateConfigurationFile;
                     _logger.info("Alternate configuration path specified: " + configPath);
+                } else {
+                    try {
+                        configPath = System.getenv(Configuration.NDEX_ENRICH_CONFIG);
+                    } catch(SecurityException se){
+                        _logger.error("Caught security exception ", se);
+                    }
                 }
                 if (configPath == null){
                     InitialContext ic = new InitialContext();

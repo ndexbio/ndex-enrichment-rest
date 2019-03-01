@@ -77,7 +77,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
      */
     private ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>> _databases;
     
-    private AtomicReference<DatabaseResults> _databaseResults;
+    private AtomicReference<InternalDatabaseResults> _databaseResults;
     private NdexRestClientModelAccessLayer _client;
     
     private long _threadSleep = 10;
@@ -160,7 +160,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         geneSet.addAll(networkIds);
     }
     
-    public void setDatabaseResults(DatabaseResults dr){
+    public void setDatabaseResults(InternalDatabaseResults dr){
         _databaseResults.set(dr);
     }
 
@@ -470,7 +470,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 
     @Override
     public DatabaseResults getDatabaseResults() throws EnrichmentException {
-        return _databaseResults.get();
+        return new DatabaseResults(this._databaseResults.get());
     }
     
     /**

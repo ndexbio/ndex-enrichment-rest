@@ -23,7 +23,7 @@ import org.ndexbio.enrichment.rest.model.ServerStatus;
  * Returns status of Server
  * @author churas
  */
-@Path("/enrichment")
+@Path("/")
 public class Status {
     
     static Logger _logger = LoggerFactory.getLogger(Status.class);

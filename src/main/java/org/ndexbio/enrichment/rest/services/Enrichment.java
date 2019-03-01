@@ -34,7 +34,7 @@ import org.ndexbio.enrichment.rest.model.Task;
  * Returns status of Server
  * @author churas
  */
-@Path("/enrichment")
+@Path("/")
 public class Enrichment {
     
     static Logger logger = LoggerFactory.getLogger(Enrichment.class);
@@ -73,7 +73,7 @@ public class Enrichment {
             String id = enricher.query(query);
             Task t = new Task();
             t.setId(id);
-            return Response.status(202).location(new URI("enrichment/" + id)).entity(omappy.writeValueAsString(t)).build();
+            return Response.status(202).location(new URI("/" + id)).entity(omappy.writeValueAsString(t)).build();
         } catch(Exception ex){
             ErrorResponse er = new ErrorResponse("Error requesting enrichment: " + ex.getMessage(), ex);
             
