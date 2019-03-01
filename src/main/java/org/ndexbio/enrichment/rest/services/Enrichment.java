@@ -65,12 +65,16 @@ public class Enrichment {
                                 schema = @Schema(implementation = ErrorResponse.class)))
                })
     public Response requestEnrichment(@RequestBody(description="Query", required = true,
-                                                   content = @Content(schema = @Schema(implementation = EnrichmentQuery.class))) final EnrichmentQuery query) {
+                                                   content = @Content(schema = @Schema(implementation = EnrichmentQuery.class))) final String query) {
         ObjectMapper omappy = new ObjectMapper();
 
         try {
+            // not sure why but I cannot get resteasy and jackson to worktogether to
+            // automatically translate json to Query class so I'm doing it after the
+            // fact
+            EnrichmentQuery pQuery = omappy.readValue(query, EnrichmentQuery.class);
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
-            String id = enricher.query(query);
+            String id = enricher.query(pQuery);
             Task t = new Task();
             t.setId(id);
             return Response.status(202).location(new URI("/" + id)).entity(omappy.writeValueAsString(t)).build();
