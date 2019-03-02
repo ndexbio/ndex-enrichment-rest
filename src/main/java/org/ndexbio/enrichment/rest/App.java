@@ -28,12 +28,15 @@ import java.util.UUID;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.eclipse.jetty.server.Handler;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,7 @@ import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
 import org.ndexbio.enrichment.rest.services.Configuration;
+import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -57,6 +61,21 @@ public class App {
     
     static Logger _logger = LoggerFactory.getLogger(App.class);
 
+    /**
+     * Sets log directory for embedded Jetty
+     */
+    public static final String RUNSERVER_LOGDIR = "runserver.log.dir";
+    
+    /**
+     * Sets port for embedded Jetty
+     */
+    public static final String RUNSERVER_PORT = "runserver.port";
+        
+    /**
+     * Sets context path for embedded Jetty
+     */
+    public static final String RUNSERVER_CONTEXTPATH = "runserver.contextpath";
+    
     public static final String MODE = "mode";
     public static final String CONF = "conf";    
     public static final String CREATEDB_MODE = "createdb";
@@ -131,23 +150,40 @@ public class App {
                 ch.qos.logback.classic.Logger rootLog = 
         		(ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 		rootLog.setLevel(Level.INFO);
-                String logDir = props.getProperty("runserver.log.dir", "enrich_yyyy_mm_dd.log");
-                RolloverFileOutputStream os = new RolloverFileOutputStream(logDir + File.separator + "enrich_yyyy_mm_dd.log", true);
+                String logDir = props.getProperty(App.RUNSERVER_LOGDIR, ".");
+                RolloverFileOutputStream os = new RolloverFileOutputStream(logDir + File.separator + "ndexenrich_yyyy_mm_dd.log", true);
 		
-		//We are creating a print stream based on our RolloverFileOutputStream
+		
+                final int port = Integer.valueOf(props.getProperty(App.RUNSERVER_PORT, "8081"));
+                System.out.println("\nSpinning up server for status invoke: http://localhost:" + Integer.toString(port) + "/status\n\n");
+                System.out.flush();
+                
+                //We are creating a print stream based on our RolloverFileOutputStream
 		PrintStream logStream = new PrintStream(os);
 
-		//We are redirecting system out and system error to our print stream.
+                //We are redirecting system out and system error to our print stream.
 		System.setOut(logStream);
 		System.setErr(logStream);
-                final int port = Integer.valueOf(props.getProperty("runserver.port", "8080"));
+
                 final Server server = new Server(port);
 
-                WebAppContext context = new WebAppContext();
-                context.setContextPath("/");
-
-                context.setWar(props.getProperty("runserver.war"));
-                server.setHandler(context);
+                final ServletContextHandler webappContext = new ServletContextHandler(server, props.getProperty(App.RUNSERVER_CONTEXTPATH, "/"));
+                
+                HashMap<String, String> initMap = new HashMap<>();
+                initMap.put("resteasy.servlet.mapping.prefix", "/");
+                initMap.put("javax.ws.rs.Application", "org.ndexbio.enrichment.rest.EnrichmentApplication");
+                final ServletHolder restEasyServlet = new ServletHolder(
+                     new EnrichmentHttpServletDispatcher());
+                
+                restEasyServlet.setInitOrder(1);
+                restEasyServlet.setInitParameters(initMap);
+                webappContext.addServlet(restEasyServlet, "/*");
+                
+                ContextHandlerCollection contexts = new ContextHandlerCollection();
+                contexts.setHandlers(new Handler[] { webappContext });
+ 
+                server.setHandler(contexts);
+                
                 server.start();
                 Log.getRootLogger().info("Embedded Jetty logging started.", new Object[]{});
 	    

@@ -5,11 +5,10 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
@@ -45,7 +44,7 @@ public class BasicEnrichmentEngineFactory {
      * Creates EnrichmentEngine
      * @return 
      */
-    public EnrichmentEngine getEnrichmentEngine() throws Exception {
+    public EnrichmentEngine getEnrichmentEngine() throws EnrichmentException {
         BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(_dbDir,
                 _taskDir,_client);
         enricher.setDatabaseResults(_databaseResults);
@@ -58,7 +57,7 @@ public class BasicEnrichmentEngineFactory {
     }
     
     protected void addGeneMapToEnricher(BasicEnrichmentEngineImpl enricher,
-            DatabaseResult dr) throws Exception{
+            DatabaseResult dr) throws EnrichmentException{
         String networkOwner = _databaseResults.getDatabaseAccountOwnerMap().get(dr.getUuid());
         if (networkOwner == null){
             _logger.error("Unable to find account for database: " + dr.getName() + " with uuid: " + dr.getUuid());

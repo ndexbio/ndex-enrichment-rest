@@ -14,6 +14,7 @@ import javax.servlet.ServletException;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.ndexbio.enrichment.rest.engine.BasicEnrichmentEngineFactory;
 import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -30,16 +31,16 @@ public class EnrichmentHttpServletDispatcher extends HttpServletDispatcher {
     private Thread _enrichmentEngineThread;
     
     
-    public EnrichmentHttpServletDispatcher(){
+    public EnrichmentHttpServletDispatcher() throws EnrichmentException{
         super();
         _logger.info("In constructor");
         createAndStartEnrichmentEngine();
     }
     
-    protected void createAndStartEnrichmentEngine() {
-        BasicEnrichmentEngineFactory fac = new BasicEnrichmentEngineFactory(Configuration.getInstance());
+    protected void createAndStartEnrichmentEngine() throws EnrichmentException {
         
         try {
+            BasicEnrichmentEngineFactory fac = new BasicEnrichmentEngineFactory(Configuration.getInstance());
             _logger.debug("Creating Enrichment Engine from factory");
             _enrichmentEngine = fac.getEnrichmentEngine();
             _logger.debug("Starting Enrichment Engine thread");
@@ -48,8 +49,9 @@ public class EnrichmentHttpServletDispatcher extends HttpServletDispatcher {
             _logger.debug("Enrichment Engine thread running id => " + Long.toString(_enrichmentEngineThread.getId()));
             Configuration.getInstance().setEnrichmentEngine(_enrichmentEngine);
         }
-        catch(Exception ex){
+        catch(EnrichmentException ex){
             _logger.error("Unable to start enrichment engine", ex);
+            throw ex;
         }
     }
 

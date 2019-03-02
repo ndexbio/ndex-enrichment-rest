@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
@@ -49,7 +50,7 @@ public class Configuration {
      * Constructor that attempts to get configuration from properties file
      * specified via configPath
      */
-    private Configuration(final String configPath)
+    private Configuration(final String configPath) throws EnrichmentException
     {
         Properties props = new Properties();
         try {
@@ -57,13 +58,18 @@ public class Configuration {
         }
         catch(FileNotFoundException fne){
             _logger.error("No configuration found at " + configPath, fne);
+            throw new EnrichmentException("FileNotFound Exception when attempting to load " 
+                    + configPath + " : " +
+                    fne.getMessage());
         }
         catch(IOException io){
             _logger.error("Unable to read configuration " + configPath, io);
+            throw new EnrichmentException("IOException when trying to read configuration file " + configPath +
+                     " : " + io);
         }
         
         _enrichDatabaseDir = props.getProperty(Configuration.DATABASE_DIR, "/tmp");
-        _enrichTaskDir = props.getProperty(Configuration.TASK_DIR);
+        _enrichTaskDir = props.getProperty(Configuration.TASK_DIR, "/tmp");
         
         _client = getNDExClient(props);
         
@@ -97,6 +103,7 @@ public class Configuration {
     }
 
     public File getDatabaseResultsFile(){
+        
         return new File(getEnrichmentDatabaseDirectory() + File.separator +
                               Configuration.DATABASE_RESULTS_JSON_FILE);
     }
@@ -123,8 +130,8 @@ public class Configuration {
     protected NdexRestClientModelAccessLayer getNDExClient(Properties props){
         
         try {
-            String user = props.getProperty(Configuration.NDEX_USER,"");
-            String pass = props.getProperty(Configuration.NDEX_PASS,"");
+            String user = props.getProperty(Configuration.NDEX_USER, null);
+            String pass = props.getProperty(Configuration.NDEX_PASS, null);
             String server = props.getProperty(Configuration.NDEX_SERVER,"");
             String useragent = props.getProperty(Configuration.NDEX_USERAGENT,"Enrichment");
             NdexRestClient nrc = new NdexRestClient(user, pass, server, useragent);
@@ -146,11 +153,11 @@ public class Configuration {
     /**
      * Gets singleton instance of configuration
      * @return {@link org.ndexbio.enrichment.rest.services.Configuration} object with configuration loaded
-     * @throws EnrichmentException If there was an error reading configuration
+     * @throws EnrichmentException if there was a problem reading the configuration
      */
-    public static Configuration getInstance()
+    public static Configuration getInstance() throws EnrichmentException
     {
-    	if ( INSTANCE == null)  { 
+    	if (INSTANCE == null)  { 
             
             try {
                 String configPath = null;
@@ -170,8 +177,10 @@ public class Configuration {
 
                 }
                 INSTANCE = new Configuration(configPath);
-            } catch (Exception ex) {
+            } catch (NamingException ex) {
                 _logger.error("Error loading configuration", ex);
+                throw new EnrichmentException("NamingException encountered. Error loading configuration: " 
+                         + ex.getMessage());
             }
     	} 
         return INSTANCE;
@@ -180,8 +189,9 @@ public class Configuration {
     /**
      * Reloads configuration
      * @return {@link org.ndexbio.enrichment.rest.services.Configuration} object
+     * @throws EnrichmentException if there was a problem reading the configuration
      */
-    public static Configuration reloadConfiguration()  {
+    public static Configuration reloadConfiguration() throws EnrichmentException  {
         INSTANCE = null;
         return getInstance();
     }
