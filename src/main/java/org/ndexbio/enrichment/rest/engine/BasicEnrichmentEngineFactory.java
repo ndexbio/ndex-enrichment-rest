@@ -55,11 +55,6 @@ public class BasicEnrichmentEngineFactory {
     
     protected void addGeneMapToEnricher(BasicEnrichmentEngineImpl enricher,
             DatabaseResult dr) throws EnrichmentException{
-        String networkOwner = _databaseResults.getDatabaseAccountOwnerMap().get(dr.getUuid());
-        if (networkOwner == null){
-            _logger.error("Unable to find account for database: " + dr.getName() + " with uuid: " + dr.getUuid());
-            return;
-        }
         for (InternalGeneMap igm : _databaseResults.getGeneMapList()){
             if (igm.getDatabaseUUID().equals(dr.getUuid())){
                 // found matching entry

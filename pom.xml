@@ -4,7 +4,7 @@
 
     <groupId>org.ndexbio.enrichment</groupId>
     <artifactId>ndex-enrichment-rest</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <packaging>war</packaging>
 
     <name>NDEx Enrichment REST Service</name>
@@ -187,7 +187,7 @@
         </dependency>
     </dependencies>
     <scm>
-	  <connection>scm:git:https://github.com/coleslaw481/ndex-enrichment-rest.git</connection>
+	  <connection>scm:git:https://github.com/ndexbio/ndex-enrichment-rest.git</connection>
     </scm>
     <build>
         <pluginManagement>

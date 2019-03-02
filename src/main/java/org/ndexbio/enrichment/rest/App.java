@@ -7,7 +7,6 @@ package org.ndexbio.enrichment.rest;
 
 
 import ch.qos.logback.classic.Level;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Properties;
 import java.io.File;
@@ -64,6 +63,8 @@ public class App {
     
     static Logger _logger = LoggerFactory.getLogger(App.class);
 
+    public static final String DESCRIPTION = "\nNDEx Enrichment REST service\n\n"
+            + "For usage information visit:  https://github.com/ndexbio/ndex-enrichment-rest\n\n";
     /**
      * Sets log directory for embedded Jetty
      */
@@ -118,7 +119,7 @@ public class App {
             //help check
             for (String helpArgName : helpArgs) {
                 if (optionSet.has(helpArgName)) {
-                    System.out.println("\n\nHelp\n\n");
+                    System.out.println(DESCRIPTION);
                     parser.printHelpOn(System.out);
                     System.exit(2);
                 }
@@ -229,17 +230,21 @@ public class App {
         drtwo.setUuid(drtwouuid);
         
         InternalDatabaseResults idr = new InternalDatabaseResults();
-        HashMap<String, String> hmap = new HashMap<>();
-        hmap.put(druuid, "signorowner");
-        hmap.put(drtwouuid, "ncipidowner");
-        idr.setDatabaseAccountOwnerMap(hmap);
+        
         idr.setResults(Arrays.asList(dr, drtwo));
         HashMap<String, InternalNdexConnectionParams> ndexParam = new HashMap<>();
         InternalNdexConnectionParams cParam = new InternalNdexConnectionParams();
         cParam.setPassword("somepassword");
         cParam.setUser("bob");
         cParam.setServer("dev.ndexbio.org");
+        cParam.setNetworkOwner("signoruser");
         ndexParam.put(druuid, cParam);
+        
+        cParam = new InternalNdexConnectionParams();
+        cParam.setPassword("somepassword");
+        cParam.setUser("bob");
+        cParam.setServer("dev.ndexbio.org");
+        cParam.setNetworkOwner("ncipiduser");
         ndexParam.put(drtwouuid, cParam);
         idr.setDatabaseConnectionMap(ndexParam);
         ObjectMapper mappy = new ObjectMapper();
@@ -255,16 +260,20 @@ public class App {
         sb.append("# Example configuration file for Enrichment service\n\n");
         
         sb.append("# Sets Enrichment database directory\n");
-        sb.append(Configuration.DATABASE_DIR + " = /tmp\n\n");
+        sb.append(Configuration.DATABASE_DIR + " = /tmp/db\n\n");
         
         sb.append("# Sets Enrichment task directory where results from queries are stored\n");
         sb.append(Configuration.TASK_DIR + " = /tmp/tasks\n\n");
+        
+        sb.append("# Sets directory where log files will be written for Jetty web server\n");
+        sb.append(App.RUNSERVER_LOGDIR + " = /tmp/logs\n\n");
+        
+        sb.append("# Sets port Jetty web service will be run under\n");
+        sb.append(App.RUNSERVER_PORT + " = 8081\n\n");
+        
+        sb.append("# sets Jetty Context Path for Enrichment\n");
+        sb.append(App.RUNSERVER_CONTEXTPATH + " = /\n\n");
 
-        sb.append(Configuration.DATABASE_RESULTS_JSON_FILE+ " = databaseresults.json\n");
-        sb.append(Configuration.NDEX_USER+ " = bob\n");
-        sb.append(Configuration.NDEX_PASS+ " = somepassword\n");
-        sb.append(Configuration.NDEX_SERVER+ " = public.ndexbio.org\n");
-        sb.append(Configuration.NDEX_USERAGENT+ " = Enrichment/1.0\n");
         return sb.toString();
     }
     
@@ -285,16 +294,17 @@ public class App {
             _logger.debug("Downloading networks for: " + dr.getName());
             InternalGeneMap geneMap = new InternalGeneMap();
             geneMap.setDatabaseUUID(dr.getUuid());
-            String networkOwner = idr.getDatabaseAccountOwnerMap().get(dr.getUuid());
             
-            _logger.debug("Owner for maps is: " + networkOwner);
+            InternalNdexConnectionParams cParams = idr.getDatabaseConnectionMap().get(dr.getUuid());
+            
+            _logger.debug("Owner for maps is: " + cParams.getNetworkOwner());
             File databasedir = new File(config.getEnrichmentDatabaseDirectory() + File.separator + dr.getUuid());
             if (databasedir.isDirectory() == false){
                 _logger.debug("Creating directory " + databasedir.getAbsolutePath());
                 databasedir.mkdirs();
             }
-            NdexRestClientModelAccessLayer client = getNdexClient(idr.getDatabaseConnectionMap().get(dr.getUuid()));
-            NetworkSearchResult nrs = client.findNetworks("", networkOwner, 0, 0);
+            NdexRestClientModelAccessLayer client = getNdexClient(cParams);
+            NetworkSearchResult nrs = client.findNetworks("", cParams.getNetworkOwner(), 0, 0);
             _logger.debug("Found " + nrs.getNumFound() + " networks");
             Set<String> uniqueGeneSet = new HashSet<>();
             for (NetworkSummary ns :  nrs.getNetworks()){
