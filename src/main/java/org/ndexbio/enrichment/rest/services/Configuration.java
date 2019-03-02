@@ -11,9 +11,6 @@ import javax.naming.NamingException;
 import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
-import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.rest.client.NdexRestClient;
-import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +39,6 @@ public class Configuration {
     private static Configuration INSTANCE;
     private static final Logger _logger = LoggerFactory.getLogger(Configuration.class);
     private static String _alternateConfigurationFile;
-    private static NdexRestClientModelAccessLayer _client;
     private static EnrichmentEngine _enrichmentEngine;
     private static String _enrichDatabaseDir;
     private static String _enrichTaskDir;
@@ -70,15 +66,9 @@ public class Configuration {
         
         _enrichDatabaseDir = props.getProperty(Configuration.DATABASE_DIR, "/tmp");
         _enrichTaskDir = props.getProperty(Configuration.TASK_DIR, "/tmp");
-        
-        _client = getNDExClient(props);
-        
+                
     }
-    
-    public NdexRestClientModelAccessLayer getNDExClient(){
-        return _client;
-    }
-    
+        
     protected void setEnrichmentEngine(EnrichmentEngine ee){
         _enrichmentEngine = ee;
     }
@@ -119,33 +109,6 @@ public class Configuration {
         }
         catch(IOException io){
             _logger.error("caught io exception trying to load " + dbres.getAbsolutePath(), io);
-        }
-        return null;
-    }
-
-    /**
-     * Using configuration create 
-     * @return ndex client
-     */
-    protected NdexRestClientModelAccessLayer getNDExClient(Properties props){
-        
-        try {
-            String user = props.getProperty(Configuration.NDEX_USER, null);
-            String pass = props.getProperty(Configuration.NDEX_PASS, null);
-            String server = props.getProperty(Configuration.NDEX_SERVER,"");
-            String useragent = props.getProperty(Configuration.NDEX_USERAGENT,"Enrichment");
-            NdexRestClient nrc = new NdexRestClient(user, pass, server, useragent);
-            _client = new NdexRestClientModelAccessLayer(nrc);
-            return _client;
-        }
-        catch(JsonProcessingException jpe){
-            _logger.error("Caught exception", jpe);
-        }
-        catch(IOException io){
-            _logger.error("Caught exception", io);
-        }
-        catch(NdexException ne){
-            _logger.error("caught exception", ne);
         }
         return null;
     }

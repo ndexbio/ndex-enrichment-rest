@@ -10,7 +10,6 @@ import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.services.Configuration;
-import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +23,6 @@ public class BasicEnrichmentEngineFactory {
 
     private String _dbDir;
     private String _taskDir;
-    private NdexRestClientModelAccessLayer _client;
     private InternalDatabaseResults _databaseResults;
     
     /**
@@ -36,7 +34,6 @@ public class BasicEnrichmentEngineFactory {
         _dbDir = config.getEnrichmentDatabaseDirectory();
         _taskDir = config.getEnrichmentTaskDirectory();
         _databaseResults = config.getNDExDatabases();
-        _client = config.getNDExClient();
     }
     
     
@@ -46,7 +43,7 @@ public class BasicEnrichmentEngineFactory {
      */
     public EnrichmentEngine getEnrichmentEngine() throws EnrichmentException {
         BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(_dbDir,
-                _taskDir,_client);
+                _taskDir);
         enricher.setDatabaseResults(_databaseResults);
         for (DatabaseResult dr : _databaseResults.getResults()){
             _logger.debug("Loading: " + dr.getName());

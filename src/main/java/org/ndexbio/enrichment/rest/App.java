@@ -7,6 +7,7 @@ package org.ndexbio.enrichment.rest;
 
 
 import ch.qos.logback.classic.Level;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Properties;
 import java.io.File;
@@ -45,11 +46,13 @@ import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
+import org.ndexbio.enrichment.rest.model.InternalNdexConnectionParams;
 import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.client.NdexRestClientUtilities;
 
@@ -231,6 +234,14 @@ public class App {
         hmap.put(drtwouuid, "ncipidowner");
         idr.setDatabaseAccountOwnerMap(hmap);
         idr.setResults(Arrays.asList(dr, drtwo));
+        HashMap<String, InternalNdexConnectionParams> ndexParam = new HashMap<>();
+        InternalNdexConnectionParams cParam = new InternalNdexConnectionParams();
+        cParam.setPassword("somepassword");
+        cParam.setUser("bob");
+        cParam.setServer("dev.ndexbio.org");
+        ndexParam.put(druuid, cParam);
+        ndexParam.put(drtwouuid, cParam);
+        idr.setDatabaseConnectionMap(ndexParam);
         ObjectMapper mappy = new ObjectMapper();
         
         return mappy.writerWithDefaultPrettyPrinter().writeValueAsString(idr);
@@ -256,32 +267,44 @@ public class App {
         sb.append(Configuration.NDEX_USERAGENT+ " = Enrichment/1.0\n");
         return sb.toString();
     }
-
+    
+    public static NdexRestClientModelAccessLayer getNdexClient(InternalNdexConnectionParams params) throws Exception {
+        NdexRestClient nrc = new NdexRestClient(params.getUser(), params.getPassword(), 
+                params.getServer(), "Enrichment/0.1.0");
+        
+        return new NdexRestClientModelAccessLayer(nrc);
+    }
     public static void downloadNetworks() throws Exception {
         Configuration config = Configuration.getInstance();
-        NdexRestClientModelAccessLayer client = config.getNDExClient();
         InternalDatabaseResults idr = config.getNDExDatabases();
         ObjectMapper mappy = new ObjectMapper();
         Set<String> universeUniqueGeneSet = new HashSet<>();
         List<InternalGeneMap> geneMapList = new LinkedList<InternalGeneMap>();
         Map<String, Integer> databaseUniqueGeneCount = new HashMap<>();
         for (DatabaseResult dr : idr.getResults()){
+            _logger.debug("Downloading networks for: " + dr.getName());
             InternalGeneMap geneMap = new InternalGeneMap();
             geneMap.setDatabaseUUID(dr.getUuid());
             String networkOwner = idr.getDatabaseAccountOwnerMap().get(dr.getUuid());
+            
+            _logger.debug("Owner for maps is: " + networkOwner);
             File databasedir = new File(config.getEnrichmentDatabaseDirectory() + File.separator + dr.getUuid());
             if (databasedir.isDirectory() == false){
                 _logger.debug("Creating directory " + databasedir.getAbsolutePath());
                 databasedir.mkdirs();
             }
+            NdexRestClientModelAccessLayer client = getNdexClient(idr.getDatabaseConnectionMap().get(dr.getUuid()));
             NetworkSearchResult nrs = client.findNetworks("", networkOwner, 0, 0);
+            _logger.debug("Found " + nrs.getNumFound() + " networks");
             Set<String> uniqueGeneSet = new HashSet<>();
             for (NetworkSummary ns :  nrs.getNetworks()){
                 _logger.debug(ns.getName() + " Nodes => " + Integer.toString(ns.getNodeCount()) + " Edges => " + Integer.toString(ns.getEdgeCount()));
-                NiceCXNetwork network = saveNetwork(ns.getExternalId(), databasedir);
+                NiceCXNetwork network = saveNetwork(client, ns.getExternalId(), databasedir);
                 updateGeneMap(network, ns.getExternalId().toString(), geneMap,
                         uniqueGeneSet);
             }
+            client.getNdexRestClient().signOut();
+
             universeUniqueGeneSet.addAll(uniqueGeneSet);
             geneMapList.add(geneMap);
             databaseUniqueGeneCount.put(dr.getUuid(), uniqueGeneSet.size());
@@ -337,9 +360,8 @@ public class App {
         }
     }
     
-    public static NiceCXNetwork saveNetwork(final UUID networkuuid, final File savedir) throws Exception{
+    public static NiceCXNetwork saveNetwork(NdexRestClientModelAccessLayer client, final UUID networkuuid, final File savedir) throws Exception{
         Configuration config = Configuration.getInstance();
-        NdexRestClientModelAccessLayer client = config.getNDExClient();
         File dest = new File(savedir.getAbsolutePath() + File.separator + networkuuid.toString() + ".cx");
         
         FileOutputStream fos = new FileOutputStream(dest);

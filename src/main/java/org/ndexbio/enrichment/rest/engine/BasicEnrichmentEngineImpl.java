@@ -73,17 +73,14 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     private ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>> _databases;
     
     private AtomicReference<InternalDatabaseResults> _databaseResults;
-    private NdexRestClientModelAccessLayer _client;
     
     private long _threadSleep = 10;
     
     public BasicEnrichmentEngineImpl(final String dbDir,
-            final String taskDir,
-            NdexRestClientModelAccessLayer client){
+            final String taskDir){
         _shutdown = false;
         _dbDir = dbDir;
         _taskDir = taskDir;
-        _client = client;
         _queryTasks = new ConcurrentHashMap<>();
         _queryResults = new ConcurrentHashMap<>();
         _databaseResults = new AtomicReference<>();
@@ -274,6 +271,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             // generate EnrichmentQueryResult from networkMap
             enrichmentResult.addAll(getEnrichmentQueryResultObjectsFromNetworkMap(taskDir, dbres, networkMap, uniqueGeneList));
         }
+        sortEnrichmentQueryResultByPvalueAndRank(enrichmentResult);
 
         // combine all EnrichmentQueryResults generated above and create
         // EnrichmentQueryResults object and store in _queryResults 
@@ -342,7 +340,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             annotateAndSaveNetwork(destFile, cxNetwork, eqr);
             eqrList.add(eqr);
         }
-        sortEnrichmentQueryResultByPvalueAndRank(eqrList);
         return eqrList;
     }
     

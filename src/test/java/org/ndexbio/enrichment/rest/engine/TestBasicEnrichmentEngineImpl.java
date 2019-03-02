@@ -34,7 +34,7 @@ public class TestBasicEnrichmentEngineImpl {
    
     @Test
     public void testGetUniqueGeneList() throws Exception {
-        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         assertEquals(null, enricher.getUniqueGeneList(null));
         List<String> mylist = new LinkedList<String>();
         assertTrue(enricher.getUniqueGeneList(mylist).isEmpty());
@@ -48,7 +48,7 @@ public class TestBasicEnrichmentEngineImpl {
     
     @Test
     public void testAddGeneToDatabaseViaremapNetworksToGenes(){
-        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         enricher.addGeneToDatabase("db1", "gene", Arrays.asList("network1", "network2"));
         HashMap<String, HashSet<String>> netMap = enricher.remapNetworksToGenes("db1", Arrays.asList("GENE"));
         assertTrue(netMap.containsKey("network1"));
@@ -57,7 +57,7 @@ public class TestBasicEnrichmentEngineImpl {
     
     @Test
     public void testremapNetworksToGenesDatabaseNotFound(){
-        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         enricher.addGeneToDatabase("db1", "gene", Arrays.asList("network1", "network2"));
         assertNull(enricher.remapNetworksToGenes("dbnotfound", Arrays.asList("GENE")));
     }
@@ -215,7 +215,7 @@ public class TestBasicEnrichmentEngineImpl {
     @Test
     public void testQueryNoDatabases(){
         try{
-            BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+            BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
             EnrichmentQuery eq = new EnrichmentQuery();
             enricher.query(eq);
             fail("Expected exception");
@@ -227,7 +227,7 @@ public class TestBasicEnrichmentEngineImpl {
     
     @Test
     public void testQuerySuccess() throws EnrichmentException {
-        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         EnrichmentQuery eq = new EnrichmentQuery();
         eq.setDatabaseList(Arrays.asList("ncipid"));
         eq.setGeneList(Arrays.asList("brca1"));
