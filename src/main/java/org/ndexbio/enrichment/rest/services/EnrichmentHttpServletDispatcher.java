@@ -6,10 +6,9 @@
 package org.ndexbio.enrichment.rest.services;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.ndexbio.enrichment.rest.engine.BasicEnrichmentEngineFactory;
@@ -35,6 +34,7 @@ public class EnrichmentHttpServletDispatcher extends HttpServletDispatcher {
         super();
         _logger.info("In constructor");
         createAndStartEnrichmentEngine();
+
     }
     
     protected void createAndStartEnrichmentEngine() throws EnrichmentException {
@@ -60,7 +60,6 @@ public class EnrichmentHttpServletDispatcher extends HttpServletDispatcher {
         super.init(servletConfig);
         _logger.info("Entering init()");
         updateVersion();
-        
         _logger.info("Exiting init()");
     }
     
@@ -90,29 +89,35 @@ public class EnrichmentHttpServletDispatcher extends HttpServletDispatcher {
      * setting _version and _buildNumber to those values if found.
      */
     private void updateVersion(){
-        ServletContext application = getServletConfig().getServletContext();
-        try(InputStream inputStream = application.getResourceAsStream("/META-INF/MANIFEST.MF")) {
-            if ( inputStream !=null) {
+        String jarPath = EnrichmentHttpServletDispatcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+
+        JarFile jar = null;
+        try {
+            jar = new JarFile(jarPath);
+            Manifest manifest = jar.getManifest();
+           
+            Attributes aa = manifest.getMainAttributes();	
+
+            String ver = aa.getValue("NDExEnrichment-Version");
+            String bui = aa.getValue("NDExEnrichment-Build"); 
+            _logger.info("NDEx-Version: " + ver + ",Build:" + bui);
+            if (_buildNumber != null && _version != null){
+                _buildNumber= bui.substring(0, 5);
+                _version = ver;
+            }
+        } catch (IOException e) {
+            _logger.error("failed to read MANIFEST.MF", e);
+        } finally {
+            
+            if (jar != null){
                 try {
-                    Manifest manifest = new Manifest(inputStream);
-
-                    Attributes aa = manifest.getMainAttributes();	
-
-                    String ver = aa.getValue("NDExEnrichment-Version");
-                    String bui = aa.getValue("NDExEnrichment-Build"); 
-                    _logger.info("NDEx-Version: " + ver + ",Build:" + bui);
-                    _buildNumber= bui.substring(0, 5);
-                    _version = ver;
-                } catch (IOException e) {
-                    _logger.error("failed to read MANIFEST.MF", e);
-                }     
+                    jar.close();
+                } catch(IOException io){
+                    _logger.warn("Not a show stopper, but caught IOException closing jar", io);
+                }
             }
-            else {
-                _logger.error("Unable to get /META-INF/MANIFEST.MF");
-            }
-        } catch (IOException e1) {
-            _logger.error("Failed to close InputStream from MANIFEST.MF", e1);
-        }
+        }   
+        
     }
     
     public static String getVersion(){

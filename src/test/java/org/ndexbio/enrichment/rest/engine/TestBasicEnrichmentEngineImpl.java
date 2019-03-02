@@ -6,13 +6,13 @@
 package org.ndexbio.enrichment.rest.engine;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import org.jboss.resteasy.core.Dispatcher;
 import org.jboss.resteasy.mock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
@@ -44,6 +44,22 @@ public class TestBasicEnrichmentEngineImpl {
         assertEquals(2, enricher.getUniqueGeneList(mylist).size());
         assertTrue(enricher.getUniqueGeneList(mylist).contains("1"));
         assertTrue(enricher.getUniqueGeneList(mylist).contains("2"));
+    }
+    
+    @Test
+    public void testAddGeneToDatabaseViaremapNetworksToGenes(){
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+        enricher.addGeneToDatabase("db1", "gene", Arrays.asList("network1", "network2"));
+        HashMap<String, HashSet<String>> netMap = enricher.remapNetworksToGenes("db1", Arrays.asList("GENE"));
+        assertTrue(netMap.containsKey("network1"));
+        assertTrue(netMap.containsKey("network2"));
+    }
+    
+    @Test
+    public void testremapNetworksToGenesDatabaseNotFound(){
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+        enricher.addGeneToDatabase("db1", "gene", Arrays.asList("network1", "network2"));
+        assertNull(enricher.remapNetworksToGenes("dbnotfound", Arrays.asList("GENE")));
     }
     /**
     @Test

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.ndexbio.enrichment.rest.engine;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -135,10 +130,17 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     }
     
     /**
-     * Adds a gene map to database
-     * @param databaseId
-     * @param gene
-     * @param networkIds 
+     * Adds {@code gene} gene symbol (as upper case) to HashMap specified by 
+     * {@code databaseId} to allow quick retrieval of all networks for a given
+     * database that contain a specific gene.
+     * 
+     * Structure of data being stored.
+     * 
+     * {@code databaseId} -> {@code gene upper case} -> {@code networkIds}
+     * 
+     * @param databaseId Unique identifier for the database
+     * @param gene Gene name
+     * @param networkIds {@link java.util.Collection} of network ids
      */
     public void addGeneToDatabase(final String databaseId, final String gene,
             Collection<String> networkIds){
@@ -164,6 +166,12 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         _databaseResults.set(dr);
     }
 
+    /**
+     * Given list of genes (as strings) generate a unique list of genes where
+     * each gene is upper cased. 
+     * @param geneList List of genes to upper case and make unique
+     * @return Unique {@link java.util.List<String>} of upper cased genes
+     */
     protected List<String> getUniqueGeneList(List<String> geneList){
         if (geneList == null){
             return null;
@@ -426,6 +434,16 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         return null;
     }
 
+    /**
+     * Uses {@link #_databases} data structure to build a HashMap from database
+     * with {@code databaseId} id where the
+     * key is the id of the network and value is a set of genes that were
+     * found on that network
+     * @param databaseId id of database
+     * @param geneList list of genes that are assumed to be unique and upper cased. 
+     *                 Ideally generated from call to {@link #getUniqueGeneList(java.util.List)}
+     * @return {@link java.util.HashMap} where key is network id and value is a {@link java.util.HashSet<String>} of gene symbols
+     */
     protected HashMap<String, HashSet<String>> remapNetworksToGenes(final String databaseId, final List<String> geneList){
         HashMap<String, HashSet<String>> networkMap = new HashMap<String, HashSet<String>>();
 

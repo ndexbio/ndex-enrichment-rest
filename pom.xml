@@ -302,6 +302,10 @@
                         <manifest>
                             <mainClass>org.ndexbio.enrichment.rest.App</mainClass>
                         </manifest>
+                        <manifestEntries>
+                            <NDExEnrichment-Version>${project.version}</NDExEnrichment-Version>
+                            <NDExEnrichment-Build>${buildNumber}</NDExEnrichment-Build>
+                        </manifestEntries>
                     </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
