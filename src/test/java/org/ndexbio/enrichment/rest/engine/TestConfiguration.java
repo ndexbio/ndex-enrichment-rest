@@ -5,6 +5,7 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.services.Configuration;
 
@@ -59,6 +61,7 @@ public class TestConfiguration {
             Configuration config = Configuration.reloadConfiguration();
             assertEquals("/tmp", config.getEnrichmentDatabaseDirectory());
             assertEquals("/tmp", config.getEnrichmentTaskDirectory());
+            assertNull(config.getNDExDatabases());
             assertNull(config.getEnrichmentEngine());
             assertEquals(File.separator + "tmp" + File.separator + Configuration.DATABASE_RESULTS_JSON_FILE,
                          config.getDatabaseResultsFile().getAbsolutePath());
@@ -89,6 +92,14 @@ public class TestConfiguration {
             assertNull(config.getEnrichmentEngine());
             assertEquals(tempDir.getAbsolutePath() + File.separator + Configuration.DATABASE_RESULTS_JSON_FILE,
                          config.getDatabaseResultsFile().getAbsolutePath());
+            ObjectMapper mapper = new ObjectMapper();
+            
+            InternalDatabaseResults idr = new InternalDatabaseResults();
+            idr.setUniverseUniqueGeneCount(10);
+            mapper.writeValue(config.getDatabaseResultsFile(), idr);
+
+            InternalDatabaseResults residr = config.getNDExDatabases();
+            assertEquals(idr.getUniverseUniqueGeneCount(), residr.getUniverseUniqueGeneCount());
         } finally {
             _folder.delete();
         }

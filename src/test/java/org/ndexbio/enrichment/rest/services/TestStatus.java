@@ -31,7 +31,7 @@ public class TestStatus {
     
     public TestStatus() {
     }
-   
+    
     @Test
     public void testGet() throws Exception {
 
@@ -45,19 +45,20 @@ public class TestStatus {
             fw.write(Configuration.TASK_DIR + " = " + tempDir.getAbsolutePath() + "\n");
             fw.flush();
             fw.close();
-            Configuration.setAlternateConfigurationFile(confFile.getAbsolutePath());
             Dispatcher dispatcher = MockDispatcherFactory.createDispatcher();
             dispatcher.getRegistry().addSingletonResource(new Status());
 
-            MockHttpRequest request = MockHttpRequest.get("/status");
+            MockHttpRequest request = MockHttpRequest.get(Status.STATUS_PATH);
 
             MockHttpResponse response = new MockHttpResponse();
+            Configuration.setAlternateConfigurationFile(confFile.getAbsolutePath());
             dispatcher.invoke(request, response);
             assertEquals(200, response.getStatus());
             ObjectMapper mapper = new ObjectMapper();
             ServerStatus ss = mapper.readValue(response.getOutput(),
                     ServerStatus.class);
             assertTrue(ss.getRestVersion() != null);
+            
         } finally {
             _folder.delete();
         }

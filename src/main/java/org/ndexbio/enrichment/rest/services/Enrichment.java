@@ -34,7 +34,7 @@ import org.ndexbio.enrichment.rest.model.Task;
  * Returns status of Server
  * @author churas
  */
-@Path("/")
+@Path(Configuration.BASE_REST_PATH)
 public class Enrichment {
     
     static Logger logger = LoggerFactory.getLogger(Enrichment.class);
@@ -77,7 +77,7 @@ public class Enrichment {
             String id = enricher.query(pQuery);
             Task t = new Task();
             t.setId(id);
-            return Response.status(202).location(new URI("/" + id)).entity(omappy.writeValueAsString(t)).build();
+            return Response.status(202).location(new URI(Configuration.BASE_REST_PATH + id)).entity(omappy.writeValueAsString(t)).build();
         } catch(Exception ex){
             ErrorResponse er = new ErrorResponse("Error requesting enrichment: " + ex.getMessage(), ex);
             
@@ -123,13 +123,8 @@ public class Enrichment {
             return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(eqr)).build();
         }
         catch(Exception ex){
-            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
-            try {
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
-            }
-            catch(JsonProcessingException jpe){
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
-            }
+            ErrorResponse er = new ErrorResponse("Error getting results for id: " + id, ex);
+            return Response.status(500).type(MediaType.APPLICATION_JSON).entity(er.asJson()).build();
         }
     }
 
@@ -195,10 +190,10 @@ public class Enrichment {
         catch(Exception ex){
             ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
             try {
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
+                return Response.status(500).type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
             }
             catch(JsonProcessingException jpe){
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
+                return Response.status(500).type(MediaType.APPLICATION_JSON).entity("hi").build();
             }
         }
     }

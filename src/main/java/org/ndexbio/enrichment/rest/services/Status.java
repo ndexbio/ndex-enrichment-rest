@@ -18,22 +18,29 @@ import java.lang.management.OperatingSystemMXBean;
 import javax.ws.rs.core.Response;
 import org.ndexbio.enrichment.rest.model.ErrorResponse;
 import org.ndexbio.enrichment.rest.model.ServerStatus;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 
 /**
  * Returns status of Server
  * @author churas
  */
-@Path("/")
+@Path(Configuration.BASE_REST_PATH)
 public class Status {
     
+    /**
+     * REST endpoint for status 
+     */
+    public static final String STATUS_PATH = "/status";
+    
     static Logger _logger = LoggerFactory.getLogger(Status.class);
+    
     
     /**
      * Returns status of server 
      * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
      */
     @GET // This annotation indicates GET request
-    @Path("/status")
+    @Path(STATUS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Gets server status",
                description="Gets version, load, and diskusage of server",
@@ -58,15 +65,15 @@ public class Status {
             
             sObj.setPcDiskFull(100-(int)Math.round(((double)taskDir.getFreeSpace()/(double)taskDir.getTotalSpace())*100));
             return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(sObj)).build();
+        } 
+        catch(JsonProcessingException ex){
+            ErrorResponse er = new ErrorResponse("JsonProcessingException : " + ex.getMessage(), ex);
+            return Response.serverError().type(MediaType.APPLICATION_JSON).encoding(er.asJson()).build();
         }
-        catch(Exception ex){
-            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
-            try {
-                return Response.serverError().type(MediaType.APPLICATION_JSON).encoding(omappy.writeValueAsString(er)).build();
-            }
-            catch(JsonProcessingException jpe){
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
-            }
+        catch(EnrichmentException ex){
+            ErrorResponse er = new ErrorResponse("EnrichmentException : " + ex.getMessage(), ex);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).type(MediaType.APPLICATION_JSON).encoding(er.asJson()).build();
         }
+
     }
 }

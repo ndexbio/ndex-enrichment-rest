@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Configuration {
     
+    public static final String BASE_REST_PATH = "/";
     public static final String NDEX_ENRICH_CONFIG = "NDEX_ENRICH_CONFIG";
     
     public static final String DATABASE_DIR = "enrichment.database.dir";
@@ -162,9 +163,12 @@ public class Configuration {
     /**
      * Lets caller set an alternate path to configuration. Added so the command
      * line application can set path to configuration and it makes testing easier
+     * This also sets the internal instance object to {@code null} so subsequent
+     * calls to {@link #getInstance() } will load a new instance with this configuration
      * @param configFilePath - Path to configuration file
      */
     public static void  setAlternateConfigurationFile(final String configFilePath) {
     	_alternateConfigurationFile = configFilePath;
+        INSTANCE = null;
     }
 }
