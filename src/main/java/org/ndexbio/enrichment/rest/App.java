@@ -182,7 +182,7 @@ public class App {
                 restEasyServlet.setInitOrder(1);
                 restEasyServlet.setInitParameters(initMap);
                 webappContext.addServlet(restEasyServlet, "/*");
-                
+                webappContext.addFilter(CorsFilter.class, "/*", null);
                 ContextHandlerCollection contexts = new ContextHandlerCollection();
                 contexts.setHandlers(new Handler[] { webappContext });
  
