@@ -360,8 +360,21 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     
     public void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
         try (FileOutputStream fos = new FileOutputStream(destFile)) {
-            _logger.debug("Writing updated network to file: " + destFile.getAbsolutePath());
-            long nodeAttrCntr = cxNetwork.getMetadata().getIdCounter(NodeAttributesElement.ASPECT_NAME);
+            if (cxNetwork == null){
+                _logger.error("Network passed in is null, cant write out: " + destFile.getAbsolutePath());
+                return;
+            }
+            _logger.info("Writing updated network to file: " + destFile.getName());
+            if (cxNetwork.getMetadata() == null){
+                _logger.error("No Meta data object for network" + destFile.getName());
+                return;
+            }
+            long nodeAttrCntr = -1;
+            try {
+                nodeAttrCntr = cxNetwork.getMetadata().getIdCounter(NodeAttributesElement.ASPECT_NAME);
+            } catch(NullPointerException npe){
+                _logger.error("No id counter for network weird: " + destFile.getName());
+            }
             for(Long nodeId : cxNetwork.getNodes().keySet()){
                 // find matching gene in network
                 if (eqr.getHitGenes().contains(cxNetwork.getNodes().get(nodeId).getNodeName())){
