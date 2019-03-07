@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -328,7 +329,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             EnrichmentQueryResult eqr = new EnrichmentQueryResult();
             eqr.setDatabaseName(dbres.getName());
             eqr.setDatabaseUUID(dbres.getUuid());
-            eqr.setHitGenes(new LinkedList<String>(networkMap.get(network)));
+            eqr.setHitGenes(new TreeSet<>(networkMap.get(network)));
             eqr.setNetworkUUID(network);
             NiceCXNetwork cxNetwork = getNetwork(dbres.getUuid(), network);
             if (cxNetwork == null){
