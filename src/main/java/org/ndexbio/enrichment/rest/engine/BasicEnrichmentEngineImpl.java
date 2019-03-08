@@ -419,6 +419,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         eqr.setEdges(cxNetwork.getEdges().size());
         eqr.setDescription(cxNetwork.getNetworkName());
         int numHitGenes = eqr.getHitGenes().size();
+        // @TODO Percent overlap should only count gene nodes and not total # of nodes
         eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)eqr.getNodes())*(float)100));
         InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
         int totalGenesInUniverse = idr.getUniverseUniqueGeneCount();
