@@ -65,6 +65,12 @@ public class App {
 
     public static final String DESCRIPTION = "\nNDEx Enrichment REST service\n\n"
             + "For usage information visit:  https://github.com/ndexbio/ndex-enrichment-rest\n\n";
+    
+    /**
+     * Sets logging level valid values DEBUG INFO WARN ALL ERROR
+     */
+    public static final String RUNSERVER_LOGLEVEL = "runserver.log.level";
+
     /**
      * Sets log directory for embedded Jetty
      */
@@ -153,7 +159,8 @@ public class App {
                 Properties props = getPropertiesFromConf(optionSet.valueOf(CONF).toString());
                 ch.qos.logback.classic.Logger rootLog = 
         		(ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-		rootLog.setLevel(Level.INFO);
+                rootLog.setLevel(Level.toLevel(props.getProperty(App.RUNSERVER_LOGLEVEL, "INFO")));
+
                 String logDir = props.getProperty(App.RUNSERVER_LOGDIR, ".");
                 RolloverFileOutputStream os = new RolloverFileOutputStream(logDir + File.separator + "ndexenrich_yyyy_mm_dd.log", true);
 		
@@ -219,6 +226,7 @@ public class App {
         dr.setDescription("This is a description of a signor database");
         dr.setName("signor");
         dr.setNumberOfNetworks("50");
+        dr.setImageURL("http://signor.uniroma2.it/img/signor_logo.png");
         String druuid = "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6";
         dr.setUuid(druuid);
         
@@ -226,6 +234,8 @@ public class App {
         drtwo.setDescription("This is a description of a ncipid database");
         drtwo.setName("ncipid");
         drtwo.setNumberOfNetworks("200");
+        drtwo.setImageURL("http://www.home.ndexbio.org/img/pid-logo-ndex.jpg");
+        //drtwo.setImageurl("http://ndexbio.org/images/new_landing_page_logo.06974471.png");
         String drtwouuid = "e508cf31-79af-463e-b8b6-ff34c87e1734";
         drtwo.setUuid(drtwouuid);
         
@@ -247,6 +257,11 @@ public class App {
         cParam.setNetworkOwner("ncipiduser");
         ndexParam.put(drtwouuid, cParam);
         idr.setDatabaseConnectionMap(ndexParam);
+        
+        HashSet<String> excludeNetworks = new HashSet<>();
+        excludeNetworks.add("309e834a-3005-41f2-8d28-46f2594aaaa8");
+        excludeNetworks.add("4671adc9-670d-474c-84db-37774fc885ba");
+        idr.setNetworksToExclude(excludeNetworks);
         ObjectMapper mappy = new ObjectMapper();
         
         return mappy.writerWithDefaultPrettyPrinter().writeValueAsString(idr);
@@ -273,6 +288,9 @@ public class App {
         
         sb.append("# sets Jetty Context Path for Enrichment\n");
         sb.append(App.RUNSERVER_CONTEXTPATH + " = /\n\n");
+        
+        sb.append("# Valid log levels DEBUG INFO WARN ERROR ALL\n");
+        sb.append(App.RUNSERVER_LOGLEVEL + " = INFO\n");
 
         return sb.toString();
     }
@@ -290,6 +308,7 @@ public class App {
         Set<String> universeUniqueGeneSet = new HashSet<>();
         List<InternalGeneMap> geneMapList = new LinkedList<InternalGeneMap>();
         Map<String, Integer> databaseUniqueGeneCount = new HashMap<>();
+        Set<String> networksToExclude = idr.getNetworksToExclude();
         for (DatabaseResult dr : idr.getResults()){
             _logger.debug("Downloading networks for: " + dr.getName());
             InternalGeneMap geneMap = new InternalGeneMap();
@@ -304,17 +323,24 @@ public class App {
                 databasedir.mkdirs();
             }
             NdexRestClientModelAccessLayer client = getNdexClient(cParams);
-            NetworkSearchResult nrs = client.findNetworks("", cParams.getNetworkOwner(), 0, 0);
+            NetworkSearchResult nrs = client.findNetworks("", cParams.getNetworkOwner(), 0, 500);
             _logger.debug("Found " + nrs.getNumFound() + " networks");
+            int networkCount = 0;
+            
             Set<String> uniqueGeneSet = new HashSet<>();
             for (NetworkSummary ns :  nrs.getNetworks()){
+                if (networksToExclude.contains(ns.getExternalId().toString())){
+                    _logger.debug("Network: " + ns.getName() + " in exclude list. skipping.");
+                    continue;
+                }
                 _logger.debug(ns.getName() + " Nodes => " + Integer.toString(ns.getNodeCount()) + " Edges => " + Integer.toString(ns.getEdgeCount()));
                 NiceCXNetwork network = saveNetwork(client, ns.getExternalId(), databasedir);
                 updateGeneMap(network, ns.getExternalId().toString(), geneMap,
                         uniqueGeneSet);
+                networkCount++;
             }
             client.getNdexRestClient().signOut();
-
+            dr.setNumberOfNetworks(Integer.toString(networkCount));
             universeUniqueGeneSet.addAll(uniqueGeneSet);
             geneMapList.add(geneMap);
             databaseUniqueGeneCount.put(dr.getUuid(), uniqueGeneSet.size());

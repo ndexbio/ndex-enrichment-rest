@@ -328,6 +328,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         for (String network : networkMap.keySet()){
             EnrichmentQueryResult eqr = new EnrichmentQueryResult();
             eqr.setDatabaseName(dbres.getName());
+            eqr.setImageURL(dbres.getImageURL());
             eqr.setDatabaseUUID(dbres.getUuid());
             eqr.setHitGenes(new TreeSet<>(networkMap.get(network)));
             eqr.setNetworkUUID(network);
