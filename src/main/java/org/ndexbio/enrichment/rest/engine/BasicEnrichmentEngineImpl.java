@@ -377,9 +377,16 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             } catch(NullPointerException npe){
                 _logger.error("No id counter for network weird: " + destFile.getName());
             }
+            String nodeName = null;
             for(Long nodeId : cxNetwork.getNodes().keySet()){
                 // find matching gene in network
-                if (eqr.getHitGenes().contains(cxNetwork.getNodes().get(nodeId).getNodeName())){
+                nodeName = cxNetwork.getNodes().get(nodeId).getNodeName();
+                if (nodeName == null){
+                    _logger.debug("Node: " + nodeId.toString() +
+                                  " does not have a name skipping");
+                    continue;
+                }
+                if (eqr.getHitGenes().contains(nodeName)){
                     // we found a gene.
                     NodeAttributesElement nae = new NodeAttributesElement(nodeId, "querynode", "true",
                     ATTRIBUTE_DATA_TYPE.BOOLEAN);
@@ -389,7 +396,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             }
             _logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
             cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
-            NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(fos, false);
+            NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(fos, true);
             NiceCXNetworkWriter writer = new NiceCXNetworkWriter(ndexwriter);
             writer.writeNiceCXNetwork(cxNetwork);
             
