@@ -5,6 +5,8 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
+import java.util.Map;
+import java.util.Set;
 import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
@@ -58,6 +60,12 @@ public class BasicEnrichmentEngineFactory {
         for (InternalGeneMap igm : _databaseResults.getGeneMapList()){
             if (igm.getDatabaseUUID().equals(dr.getUuid())){
                 // found matching entry
+                Map<String,Set<String>> geneMap = igm.getGeneMap();
+                if (geneMap == null){
+                    _logger.error("Gene map is null for database with id: " +
+                                  dr.getUuid() + " skipping");
+                    continue;
+                } 
                 for (String gene : igm.getGeneMap().keySet()){
                     enricher.addGeneToDatabase(dr.getUuid(), gene, igm.getGeneMap().get(gene));
                 }
