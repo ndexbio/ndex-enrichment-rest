@@ -67,7 +67,6 @@ public interface EnrichmentEngine extends Runnable {
      * @throws EnrichmentException 
      */
     public InputStream getNetworkOverlayAsCX(final String id, final String databaseUUID, final String networkUUID) throws EnrichmentException;
-
     
     /**
      * Tells implementing objects to shutdown
