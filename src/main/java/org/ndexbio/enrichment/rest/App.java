@@ -325,6 +325,11 @@ public class App {
             NdexRestClientModelAccessLayer client = getNdexClient(cParams);
             NetworkSearchResult nrs = client.findNetworks("", cParams.getNetworkOwner(), 0, 500);
             _logger.debug("Found " + nrs.getNumFound() + " networks");
+            if (nrs.getNumFound() <= 0){
+                throw new EnrichmentException("No networks found for owner: " +
+                                              cParams.getNetworkOwner() + " with uuid: " +
+                                              dr.getUuid());
+            }
             int networkCount = 0;
             
             Set<String> uniqueGeneSet = new HashSet<>();
