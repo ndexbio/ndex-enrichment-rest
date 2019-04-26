@@ -49,7 +49,7 @@ import org.ndexbio.enrichment.rest.model.InternalNdexConnectionParams;
 import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
-import org.ndexbio.model.object.NetworkSearchResult;
+import org.ndexbio.model.object.NetworkSet;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
@@ -247,14 +247,14 @@ public class App {
         cParam.setPassword("somepassword");
         cParam.setUser("bob");
         cParam.setServer("dev.ndexbio.org");
-        cParam.setNetworkOwner("signoruser");
+        cParam.setNetworkSetId("f884cd40-5426-49e6-a311-fc046802b5f6");
         ndexParam.put(druuid, cParam);
         
         cParam = new InternalNdexConnectionParams();
         cParam.setPassword("somepassword");
         cParam.setUser("bob");
         cParam.setServer("dev.ndexbio.org");
-        cParam.setNetworkOwner("ncipiduser");
+        cParam.setNetworkSetId("bf0616dd-5d7e-403a-92f3-6e12cc02eb37");
         ndexParam.put(drtwouuid, cParam);
         idr.setDatabaseConnectionMap(ndexParam);
         
@@ -316,31 +316,38 @@ public class App {
             
             InternalNdexConnectionParams cParams = idr.getDatabaseConnectionMap().get(dr.getUuid());
             
-            _logger.debug("Owner for maps is: " + cParams.getNetworkOwner());
+            _logger.debug("networkset id for maps is: " + cParams.getNetworkSetId());
             File databasedir = new File(config.getEnrichmentDatabaseDirectory() + File.separator + dr.getUuid());
             if (databasedir.isDirectory() == false){
                 _logger.debug("Creating directory " + databasedir.getAbsolutePath());
                 databasedir.mkdirs();
             }
             NdexRestClientModelAccessLayer client = getNdexClient(cParams);
-            NetworkSearchResult nrs = client.findNetworks("", cParams.getNetworkOwner(), 0, 500);
-            _logger.debug("Found " + nrs.getNumFound() + " networks");
-            if (nrs.getNumFound() <= 0){
-                throw new EnrichmentException("No networks found for owner: " +
-                                              cParams.getNetworkOwner() + " with uuid: " +
+            NetworkSet ns = client.getNetworkSetById(UUID.fromString(cParams.getNetworkSetId()), null);
+            if (ns == null){
+                throw new EnrichmentException("null returned when querying for networks "
+                                              + "in networkset returned null: " +
+                                              cParams.getNetworkSetId()+ " with uuid: " +
+                                              dr.getUuid());
+            }
+            _logger.debug("Found " + ns.getNetworks().size() + " networks");
+            if (ns.getNetworks().size() <= 0){
+                throw new EnrichmentException("No networks found in networkset: " +
+                                              cParams.getNetworkSetId()+ " with uuid: " +
                                               dr.getUuid());
             }
             int networkCount = 0;
             
             Set<String> uniqueGeneSet = new HashSet<>();
-            for (NetworkSummary ns :  nrs.getNetworks()){
-                if (networksToExclude.contains(ns.getExternalId().toString())){
-                    _logger.debug("Network: " + ns.getName() + " in exclude list. skipping.");
+            for (UUID netid :  ns.getNetworks()){
+                if (networksToExclude.contains(netid.toString())){
+                    _logger.debug("Network: " + netid.toString() + " in exclude list. skipping.");
                     continue;
                 }
-                _logger.debug(ns.getName() + " Nodes => " + Integer.toString(ns.getNodeCount()) + " Edges => " + Integer.toString(ns.getEdgeCount()));
-                NiceCXNetwork network = saveNetwork(client, ns.getExternalId(), databasedir);
-                updateGeneMap(network, ns.getExternalId().toString(), geneMap,
+               
+                _logger.debug("Saving network: " + netid.toString());
+                NiceCXNetwork network = saveNetwork(client, netid, databasedir);
+                updateGeneMap(network, netid.toString(), geneMap,
                         uniqueGeneSet);
                 networkCount++;
             }
@@ -359,7 +366,20 @@ public class App {
         return;
     }
     
-    public static void updateGeneMap(final NiceCXNetwork network, final String externalId, InternalGeneMap geneMap,
+    /**
+     * Adds network to gene map which has the following structure:
+     * 
+     * gene names => [ list of network UUIDs for networks that have this gene]
+     * 
+     * 
+     * @param network network to examine
+     * @param externalId id of network passed in
+     * @param geneMap gene names => [ list of network UUIDs]
+     * @param uniqueGeneSet unique set of genes
+     * @throws Exception 
+     */
+    public static void updateGeneMap(final NiceCXNetwork network,
+            final String externalId, InternalGeneMap geneMap,
             final Set<String> uniqueGeneSet) throws Exception {
         
         Map<Long, Collection<NodeAttributesElement>> attribMap = network.getNodeAttributes();
@@ -374,33 +394,65 @@ public class App {
 
             // If there are node attributes and one is named "type" then
             // only include the node name if type is gene or protein
-            if (nodeAttribs != null){
-                boolean validgene = false;
-                for (NodeAttributesElement nae : nodeAttribs){
-                    if (nae.getName().toLowerCase().equals("type")){
-                        if (nae.getValue().toLowerCase().equals("gene") ||
-                              nae.getValue().toLowerCase().equals("protein")){
-                            validgene = true;
-                            break;
-                        }
+            if (nodeAttribs == null){
+                continue;
+            }
+            boolean validgene = false;
+            boolean validcomplex = false;
+            for (NodeAttributesElement nae : nodeAttribs){
+                if (nae.getName().toLowerCase().equals("type")){
+                    if (nae.getValue().toLowerCase().equals("gene") ||
+                          nae.getValue().toLowerCase().equals("protein")){
+                        validgene = true;
+                        break;
+                    }
+                    if (nae.getValue().toLowerCase().equals("complex") ||
+                          nae.getValue().toLowerCase().equals("proteinfamily")){
+                        validcomplex = true;
+                        break;
                     }
                 }
-                if (validgene == false){
-                    continue;
+            }
+            if (validgene == true){
+                String name = ne.getNodeName();
+
+                if (mappy.containsKey(name) == false){
+                    mappy.put(name, new HashSet<String>());
+                }
+                if (mappy.get(name).contains(externalId) == false){
+                    mappy.get(name).add(externalId);
+                }
+                uniqueGeneSet.add(name);
+                continue;
+            }
+            if (validcomplex == true){
+                for (NodeAttributesElement nae : nodeAttribs){
+                    if (nae.getName().toLowerCase().equals("member")){
+                        for (String entry : nae.getValues()){
+                            if (mappy.containsKey(entry) == false){
+                                mappy.put(entry, new HashSet<String>());
+                            }
+                            if (mappy.get(entry).contains(externalId) == false){
+                                mappy.get(entry).add(externalId);
+                            }
+                            uniqueGeneSet.add(entry);
+                        }
+                        break;
+                    }
                 }
             }
-            String name = ne.getNodeName();
-
-            if (mappy.containsKey(name) == false){
-                mappy.put(name, new HashSet<String>());
-            }
-            if (mappy.get(name).contains(externalId) == false){
-                mappy.get(name).add(externalId);
-            }
-            uniqueGeneSet.add(name);
         }
     }
     
+    /**
+     * Saves network with 'networkuuid' to directory specified by 'savedir'
+     * with the name 'networkuuid'.cx
+     * @param client NDEx java client used to get network from NDEx
+     * @param networkuuid id of network to download
+     * @param savedir directory to write network.
+     * @return NiceCXNetwork network downloaded
+     * @throws Exception 
+     */
     public static NiceCXNetwork saveNetwork(NdexRestClientModelAccessLayer client, final UUID networkuuid, final File savedir) throws Exception{
         Configuration config = Configuration.getInstance();
         File dest = new File(savedir.getAbsolutePath() + File.separator + networkuuid.toString() + ".cx");
