@@ -9,6 +9,8 @@
 NDEx Enrichment REST Service
 ============================
 
+[![Build Status](https://travis-ci.org/ndexbio/ndex-enrichment-rest.svg?branch=master)](https://travis-ci.org/ndexbio/ndex-enrichment-rest)
+
 Provides enrichment REST service using select networks from NDEx as a backend.
 This service runs using an embedded [Jetty][jetty] server and is invoked
 from the command line. 
@@ -116,13 +118,13 @@ The **databaseresults.json** file will look like this:
       "password" : "somepassword",
       "user" : "bob",
       "server" : "dev.ndexbio.org",
-      "networkOwner" : "signoruser"
+      "networkSetId" : "d718366d-34e0-48cd-81bf-211a8b9a3fde"
     },
     "e508cf31-79af-463e-b8b6-ff34c87e1734" : {
       "password" : "somepassword",
       "user" : "bob",
       "server" : "dev.ndexbio.org",
-      "networkOwner" : "ncipiduser"
+      "networkSetId" : "e2ce01a3-5ce0-4d9e-be06-e20dad286d76"
     }
   },
   "results" : [ {
@@ -140,7 +142,8 @@ The **databaseresults.json** file will look like this:
 ```
 
 The **databaseConnectionMap** section is internal and contains NDEx connection information
-that needs to be updated.The networks for the database will be all networks owned by **networkOwner**
+that needs to be updated.The networks for the database will be all networks
+under network set specified by value of **networkSetId**
 
 The **results** section is what will be returned to caller on service. During
 actual database creation the **numberOfNetworks** will be updated, but its
