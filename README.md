@@ -9,7 +9,8 @@
 NDEx Enrichment REST Service
 ============================
 
-[![Build Status](https://travis-ci.org/ndexbio/ndex-enrichment-rest.svg?branch=master)](https://travis-ci.org/ndexbio/ndex-enrichment-rest)
+[![Build Status](https://travis-ci.org/ndexbio/ndex-enrichment-rest.svg?branch=master)](https://travis-ci.org/ndexbio/ndex-enrichment-rest) 
+[![Coverage Status](https://coveralls.io/repos/github/ndexbio/ndex-enrichment-rest/badge.svg)](https://coveralls.io/github/ndexbio/ndex-enrichment-rest)
 
 Provides enrichment REST service using select networks from NDEx as a backend.
 This service runs using an embedded [Jetty][jetty] server and is invoked
