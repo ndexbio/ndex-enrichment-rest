@@ -3,6 +3,9 @@ language: java
 jdk:
   - oraclejdk8
 
+install:
+  - make installdependencies
+
 after_success:
- - make travis
+ - mvn clean test jacoco:report coveralls:report
 
