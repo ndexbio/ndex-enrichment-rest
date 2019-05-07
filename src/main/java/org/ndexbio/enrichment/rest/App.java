@@ -297,7 +297,7 @@ public class App {
     
     public static NdexRestClientModelAccessLayer getNdexClient(InternalNdexConnectionParams params) throws Exception {
         NdexRestClient nrc = new NdexRestClient(params.getUser(), params.getPassword(), 
-                params.getServer(), "Enrichment/0.1.0");
+                params.getServer(), "Enrichment/0.3.0");
         
         return new NdexRestClientModelAccessLayer(nrc);
     }
@@ -348,7 +348,7 @@ public class App {
                 _logger.debug("Saving network: " + netid.toString());
                 NiceCXNetwork network = saveNetwork(client, netid, databasedir);
                 updateGeneMap(network, netid.toString(), geneMap,
-                        uniqueGeneSet);
+                        uniqueGeneSet, idr);
                 networkCount++;
             }
             client.getNdexRestClient().signOut();
@@ -380,7 +380,8 @@ public class App {
      */
     public static void updateGeneMap(final NiceCXNetwork network,
             final String externalId, InternalGeneMap geneMap,
-            final Set<String> uniqueGeneSet) throws Exception {
+            final Set<String> uniqueGeneSet,
+            InternalDatabaseResults idr) throws Exception {
         
         Map<Long, Collection<NodeAttributesElement>> attribMap = network.getNodeAttributes();
         Map<String, Set<String>> mappy = geneMap.getGeneMap();
@@ -389,9 +390,11 @@ public class App {
             mappy = new HashMap<>();
             geneMap.setGeneMap((Map<String, Set<String>>)mappy);
         }
+        
+        Map<String, Set<Long>> geneToNodeMap = new HashMap<>();
         for (NodesElement ne : network.getNodes().values()){
             Collection<NodeAttributesElement> nodeAttribs = attribMap.get(ne.getId());
-
+            
             // If there are node attributes and one is named "type" then
             // only include the node name if type is gene or protein
             if (nodeAttribs == null){
@@ -407,21 +410,29 @@ public class App {
                         break;
                     }
                     if (nae.getValue().toLowerCase().equals("complex") ||
-                          nae.getValue().toLowerCase().equals("proteinfamily")){
+                          nae.getValue().toLowerCase().equals("proteinfamily") ||
+                          nae.getValue().toLowerCase().equals("compartment")){
                         validcomplex = true;
                         break;
                     }
                 }
             }
             if (validgene == true){
-                String name = ne.getNodeName();
-
+                String name = getValidGene(ne.getNodeName());
+                if (name == null){
+                    continue;
+                }
                 if (mappy.containsKey(name) == false){
                     mappy.put(name, new HashSet<String>());
                 }
                 if (mappy.get(name).contains(externalId) == false){
                     mappy.get(name).add(externalId);
                 }
+                if (geneToNodeMap.containsKey(name) == false){
+                    geneToNodeMap.put(name, new HashSet<Long>());
+                }
+                geneToNodeMap.get(name).add(ne.getId());
+                
                 uniqueGeneSet.add(name);
                 continue;
             }
@@ -429,12 +440,20 @@ public class App {
                 for (NodeAttributesElement nae : nodeAttribs){
                     if (nae.getName().toLowerCase().equals("member")){
                         for (String entry : nae.getValues()){
-                            if (mappy.containsKey(entry) == false){
-                                mappy.put(entry, new HashSet<String>());
+                            String name = getValidGene(entry);
+                            if (name == null){
+                                continue;
                             }
-                            if (mappy.get(entry).contains(externalId) == false){
-                                mappy.get(entry).add(externalId);
+                            if (mappy.containsKey(name) == false){
+                                mappy.put(name, new HashSet<String>());
                             }
+                            if (mappy.get(name).contains(externalId) == false){
+                                mappy.get(name).add(externalId);
+                            }
+                            if (geneToNodeMap.containsKey(name) == false){
+                                geneToNodeMap.put(name, new HashSet<Long>());
+                            }
+                            geneToNodeMap.get(name).add(ne.getId());
                             uniqueGeneSet.add(entry);
                         }
                         break;
@@ -442,8 +461,34 @@ public class App {
                 }
             }
         }
+        if (geneToNodeMap.size() > 0){
+            Map<String, Map<String, Set<Long>>> geneToNodeBigMap = idr.getNetworkToGeneToNodeMap();
+            if (geneToNodeBigMap == null){
+                geneToNodeBigMap = new HashMap<String, Map<String, Set<Long>>>();
+            } else 
+            geneToNodeBigMap.put(externalId, geneToNodeMap);
+            idr.setNetworkToGeneToNodeMap(geneToNodeBigMap);
+        }
+
     }
     
+    public static String getValidGene(final String potentialGene){
+        if (potentialGene == null){
+            _logger.warn("Gene passed in is null");
+            return null;
+        }
+        String strippedGene = potentialGene;
+        // strip off hgnc.symbol: prefix if found
+        if (potentialGene.startsWith("hgnc.symbol:") && potentialGene.length()>12){
+            strippedGene = potentialGene.substring(potentialGene.indexOf(":") + 1);
+        }
+        
+        if (strippedGene.length()>30 || !strippedGene.matches("^[^\\(\\)\\s,']+$")){
+            _logger.warn("Gene: " + strippedGene + " does not appear to be valid. Skipping...");
+            return null;
+        }
+        return strippedGene;
+    }
     /**
      * Saves network with 'networkuuid' to directory specified by 'savedir'
      * with the name 'networkuuid'.cx

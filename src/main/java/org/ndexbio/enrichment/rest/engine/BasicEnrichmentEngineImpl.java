@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,7 +38,6 @@ import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPval
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.NdexException;
 
-import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.client.NdexRestClientUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -377,23 +378,22 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             } catch(NullPointerException npe){
                 _logger.error("No id counter for network weird: " + destFile.getName());
             }
-            String nodeName = null;
-            for(Long nodeId : cxNetwork.getNodes().keySet()){
-                // find matching gene in network
-                nodeName = cxNetwork.getNodes().get(nodeId).getNodeName();
-                if (nodeName == null){
-                    _logger.debug("Node: " + nodeId.toString() +
-                                  " does not have a name skipping");
-                    continue;
-                }
-                if (eqr.getHitGenes().contains(nodeName)){
-                    // we found a gene.
-                    NodeAttributesElement nae = new NodeAttributesElement(nodeId, "querynode", "true",
-                    ATTRIBUTE_DATA_TYPE.BOOLEAN);
-                    cxNetwork.addNodeAttribute(nae);
-                    nodeAttrCntr++;
+            InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
+            Map<String, Set<Long>> geneToNodeMap = idr.getNetworkToGeneToNodeMap().get(eqr.getNetworkUUID());
+            if (geneToNodeMap != null){
+                for (String hitGene : eqr.getHitGenes()){
+                    Set<Long> nodeIdSet = geneToNodeMap.get(hitGene);
+                    if (nodeIdSet != null){
+                        for (Long nodeId : nodeIdSet){
+                            NodeAttributesElement nae = new NodeAttributesElement(nodeId, "querynode", "true",
+                            ATTRIBUTE_DATA_TYPE.BOOLEAN);
+                            cxNetwork.addNodeAttribute(nae);
+                            nodeAttrCntr++;
+                        }
+                    }
                 }
             }
+            
             _logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
             cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
             NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(fos, true);
