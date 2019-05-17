@@ -1,7 +1,6 @@
 package org.ndexbio.enrichment.rest.services; // Note your package will be {{ groupId }}.rest
 
 import java.net.URI;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -29,19 +28,20 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
 import org.ndexbio.enrichment.rest.model.ErrorResponse;
 import org.ndexbio.enrichment.rest.model.Task;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 
 /**
- * Returns status of Server
+ * Enrichment service
  * @author churas
  */
-@Path(Configuration.BASE_REST_PATH)
+@Path(Configuration.V_ONE_PATH)
 public class Enrichment {
     
     static Logger logger = LoggerFactory.getLogger(Enrichment.class);
     
     /**
-     * Returns status of server 
-     * @return {@link org.ndexbio.enrichment.rest.model.ServerStatus} as JSON
+     * Handles requests to do enrichment
+     * @return {@link javax.ws.rs.core.Response} 
      */
     @POST 
     @Path("/")
@@ -72,25 +72,23 @@ public class Enrichment {
             // not sure why but I cannot get resteasy and jackson to worktogether to
             // automatically translate json to Query class so I'm doing it after the
             // fact
-            EnrichmentQuery pQuery = omappy.readValue(query, EnrichmentQuery.class);
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
+            if (enricher == null){
+                throw new NullPointerException("Enrichment Engine not loaded");
+            }
+            EnrichmentQuery pQuery = omappy.readValue(query, EnrichmentQuery.class);
             String id = enricher.query(pQuery);
+            if (id == null){
+                throw new EnrichmentException("No id returned from enrichment engine");
+            }
             Task t = new Task();
             t.setId(id);
-            return Response.status(202).location(new URI(Configuration.BASE_REST_PATH + id)).entity(omappy.writeValueAsString(t)).build();
+            return Response.status(202).location(new URI(Configuration.V_ONE_PATH + "/" + id)).entity(omappy.writeValueAsString(t)).build();
         } catch(Exception ex){
-            ErrorResponse er = new ErrorResponse("Error requesting enrichment: " + ex.getMessage(), ex);
-            
-            try {
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
-            }
-            catch(JsonProcessingException jpe){
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
-            }
+            ErrorResponse er = new ErrorResponse("Error requesting enrichment", ex);
+            return Response.serverError().type(MediaType.APPLICATION_JSON).entity(er.asJson()).build();
         }
     }
-    
-    
 
     @GET 
     @Path("/{id}")
@@ -116,6 +114,9 @@ public class Enrichment {
 
         try {
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
+            if (enricher == null){
+                throw new NullPointerException("Enrichment Engine not loaded");
+            }
             EnrichmentQueryResults eqr = enricher.getQueryResults(id, start, size);
             if (eqr == null){
                 return Response.status(410).build();
@@ -149,20 +150,18 @@ public class Enrichment {
 
         try {
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
+            if (enricher == null){
+                throw new NullPointerException("Enrichment Engine not loaded");
+            }
             EnrichmentQueryStatus eqs = enricher.getQueryStatus(id);
             if (eqs ==  null){
-                Response.status(410).build();
+                return Response.status(410).build();
             }
             return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(eqs)).build();
         }
         catch(Exception ex){
-            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
-            try {
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
-            }
-            catch(JsonProcessingException jpe){
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
-            }
+            ErrorResponse er = new ErrorResponse("Error getting results for id: " + id, ex);
+            return Response.serverError().type(MediaType.APPLICATION_JSON).entity(er.asJson()).build();
         }
     }
 
@@ -184,17 +183,15 @@ public class Enrichment {
 
         try {
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
+            if (enricher == null){
+                throw new NullPointerException("Enrichment Engine not loaded");
+            }
             enricher.delete(id);
             return Response.ok().build();
         }
         catch(Exception ex){
-            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
-            try {
-                return Response.status(500).type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
-            }
-            catch(JsonProcessingException jpe){
-                return Response.status(500).type(MediaType.APPLICATION_JSON).entity("hi").build();
-            }
+            ErrorResponse er = new ErrorResponse("Error deleting: " + id, ex);
+            return Response.serverError().type(MediaType.APPLICATION_JSON).entity(er.asJson()).build();
         }
     }
     
@@ -217,20 +214,18 @@ public class Enrichment {
         InputStream in = null;
         try {
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
+            if (enricher == null){
+                throw new NullPointerException("Enrichment Engine not loaded");
+            }
             in = enricher.getNetworkOverlayAsCX(id, databaseUUID, networkUUID);
             if (in == null){
-                Response.status(410).build();
+                return Response.status(410).build();
             }
             return Response.ok().type(MediaType.APPLICATION_JSON).entity(in).build();
         }
         catch(Exception ex){
-            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
-            try {
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
-            }
-            catch(JsonProcessingException jpe){
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
-            }
+            ErrorResponse er = new ErrorResponse("Error getting overlay network for id: " + id, ex);
+            return Response.serverError().type(MediaType.APPLICATION_JSON).entity(er.asJson()).build();
         }
         /**
          * @TODO CHECK INTO THIS CAUSE IF I INCLUDE A CLOSE THIS DOESNT WORK

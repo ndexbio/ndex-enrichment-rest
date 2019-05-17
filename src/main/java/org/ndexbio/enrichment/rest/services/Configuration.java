@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory;
  */
 public class Configuration {
     
+    public static final String APPLICATION_PATH = "/enrichment";
     public static final String BASE_REST_PATH = "/";
+    public static final String V_ONE_PATH = "/v1";
     public static final String NDEX_ENRICH_CONFIG = "NDEX_ENRICH_CONFIG";
     
     public static final String DATABASE_DIR = "enrichment.database.dir";

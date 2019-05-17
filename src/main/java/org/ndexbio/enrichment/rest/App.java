@@ -181,15 +181,18 @@ public class App {
                 final ServletContextHandler webappContext = new ServletContextHandler(server, props.getProperty(App.RUNSERVER_CONTEXTPATH, "/"));
                 
                 HashMap<String, String> initMap = new HashMap<>();
-                initMap.put("resteasy.servlet.mapping.prefix", "/");
+                initMap.put("resteasy.servlet.mapping.prefix",
+                            Configuration.APPLICATION_PATH);
                 initMap.put("javax.ws.rs.Application", "org.ndexbio.enrichment.rest.EnrichmentApplication");
                 final ServletHolder restEasyServlet = new ServletHolder(
                      new EnrichmentHttpServletDispatcher());
                 
                 restEasyServlet.setInitOrder(1);
                 restEasyServlet.setInitParameters(initMap);
-                webappContext.addServlet(restEasyServlet, "/*");
-                webappContext.addFilter(CorsFilter.class, "/*", null);
+                webappContext.addServlet(restEasyServlet,
+                                         Configuration.APPLICATION_PATH + "/*");
+                webappContext.addFilter(CorsFilter.class,
+                                        Configuration.APPLICATION_PATH + "/*", null);
                 ContextHandlerCollection contexts = new ContextHandlerCollection();
                 contexts.setHandlers(new Handler[] { webappContext });
  

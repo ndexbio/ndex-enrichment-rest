@@ -48,7 +48,7 @@ public class TestStatus {
             Dispatcher dispatcher = MockDispatcherFactory.createDispatcher();
             dispatcher.getRegistry().addSingletonResource(new Status());
 
-            MockHttpRequest request = MockHttpRequest.get(Status.STATUS_PATH);
+            MockHttpRequest request = MockHttpRequest.get(Configuration.V_ONE_PATH + Status.STATUS_PATH);
 
             MockHttpResponse response = new MockHttpResponse();
             Configuration.setAlternateConfigurationFile(confFile.getAbsolutePath());

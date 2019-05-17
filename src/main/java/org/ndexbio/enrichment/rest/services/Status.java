@@ -24,7 +24,7 @@ import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
  * Returns status of Server
  * @author churas
  */
-@Path(Configuration.BASE_REST_PATH)
+@Path(Configuration.V_ONE_PATH)
 public class Status {
     
     /**
