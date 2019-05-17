@@ -405,7 +405,8 @@ public class App {
             for (NodeAttributesElement nae : nodeAttribs){
                 if (nae.getName().toLowerCase().equals("type")){
                     if (nae.getValue().toLowerCase().equals("gene") ||
-                          nae.getValue().toLowerCase().equals("protein")){
+                          nae.getValue().toLowerCase().equals("protein") ||
+                            nae.getValue().toLowerCase().equals("geneproduct")){
                         validgene = true;
                         break;
                     }
