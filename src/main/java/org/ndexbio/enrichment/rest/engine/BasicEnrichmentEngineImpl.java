@@ -421,6 +421,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
                                                                        totalGenesInNetwork, numberGenesInQuery);
         return ((double)1.0 - hd.cumulativeProbability(numGenesMatch));
     }
+
     protected void updateStatsAboutNetwork(NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr,
             int numGenesInQuery){
         eqr.setNodes(cxNetwork.getNodes().size());
