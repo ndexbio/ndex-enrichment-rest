@@ -83,7 +83,8 @@ public class Enrichment {
             }
             Task t = new Task();
             t.setId(id);
-            return Response.status(202).location(new URI(Configuration.V_ONE_PATH + "/" + id)).entity(omappy.writeValueAsString(t)).build();
+            return Response.status(202).location(new URI(Configuration.getInstance().getHostURL() +
+                                                         Configuration.V_ONE_PATH + "/" + id).normalize()).entity(omappy.writeValueAsString(t)).build();
         } catch(Exception ex){
             ErrorResponse er = new ErrorResponse("Error requesting enrichment", ex);
             return Response.serverError().type(MediaType.APPLICATION_JSON).entity(er.asJson()).build();

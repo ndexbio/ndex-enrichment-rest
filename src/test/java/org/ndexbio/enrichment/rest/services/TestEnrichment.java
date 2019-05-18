@@ -219,6 +219,55 @@ public class TestEnrichment {
             _folder.delete();
         }
     }
+    
+        @Test
+    public void testRequestEnrichmentWhereQuerySuccessAndHostURLSet() throws Exception {
+        try {
+            File tempDir = _folder.newFolder();
+            File confFile = new File(tempDir.getAbsolutePath() + File.separator + "foo.conf");
+            
+            FileWriter fw = new FileWriter(confFile);
+            
+            fw.write(Configuration.DATABASE_DIR + " = " + tempDir.getAbsolutePath() + "\n");
+            fw.write(Configuration.TASK_DIR + " = " + tempDir.getAbsolutePath() + "\n");
+            fw.write(Configuration.HOST_URL + " = http://foo.com\n");
+            fw.flush();
+            fw.close();
+            Dispatcher dispatcher = MockDispatcherFactory.createDispatcher();
+            dispatcher.getRegistry().addSingletonResource(new Enrichment());
+
+            MockHttpRequest request = MockHttpRequest.post(Configuration.V_ONE_PATH);
+            EnrichmentQuery query = new EnrichmentQuery();
+            ObjectMapper omappy = new ObjectMapper();
+            request.contentType(MediaType.APPLICATION_JSON);
+            
+            request.content(omappy.writeValueAsBytes(query));
+
+
+            MockHttpResponse response = new MockHttpResponse();
+            Configuration.setAlternateConfigurationFile(confFile.getAbsolutePath());
+            
+            // create mock enrichment engine that returns null
+            EnrichmentEngine mockEngine = createMock(EnrichmentEngine.class);
+            expect(mockEngine.query(notNull())).andReturn("12345");
+            replay(mockEngine);
+            Configuration.getInstance().setEnrichmentEngine(mockEngine);
+            
+            dispatcher.invoke(request, response);
+            assertEquals(202, response.getStatus());
+            
+            MultivaluedMap<String, Object> resmap = response.getOutputHeaders();
+            assertEquals(new URI("http://foo.com/v1/12345"), resmap.getFirst("Location"));
+            ObjectMapper mapper = new ObjectMapper();
+            Task t = mapper.readValue(response.getOutput(),
+                    Task.class);
+            assertEquals("12345", t.getId());
+            verify(mockEngine);
+
+        } finally {
+            _folder.delete();
+        }
+    }
 
     @Test
     public void testGetWhereEnrichmentEngineNotLoaded() throws Exception {

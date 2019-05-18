@@ -283,6 +283,9 @@ public class App {
         sb.append("# Sets Enrichment task directory where results from queries are stored\n");
         sb.append(Configuration.TASK_DIR + " = /tmp/tasks\n\n");
         
+        sb.append("# Sets HOST URL prefix (value is prefixed to Location header when query is invoked. Can be left blank)\n");
+        sb.append(Configuration.HOST_URL + " =\n");
+        
         sb.append("# Sets directory where log files will be written for Jetty web server\n");
         sb.append(App.RUNSERVER_LOGDIR + " = /tmp/logs\n\n");
         
@@ -300,7 +303,7 @@ public class App {
     
     public static NdexRestClientModelAccessLayer getNdexClient(InternalNdexConnectionParams params) throws Exception {
         NdexRestClient nrc = new NdexRestClient(params.getUser(), params.getPassword(), 
-                params.getServer(), "Enrichment/0.3.0");
+                params.getServer(), "Enrichment/0.4.0");
         
         return new NdexRestClientModelAccessLayer(nrc);
     }

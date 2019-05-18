@@ -49,16 +49,18 @@ public class EnrichmentDatabase {
 
         try {
            EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
-           return Response.ok(omappy.writeValueAsString(enricher.getDatabaseResults()), MediaType.APPLICATION_JSON).build();
+           if (enricher == null){
+               throw new NullPointerException("Enrichment Engine not loaded");
+           }
+           DatabaseResults dr = enricher.getDatabaseResults();
+           if (dr == null){
+               throw new NullPointerException("DatabaseResults is null");
+           }
+           return Response.ok(omappy.writeValueAsString(dr), MediaType.APPLICATION_JSON).build();
         }
         catch(Exception ex){
-            ErrorResponse er = new ErrorResponse("Error querying for system information", ex);
-            try {
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(er)).build();
-            }
-            catch(JsonProcessingException jpe){
-                return Response.serverError().type(MediaType.APPLICATION_JSON).entity("hi").build();
-            }
+            ErrorResponse er = new ErrorResponse("Error querying for databases", ex);
+            return Response.serverError().type(MediaType.APPLICATION_JSON).entity(er.asJson()).build();
         }
     }
 }

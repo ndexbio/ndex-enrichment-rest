@@ -24,12 +24,12 @@ import org.slf4j.LoggerFactory;
 public class Configuration {
     
     public static final String APPLICATION_PATH = "/enrichment";
-    public static final String BASE_REST_PATH = "/";
     public static final String V_ONE_PATH = "/v1";
     public static final String NDEX_ENRICH_CONFIG = "NDEX_ENRICH_CONFIG";
     
     public static final String DATABASE_DIR = "enrichment.database.dir";
     public static final String TASK_DIR = "enrichment.task.dir";
+    public static final String HOST_URL = "enrichment.host.url";
     
     public static final String NDEX_USER = "ndex.user";
     public static final String NDEX_PASS = "ndex.password";
@@ -45,6 +45,7 @@ public class Configuration {
     private static EnrichmentEngine _enrichmentEngine;
     private static String _enrichDatabaseDir;
     private static String _enrichTaskDir;
+    private static String _enrichHostURL;
     /**
      * Constructor that attempts to get configuration from properties file
      * specified via configPath
@@ -69,7 +70,12 @@ public class Configuration {
         
         _enrichDatabaseDir = props.getProperty(Configuration.DATABASE_DIR, "/tmp");
         _enrichTaskDir = props.getProperty(Configuration.TASK_DIR, "/tmp");
-                
+        _enrichHostURL = props.getProperty(Configuration.HOST_URL, "");
+        if (_enrichHostURL.trim().isEmpty()){
+            _enrichHostURL = "";
+        } else if (!_enrichHostURL.endsWith("/")){
+            _enrichHostURL =_enrichHostURL + "/";
+        }
     }
         
     protected void setEnrichmentEngine(EnrichmentEngine ee){
@@ -77,6 +83,15 @@ public class Configuration {
     }
     public EnrichmentEngine getEnrichmentEngine(){
         return _enrichmentEngine;
+    }
+
+    /**
+     * Gets alternate URL prefix for the host running this service.
+     * @return String containing alternate URL ending with / or empty
+     *         string if not is set
+     */
+    public String getHostURL(){
+        return _enrichHostURL;
     }
     
     /**
