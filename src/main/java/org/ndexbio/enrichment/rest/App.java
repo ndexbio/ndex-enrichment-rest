@@ -283,8 +283,8 @@ public class App {
         sb.append("# Sets Enrichment task directory where results from queries are stored\n");
         sb.append(Configuration.TASK_DIR + " = /tmp/tasks\n\n");
         
-        sb.append("# Sets HOST URL prefix (value is prefixed to Location header when query is invoked. Can be left blank)\n");
-        sb.append(Configuration.HOST_URL + " =\n");
+        sb.append("# Sets HOST URL prefix (value is prefixed to Location header when query is invoked. Can be commented out)\n");
+        sb.append("# " + Configuration.HOST_URL + " = http://ndexbio.org\n");
         
         sb.append("# Sets directory where log files will be written for Jetty web server\n");
         sb.append(App.RUNSERVER_LOGDIR + " = /tmp/logs\n\n");
