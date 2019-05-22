@@ -16,6 +16,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
+import org.ndexbio.enrichment.rest.model.DatabaseResult;
 
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
@@ -66,21 +67,21 @@ public class TestBasicEnrichmentEngineImpl {
         enricher.addGeneToDatabase("db1", "gene", Arrays.asList("network1", "network2"));
         assertNull(enricher.remapNetworksToGenes("dbnotfound", Arrays.asList("GENE")));
     }
-    /**
+    
     @Test
     public void testgetEnrichmentQueryResultObjectsFromNetworkMap(){
         BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         List<EnrichmentQueryResult> eqr = null;
         
         // null check
-        eqr = enricher.getEnrichmentQueryResultObjectsFromNetworkMap(null, null, null);
+        eqr = enricher.getEnrichmentQueryResultObjectsFromNetworkMap(null, null, null, null);
         assertEquals(null, eqr);
         
         // another null check
         DatabaseResult dbres = new DatabaseResult();
-        eqr = enricher.getEnrichmentQueryResultObjectsFromNetworkMap(dbres, null, null);
+        eqr = enricher.getEnrichmentQueryResultObjectsFromNetworkMap(null, dbres, null, null);
         assertEquals(null, eqr);
-        
+        /**
         // another null check
         HashMap<String, HashSet<String>> networkMap = new HashMap<String, HashSet<String>>();
         eqr = enricher.getEnrichmentQueryResultObjectsFromNetworkMap(dbres, networkMap, null);
@@ -103,9 +104,10 @@ public class TestBasicEnrichmentEngineImpl {
         assertEquals(0, first.getRank());
         assertEquals(0, first.getpValue());
         assertEquals("network1", first.getNetworkUUID());
-        assertEquals("tp53", first.getHitGenes().get(0));   
+        assertEquals("tp53", first.getHitGenes().get(0));
+        */
     }
-    */
+   
     /**
     @Test
     public void testremapNetworksToGenes(){
