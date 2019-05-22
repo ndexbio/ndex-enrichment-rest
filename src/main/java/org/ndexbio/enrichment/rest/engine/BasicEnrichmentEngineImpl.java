@@ -422,13 +422,18 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         return ((double)1.0 - hd.cumulativeProbability(numGenesMatch));
     }
 
+    /**
+     * Updates <b>eqr</b> with pvalue and other stats
+     * @param cxNetwork {@link org.ndexbio.model.cx.NiceCXNetwork} to extract node and edge count from
+     * @param eqr {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult} to update
+     * @param numGenesInQuery 
+     */
     protected void updateStatsAboutNetwork(NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr,
             int numGenesInQuery){
         eqr.setNodes(cxNetwork.getNodes().size());
         eqr.setEdges(cxNetwork.getEdges().size());
         eqr.setDescription(cxNetwork.getNetworkName());
         int numHitGenes = eqr.getHitGenes().size();
-        // @TODO Percent overlap should only count gene nodes and not total # of nodes
         eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)numGenesInQuery)*(float)100));
         InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
         int totalGenesInUniverse = idr.getUniverseUniqueGeneCount();

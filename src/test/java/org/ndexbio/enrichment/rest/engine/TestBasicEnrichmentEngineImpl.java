@@ -14,11 +14,16 @@ import org.jboss.resteasy.core.Dispatcher;
 import org.jboss.resteasy.mock.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
+import org.ndexbio.cxio.aspects.datamodels.NodesElement;
 
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
+import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
+import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
+import org.ndexbio.model.cx.NiceCXNetwork;
 
 /**
  *
@@ -243,5 +248,44 @@ public class TestBasicEnrichmentEngineImpl {
         assertEquals(EnrichmentQueryResults.SUBMITTED_STATUS, eqs.getStatus());
         assertEquals(eqr.getStartTime(), eqs.getStartTime());
         
+    }
+    
+    @Test
+    public void testGetPvalue(){
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
+        assertEquals(0.076, enricher.getPvalue(100, 10, 5, 1), 0.01);
+        
+    }
+    
+    @Test
+    public void testUpdateStatsAboutNetwork(){
+        NiceCXNetwork net = new NiceCXNetwork();
+        NetworkAttributesElement nameAttrib = new NetworkAttributesElement(0L, "name", "mynetwork");
+        net.addNetworkAttribute(nameAttrib);
+        NodesElement ne = new NodesElement();
+        ne.setId(0);
+        ne.setNodeName("node1");
+        net.addNode(ne);
+        ne = new NodesElement();
+        ne.setId(1);
+        ne.setNodeName("node2");
+        net.addNode(ne);
+        
+        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
+        InternalDatabaseResults idr = new InternalDatabaseResults();
+        idr.setUniverseUniqueGeneCount(100);
+        enricher.setDatabaseResults(idr);
+        EnrichmentQueryResult eqr = new EnrichmentQueryResult();
+        HashSet<String> geneSet = new HashSet<>();
+        geneSet.add("gene1");
+        geneSet.add("gene2");
+        eqr.setHitGenes(geneSet);
+        enricher.updateStatsAboutNetwork(net, eqr, 4);
+        
+        assertEquals(50, eqr.getPercentOverlap());
+        assertEquals(2, eqr.getNodes());
+        assertEquals(0, eqr.getEdges());
+        assertEquals("mynetwork", eqr.getDescription());
+        assertEquals(0.076, enricher.getPvalue(100, 10, 5, 1), 0.01);
     }
 }
