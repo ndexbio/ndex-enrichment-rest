@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -339,8 +340,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
                 continue;
             }
             updateStatsAboutNetwork(cxNetwork, eqr, numGenesInQuery);
-            File destFile = new File(taskDir.getAbsolutePath() + File.separator + network + ".cx");
-            annotateAndSaveNetwork(destFile, cxNetwork, eqr);
+            //File destFile = new File(taskDir.getAbsolutePath() + File.separator + network + ".cx");
+            //annotateAndSaveNetwork(destFile, cxNetwork, eqr);
             eqrList.add(eqr);
         }
         return eqrList;
@@ -407,6 +408,51 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         catch(NdexException nex){
             _logger.error("Problems writing network as cx", nex);
         }
+    }
+    
+    public static void streamNetwork(OutputStream out, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr,
+            InternalDatabaseResults idr){
+        try  {
+            
+            if (cxNetwork.getMetadata() == null){
+                _logger.error("No Meta data object for network");
+                return;
+            }
+            long nodeAttrCntr = -1;
+            try {
+                nodeAttrCntr = cxNetwork.getMetadata().getIdCounter(NodeAttributesElement.ASPECT_NAME);
+            } catch(NullPointerException npe){
+                _logger.error("No id counter for network weird: " + cxNetwork.getNetworkName());
+            }
+            Map<String, Set<Long>> geneToNodeMap = idr.getNetworkToGeneToNodeMap().get(eqr.getNetworkUUID());
+            if (geneToNodeMap != null){
+                for (String hitGene : eqr.getHitGenes()){
+                    Set<Long> nodeIdSet = geneToNodeMap.get(hitGene);
+                    if (nodeIdSet != null){
+                        for (Long nodeId : nodeIdSet){
+                            NodeAttributesElement nae = new NodeAttributesElement(nodeId, "querynode", "true",
+                            ATTRIBUTE_DATA_TYPE.BOOLEAN);
+                            cxNetwork.addNodeAttribute(nae);
+                            nodeAttrCntr++;
+                        }
+                    }
+                }
+            }
+            
+            _logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
+            cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
+            NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(out, true);
+            NiceCXNetworkWriter writer = new NiceCXNetworkWriter(ndexwriter);
+            writer.writeNiceCXNetwork(cxNetwork);
+            return;
+        }
+        catch(IOException ex){
+            _logger.error("problems writing cx", ex);
+        }
+        catch(NdexException nex){
+            _logger.error("Problems writing network as cx", nex);
+        }
+        return;
     }
     
     /**
@@ -579,21 +625,77 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             _logger.error("There was a problem deleting the directory: " + thisTaskDir.getAbsolutePath());
         }
     }
-
-    @Override
-    public InputStream getNetworkOverlayAsCX(String id, String databaseUUID, String networkUUID) throws EnrichmentException {
-        File cxFile = new File(this._taskDir + File.separator + id + File.separator + networkUUID + ".cx");
-        
-        if (cxFile.isFile() == false){
-            _logger.debug(cxFile.getAbsolutePath() + " is not a file or does not exist");
+    
+    protected EnrichmentQueryResult getEnrichmentQueryResult(final String id, 
+              final String networkUUID) throws EnrichmentException {
+        EnrichmentQueryResults eqResults = getEnrichmentQueryResultsFromDbOrFilesystem(id);
+        if (eqResults == null){
             return null;
         }
-        _logger.debug("returning " + cxFile.getAbsolutePath() + " cx file");
-        try {
-            return new FileInputStream(cxFile);
-        }catch(FileNotFoundException ex){
-            _logger.error("caught file not found exception ", ex);
+        if (eqResults.getResults() == null){
+            return null;
         }
+        for (EnrichmentQueryResult eqr: eqResults.getResults()){
+            if (eqr.getDatabaseUUID() == null){
+                continue;
+            }
+            if (eqr.getNetworkUUID() == null){
+                continue;
+            }
+            if (!eqr.getNetworkUUID().equals(networkUUID)){
+                continue;
+            }
+            return eqr;
+        }
+        return null;
+    }
+            
+
+    @Override
+    public InputStream getNetworkOverlayAsCX(String id, String databaseUUID, String networkUUID) throws EnrichmentException { 
+            
+            EnrichmentQueryResult eqr = getEnrichmentQueryResult(id, networkUUID);
+            if (eqr == null){
+                _logger.error("No network found");
+                return null;
+            }
+            NiceCXNetwork cxNetwork = getNetwork(eqr.getDatabaseUUID(), networkUUID);
+            if (cxNetwork == null){
+                _logger.error("Unable to get network: " + networkUUID + " skipping...");
+                return null;
+            }
+            
+            /**
+            try {
+                PipedInputStream in = new PipedInputStream();
+                PipedOutputStream out = new PipedOutputStream(in);
+                InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
+                new Thread(new Runnable() {
+                    public void run(){
+                        BasicEnrichmentEngineImpl.streamNetwork(out, cxNetwork, eqr, idr);
+                    }
+                }
+                ).start();
+                return in;
+            } catch(IOException io){
+                _logger.error("io exception", io);
+            }*/
+            
+            File destFile = new File(this._taskDir + File.separator + id +
+                    File.separator + networkUUID + ".cx");
+            
+            try {
+                if (!destFile.exists() || destFile.length() == 0){
+                    File tmpFile = new File(this._taskDir + File.separator + id +
+                        File.separator + UUID.randomUUID().toString() + ".cx");
+                    annotateAndSaveNetwork(tmpFile, cxNetwork, eqr);
+                    tmpFile.renameTo(destFile);
+                }
+                
+                return new FileInputStream(destFile);
+            } catch(FileNotFoundException fe){
+                _logger.error("File not found", fe);
+            }
         return null;
     }
     
