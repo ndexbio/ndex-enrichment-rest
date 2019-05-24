@@ -11,6 +11,7 @@ import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
+import org.ndexbio.enrichment.rest.model.ServerStatus;
 
 /**
  *
@@ -67,6 +68,13 @@ public interface EnrichmentEngine extends Runnable {
      * @throws EnrichmentException 
      */
     public InputStream getNetworkOverlayAsCX(final String id, final String databaseUUID, final String networkUUID) throws EnrichmentException;
+    
+    /**
+     * Gets status of server
+     * @return
+     * @throws EnrichmentException 
+     */
+    public ServerStatus getServerStatus() throws EnrichmentException;
     
     /**
      * Tells implementing objects to shutdown
