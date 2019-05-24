@@ -228,19 +228,6 @@ public class Enrichment {
             ErrorResponse er = new ErrorResponse("Error getting overlay network for id: " + id, ex);
             return Response.serverError().type(MediaType.APPLICATION_JSON).entity(er.asJson()).build();
         }
-        /**
-         * @TODO CHECK INTO THIS CAUSE IF I INCLUDE A CLOSE THIS DOESNT WORK
-        finally {
-            if (in != null){
-                try {
-                    in.close();
-                }
-                catch(IOException io){
-                    logger.error("caught exception trying to close stream", io);
-                }
-            }
-        }
-        */
     }
     
 }
