@@ -8,6 +8,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,7 +38,10 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
+import org.ndexbio.enrichment.rest.model.ServerStatus;
 import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue;
+import org.ndexbio.enrichment.rest.services.Configuration;
+import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.NdexException;
 
@@ -698,5 +704,31 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             }
         return null;
     }
+
+    /**
+     * Gets ServerStatus
+     * @return 
+     * @throws EnrichmentException If there was a problem
+     */
+    @Override
+    public ServerStatus getServerStatus() throws EnrichmentException {
+        try {
+            String version = "unknown";
+            ServerStatus sObj = new ServerStatus();
+            sObj.setStatus(ServerStatus.OK_STATUS);
+            sObj.setRestVersion(EnrichmentHttpServletDispatcher.getVersion());
+            OperatingSystemMXBean omb = ManagementFactory.getOperatingSystemMXBean();
+            float unknown = (float)-1;
+            float load = (float)omb.getSystemLoadAverage();
+            sObj.setLoad(Arrays.asList(load, unknown, unknown));
+            File taskDir = new File(this._taskDir);
+            sObj.setPcDiskFull(100-(int)Math.round(((double)taskDir.getFreeSpace()/(double)taskDir.getTotalSpace())*100));
+            return sObj;
+        } catch(Exception ex){
+            _logger.error("ServerStatus error", ex);
+            throw new EnrichmentException("Exception raised when getting ServerStatus: " + ex.getMessage());
+        }
+    }
+    
     
 }
