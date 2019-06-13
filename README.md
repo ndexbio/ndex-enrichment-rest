@@ -103,7 +103,7 @@ database.
 Run the following to create an example **databaseresults.json** file:
 
 ```bash
-java -jar enrichment.jar --mode exampleconf > db/databaseresults.json
+java -jar enrichment.jar --mode exampledbresults > db/databaseresults.json
 
 ```
 
