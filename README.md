@@ -169,6 +169,11 @@ values under the **enrichment.database.dir** directory.
 jav -jar enrichment.jar --mode runserver --conf enrichment.conf
 ```
 
+More Information
+=================
+
+[Visit our wiki for more information](https://github.com/ndexbio/ndex-enrichment-rest/wiki)
+
 COPYRIGHT AND LICENSE
 =====================
 
