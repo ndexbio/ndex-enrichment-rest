@@ -471,7 +471,11 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     protected double getPvalue(int totalGenesInUniverse, int totalGenesInNetwork, int numberGenesInQuery, int numGenesMatch){
         HypergeometricDistribution hd = new HypergeometricDistribution(totalGenesInUniverse, 
                                                                        totalGenesInNetwork, numberGenesInQuery);
-        return ((double)1.0 - hd.cumulativeProbability(numGenesMatch));
+        double pValue = ((double)1.0 - hd.cumulativeProbability(numGenesMatch));
+        if (pValue < 0) {
+            return 0.0;
+        }
+        return pValue;
     }
 
     /**
