@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
+import java.util.concurrent.ExecutionException;
+
 import org.jboss.resteasy.core.Dispatcher;
 import org.jboss.resteasy.mock.*;
 import static org.junit.Assert.*;
@@ -37,26 +40,12 @@ public class TestBasicEnrichmentEngineImpl {
     
     public TestBasicEnrichmentEngineImpl() {
     }
-   
-    @Test
-    public void testGetUniqueGeneList() throws Exception {
-        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
-        assertEquals(null, enricher.getUniqueGeneList(null));
-        List<String> mylist = new LinkedList<String>();
-        assertTrue(enricher.getUniqueGeneList(mylist).isEmpty());
-        mylist.add("1");
-        mylist.add("1");
-        mylist.add("2");
-        assertEquals(2, enricher.getUniqueGeneList(mylist).size());
-        assertTrue(enricher.getUniqueGeneList(mylist).contains("1"));
-        assertTrue(enricher.getUniqueGeneList(mylist).contains("2"));
-    }
     
     @Test
     public void testAddGeneToDatabaseViaremapNetworksToGenes(){
         BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         enricher.addGeneToDatabase("db1", "gene", Arrays.asList("network1", "network2"));
-        HashMap<String, HashSet<String>> netMap = enricher.remapNetworksToGenes("db1", Arrays.asList("GENE"));
+        HashMap<String, HashSet<String>> netMap = enricher.remapNetworksToGenes("db1", new TreeSet<>(Arrays.asList("GENE")));
         assertTrue(netMap.containsKey("network1"));
         assertTrue(netMap.containsKey("network2"));
     }
@@ -65,7 +54,7 @@ public class TestBasicEnrichmentEngineImpl {
     public void testremapNetworksToGenesDatabaseNotFound(){
         BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         enricher.addGeneToDatabase("db1", "gene", Arrays.asList("network1", "network2"));
-        assertNull(enricher.remapNetworksToGenes("dbnotfound", Arrays.asList("GENE")));
+        assertNull(enricher.remapNetworksToGenes("dbnotfound", new TreeSet<>(Arrays.asList("GENE"))));
     }
     
     @Test
@@ -150,7 +139,8 @@ public class TestBasicEnrichmentEngineImpl {
     }
     */
     /**
-    @Test
+    @throws ExecutionException 
+     * @Test
     public void testprocessQuery() throws Exception{
         BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         
@@ -220,7 +210,7 @@ public class TestBasicEnrichmentEngineImpl {
     }
     */
     @Test
-    public void testQueryNoDatabases(){
+    public void testQueryNoDatabases() throws ExecutionException{
         try{
             BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
             EnrichmentQuery eq = new EnrichmentQuery();
@@ -233,11 +223,11 @@ public class TestBasicEnrichmentEngineImpl {
     }
     
     @Test
-    public void testQuerySuccess() throws EnrichmentException {
+    public void testQuerySuccess() throws EnrichmentException, ExecutionException {
         BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
         EnrichmentQuery eq = new EnrichmentQuery();
-        eq.setDatabaseList(Arrays.asList("ncipid"));
-        eq.setGeneList(Arrays.asList("brca1"));
+        eq.setDatabaseList(new TreeSet<>(Arrays.asList("ncipid")));
+        eq.setGeneList(new TreeSet<>(Arrays.asList("brca1")));
         String res = enricher.query(eq);
         assertTrue(res != null);
         

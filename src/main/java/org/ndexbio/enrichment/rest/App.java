@@ -28,6 +28,8 @@ import java.util.UUID;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.server.Handler;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
@@ -164,6 +166,8 @@ public class App {
                 String logDir = props.getProperty(App.RUNSERVER_LOGDIR, ".");
                 RolloverFileOutputStream os = new RolloverFileOutputStream(logDir + File.separator + "ndexenrich_yyyy_mm_dd.log", true);
 		
+                //Remove old tasks
+                FileUtils.cleanDirectory(new File(Configuration.getInstance().getEnrichmentTaskDirectory()));
 		
                 final int port = Integer.valueOf(props.getProperty(App.RUNSERVER_PORT, "8081"));
                 System.out.println("\nSpinning up server for status invoke: http://localhost:" + Integer.toString(port) + "/enrichment/v1/status\n\n");

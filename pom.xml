@@ -323,7 +323,7 @@
                 <executions>
                     <execution>
                         <id>make-my-jar-with-dependencies</id>
-                        <phase>compile</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>

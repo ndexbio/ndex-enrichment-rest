@@ -6,6 +6,8 @@
 package org.ndexbio.enrichment.rest.engine;
 
 import java.io.InputStream;
+import java.util.concurrent.ExecutionException;
+
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
@@ -24,7 +26,7 @@ public interface EnrichmentEngine extends Runnable {
      * @param query query to process
      * @return UUID as a string that is an identifier for query
      */
-    public String query(EnrichmentQuery query) throws EnrichmentException;
+    public String query(EnrichmentQuery query) throws EnrichmentException, ExecutionException;
     
     /**
      * Gets a summary of databases in engine

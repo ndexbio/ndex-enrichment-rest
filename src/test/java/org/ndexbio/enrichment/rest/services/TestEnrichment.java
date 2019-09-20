@@ -164,6 +164,7 @@ public class TestEnrichment {
             ErrorResponse er = mapper.readValue(response.getOutput(),
                     ErrorResponse.class);
             assertEquals("Error requesting enrichment", er.getMessage());
+            System.out.print(er.getMessage());
             assertEquals("No id returned from enrichment engine", er.getDescription());
             verify(mockEngine);
 
