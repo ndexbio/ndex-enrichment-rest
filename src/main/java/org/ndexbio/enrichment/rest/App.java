@@ -167,18 +167,18 @@ public class App {
                 RolloverFileOutputStream os = new RolloverFileOutputStream(logDir + File.separator + "ndexenrich_yyyy_mm_dd.log", true);
 		
                 //Remove old tasks
-                FileUtils.cleanDirectory(new File(Configuration.getInstance().getEnrichmentTaskDirectory()));
+                //FileUtils.cleanDirectory(new File(Configuration.getInstance().getEnrichmentTaskDirectory()));
 		
                 final int port = Integer.valueOf(props.getProperty(App.RUNSERVER_PORT, "8081"));
                 System.out.println("\nSpinning up server for status invoke: http://localhost:" + Integer.toString(port) + "/enrichment/v1/status\n\n");
                 System.out.flush();
                 
                 //We are creating a print stream based on our RolloverFileOutputStream
-		PrintStream logStream = new PrintStream(os);
+                PrintStream logStream = new PrintStream(os);
 
                 //We are redirecting system out and system error to our print stream.
-		System.setOut(logStream);
-		System.setErr(logStream);
+                System.setOut(logStream);
+                System.setErr(logStream);
 
                 final Server server = new Server(port);
 

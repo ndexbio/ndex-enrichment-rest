@@ -32,6 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.math3.distribution.HypergeometricDistribution;
 import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
+import org.ndexbio.cxio.aspects.datamodels.NodesElement;
 import org.ndexbio.cxio.core.NdexCXNetworkWriter;
 import org.ndexbio.cxio.core.writers.NiceCXNetworkWriter;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
@@ -95,7 +96,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
   private long _threadSleep = 10;
   
   //Cache
-	private final LoadingCache<EnrichmentQuery, String> geneSetSearchCache;
+  private final LoadingCache<EnrichmentQuery, String> geneSetSearchCache;
   private static int resultCacheSize = 600;
   
   public BasicEnrichmentEngineImpl(final String dbDir,
@@ -114,6 +115,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         String id = removal.getValue();
         try {
 			delete(id);
+			System.out.println(id);
 		} catch (EnrichmentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -128,10 +130,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
       .removalListener(removalListener)
       .build(
         new CacheLoader<EnrichmentQuery, String>() {
-        	public String load(EnrichmentQuery eq) throws EnrichmentException {
-        		if (eq.getDatabaseList() == null || eq.getDatabaseList().isEmpty()) {
-              throw new EnrichmentException("No databases selected");
-            }
+        	public String load(EnrichmentQuery eq) {
             String id = UUID.nameUUIDFromBytes(getUniqueString(eq).getBytes()).toString();
             _queryTasks.add(eq);
             
