@@ -28,6 +28,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import javax.vecmath.GVector;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.math3.distribution.HypergeometricDistribution;
 import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
@@ -115,7 +117,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         String id = removal.getValue();
         try {
 			delete(id);
-			System.out.println(id);
 		} catch (EnrichmentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -380,7 +381,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
         _logger.error("Unable to get network: " + network + " skipping...");
         continue;
       }
-      updateStatsAboutNetwork(cxNetwork, eqr, numGenesInQuery);
+      
+      updateStatsAboutNetwork(cxNetwork, eqr, uniqueGeneList);
       //File destFile = new File(taskDir.getAbsolutePath() + File.separator + network + ".cx");
       //annotateAndSaveNetwork(destFile, cxNetwork, eqr);
       eqrList.add(eqr);
@@ -508,6 +510,35 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     }
     return pValue;
   }
+  
+  protected double getSimilarity(SortedSet<String> networkGenes, SortedSet<String> queryGenes, int overlap, Map<String, Double> idfMap) {
+	  int size = networkGenes.size() + queryGenes.size() - overlap;
+	  GVector networkVector = new GVector(size);
+	  GVector queryVector = new GVector(size);
+	  int index = 0;
+	  for (String gene : networkGenes) {
+		  if (idfMap.containsKey(gene)) {
+			  networkVector.setElement(index, idfMap.get(gene));
+			  if (queryGenes.contains(gene)) {
+				  queryVector.setElement(index, idfMap.get(gene));
+			  }
+			  index++;
+		  }
+	  }
+	  for (String gene : queryGenes) {
+		  if (!networkGenes.contains(gene) && idfMap.containsKey(gene)) {
+			  queryVector.setElement(index, idfMap.get(gene));
+			  index++;
+		  }
+	  }
+	  return getCosineSimilarity(networkVector, queryVector);
+  }
+  
+  protected double getCosineSimilarity(GVector vec1, GVector vec2) {
+	  double answer = (vec1.dot(vec2)) / (vec1.norm() * vec2.norm());
+	  System.out.println(answer);
+	  return answer;
+  }
 
   /**
    * Updates <b>eqr</b> with pvalue and other stats
@@ -516,15 +547,22 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
    * @param numGenesInQuery 
    */
   protected void updateStatsAboutNetwork(NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr,
-    int numGenesInQuery){
+    SortedSet<String> queryGenes){
     eqr.setNodes(cxNetwork.getNodes().size());
     eqr.setEdges(cxNetwork.getEdges().size());
     eqr.setDescription(cxNetwork.getNetworkName());
     int numHitGenes = eqr.getHitGenes().size();
+    int numGenesInQuery = queryGenes.size();
     eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)numGenesInQuery)*(float)100));
     InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
     int totalGenesInUniverse = idr.getUniverseUniqueGeneCount();
     eqr.setpValue(getPvalue(totalGenesInUniverse, eqr.getNodes(), numGenesInQuery, numHitGenes));
+    
+    SortedSet<String> networkGenes = new TreeSet<>();
+    for (NodesElement node : cxNetwork.getNodes().values()) {
+    	networkGenes.add(node.getNodeName());
+    }
+    eqr.setSimilarity(getSimilarity(networkGenes, queryGenes, numHitGenes, idr.getIdfMap()));
   }
 
   protected NiceCXNetwork getNetwork(final String databaseUUID, final String networkUUID){
