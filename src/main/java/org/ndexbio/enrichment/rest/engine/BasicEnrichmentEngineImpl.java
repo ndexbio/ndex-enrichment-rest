@@ -47,7 +47,6 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.ServerStatus;
 import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue;
-import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryCacheComparator;
 import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
@@ -535,9 +534,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
   }
   
   protected double getCosineSimilarity(GVector vec1, GVector vec2) {
-	  double answer = (vec1.dot(vec2)) / (vec1.norm() * vec2.norm());
-	  System.out.println(answer);
-	  return answer;
+	  return (vec1.dot(vec2)) / (vec1.norm() * vec2.norm());
   }
 
   /**
