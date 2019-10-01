@@ -319,6 +319,8 @@ public class App {
         List<InternalGeneMap> geneMapList = new LinkedList<InternalGeneMap>();
         Map<String, Integer> databaseUniqueGeneCount = new HashMap<>();
         Set<String> networksToExclude = idr.getNetworksToExclude();
+        int totalNetworkCount = 0;
+        
         for (DatabaseResult dr : idr.getResults()){
             _logger.debug("Downloading networks for: " + dr.getName());
             InternalGeneMap geneMap = new InternalGeneMap();
@@ -363,6 +365,7 @@ public class App {
             }
             client.getNdexRestClient().signOut();
             dr.setNumberOfNetworks(Integer.toString(networkCount));
+            totalNetworkCount += networkCount;
             universeUniqueGeneSet.addAll(uniqueGeneSet);
             geneMapList.add(geneMap);
             databaseUniqueGeneCount.put(dr.getUuid(), uniqueGeneSet.size());
@@ -371,9 +374,26 @@ public class App {
         idr.setUniverseUniqueGeneCount(universeUniqueGeneSet.size());
         idr.setDatabaseUniqueGeneCount(databaseUniqueGeneCount);
         idr.setGeneMapList(geneMapList);
+        idr.setIdfMap(makeIdfMap(geneMapList, totalNetworkCount));
+        
         _logger.debug("Attempting to write: " + config.getDatabaseResultsFile().getAbsolutePath());
         mappy.writerWithDefaultPrettyPrinter().writeValue(config.getDatabaseResultsFile(), idr);
         return;
+    }
+    
+    private static Map<String, Double> makeIdfMap(List<InternalGeneMap> geneMapList, int totalNetworkCount) {
+    	Map<String, Integer> idfPrecursor = new HashMap<>();
+    	for (InternalGeneMap internalGeneMap : geneMapList) {
+    		Map<String, Set<String>> geneMap = internalGeneMap.getGeneMap();
+    		for (String gene : geneMap.keySet()) {
+    			idfPrecursor.merge(gene, geneMap.get(gene).size(), (oldNum, newNum) -> oldNum + newNum);
+    		}
+    	}
+    	Map<String, Double> idfMap = new HashMap<>();
+    	for (String gene : idfPrecursor.keySet()) {
+    		idfMap.put(gene, Math.log(totalNetworkCount / (1 + idfPrecursor.get(gene))));
+    	}
+    	return idfMap;
     }
     
     /**

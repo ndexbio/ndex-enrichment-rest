@@ -30,6 +30,7 @@
         <hamcrest.version>2.1</hamcrest.version>
         <guava.version>27.0.1-jre</guava.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
+        <javax.vecmath.version>1.5.2</javax.vecmath.version>
     </properties>
     
     <repositories>
@@ -186,6 +187,11 @@
             <version>${hamcrest.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+    		<groupId>javax.vecmath</groupId>
+    		<artifactId>vecmath</artifactId>
+    		<version>${javax.vecmath.version}</version>
+		</dependency>
     </dependencies>
     <scm>
 	  <connection>scm:git:https://github.com/ndexbio/ndex-enrichment-rest.git</connection>
