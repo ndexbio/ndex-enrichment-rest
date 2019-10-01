@@ -45,7 +45,6 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.ServerStatus;
 import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue;
-import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryCacheComparator;
 import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
