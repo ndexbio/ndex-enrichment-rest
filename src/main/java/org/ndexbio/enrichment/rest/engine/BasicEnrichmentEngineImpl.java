@@ -511,17 +511,25 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
   }
   
   protected double getSimilarity(SortedSet<String> networkGenes, SortedSet<String> queryGenes, int overlap, Map<String, Double> idfMap) {
-	  int size = networkGenes.size() + queryGenes.size() - overlap;
-	  GVector networkVector = new GVector(size);
+    int size = networkGenes.size() + queryGenes.size() - overlap;
+
+    System.out.println("networkGenes.size(): " + networkGenes.size());
+    System.out.println("queryGenes.size(): " + queryGenes.size());
+    System.out.println("overlap: " + overlap);
+    
+    GVector networkVector = new GVector(size);
 	  GVector queryVector = new GVector(size);
 	  int index = 0;
 	  for (String gene : networkGenes) {
-		  if (idfMap.containsKey(gene)) {
+
+      System.out.println("index: " + index);
+      
+      if (idfMap.containsKey(gene)) {
 			  networkVector.setElement(index, idfMap.get(gene));
 			  if (queryGenes.contains(gene)) {
 				  queryVector.setElement(index, idfMap.get(gene));
-			  }
-			  index++;
+        }
+        index++;
 		  }
 	  }
 	  for (String gene : queryGenes) {
