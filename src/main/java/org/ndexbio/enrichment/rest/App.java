@@ -385,6 +385,7 @@ public class App {
             geneMapList.add(geneMap);
             databaseUniqueGeneCount.put(dr.getUuid(), uniqueGeneSet.size());
             uniqueGeneSet.clear();
+            dr.setUrl(getNetworkSetUrl(cParams.getServer(), cParams.getNetworkSetId()));
         }
         idr.setUniverseUniqueGeneCount(universeUniqueGeneSet.size());
         idr.setDatabaseUniqueGeneCount(databaseUniqueGeneCount);
@@ -585,5 +586,9 @@ public class App {
     
     public static String getNetworkUrl(String server, String networkUuid) {
     	return server + "/#/network/" + networkUuid;
+    }
+    
+    public static String getNetworkSetUrl(String server, String networkSetUuid) {
+    	return server + "/#/networkset/" + networkSetUuid;
     }
 }
