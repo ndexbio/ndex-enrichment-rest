@@ -16,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ import org.ndexbio.enrichment.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
 import org.ndexbio.enrichment.rest.model.InternalNdexConnectionParams;
+import org.ndexbio.enrichment.rest.model.Network;
 import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
@@ -229,10 +231,19 @@ public class App {
      * @throws Exception 
      */
     public static String generateExampleDatabaseResults() throws Exception {
+    	Network nw = new Network();
+    	nw.setName("Network Name");
+    	nw.setDescription("Network description");
+    	nw.setUuid("640e2cef-795d-11e8-a4bf-0ac135e8bacf");
+    	nw.setUrl("http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf");
+    	nw.setImageUrl("http://www.home.ndexbio.org/img/pid-logo-ndex.jpg");
+    	List<Network> networkList = new ArrayList<>();
+    	networkList.add(nw);
+    	
         DatabaseResult dr = new DatabaseResult();
         dr.setDescription("This is a description of a signor database");
         dr.setName("signor");
-        dr.setNumberOfNetworks("50");
+        dr.setNetworks(networkList);
         dr.setImageURL("http://signor.uniroma2.it/img/signor_logo.png");
         String druuid = "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6";
         dr.setUuid(druuid);
@@ -240,7 +251,7 @@ public class App {
         DatabaseResult drtwo = new DatabaseResult();
         drtwo.setDescription("This is a description of a ncipid database");
         drtwo.setName("ncipid");
-        drtwo.setNumberOfNetworks("200");
+        drtwo.setNetworks(networkList);
         drtwo.setImageURL("http://www.home.ndexbio.org/img/pid-logo-ndex.jpg");
         //drtwo.setImageurl("http://ndexbio.org/images/new_landing_page_logo.06974471.png");
         String drtwouuid = "e508cf31-79af-463e-b8b6-ff34c87e1734";
@@ -349,6 +360,7 @@ public class App {
                                               dr.getUuid());
             }
             int networkCount = 0;
+            List<Network> networkList = new ArrayList<>();
             
             Set<String> uniqueGeneSet = new HashSet<>();
             for (UUID netid :  ns.getNetworks()){
@@ -359,12 +371,15 @@ public class App {
                
                 _logger.debug("Saving network: " + netid.toString());
                 NiceCXNetwork network = saveNetwork(client, netid, databasedir);
+                String networkUrl = getNetworkUrl(cParams.getServer(), netid.toString());
+                Network simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL());
+                networkList.add(simpleNetwork);
                 updateGeneMap(network, netid.toString(), geneMap,
                         uniqueGeneSet, idr);
                 networkCount++;
             }
             client.getNdexRestClient().signOut();
-            dr.setNumberOfNetworks(Integer.toString(networkCount));
+            dr.setNetworks(networkList);
             totalNetworkCount += networkCount;
             universeUniqueGeneSet.addAll(uniqueGeneSet);
             geneMapList.add(geneMap);
@@ -556,5 +571,19 @@ public class App {
         ObjectMapper mappy = new ObjectMapper();
         FileInputStream fis = new FileInputStream(dest);
         return NdexRestClientUtilities.getCXNetworkFromStream(fis);
+    }
+    
+    public static Network getSimpleNetwork(NiceCXNetwork network, String networkUuid, String networkUrl, String imageUrl) {
+    	Network nw = new Network();
+    	nw.setName(network.getNetworkName());
+    	nw.setDescription(network.getNetworkDescription());
+    	nw.setUuid(networkUuid);
+    	nw.setUrl(networkUrl);
+    	nw.setImageUrl(imageUrl);
+    	return nw;
+    }
+    
+    public static String getNetworkUrl(String server, String networkUuid) {
+    	return server + "/#/network/" + networkUuid;
     }
 }

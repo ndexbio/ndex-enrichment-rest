@@ -177,7 +177,7 @@ public class TestBasicEnrichmentEngineImpl {
   	  DatabaseResult dr = new DatabaseResult();
   	  dr.setDescription("ncipid networks haha");
   	  dr.setName("ncipid");
-  	  dr.setNumberOfNetworks("4");
+  	  //dr.setNumberOfNetworks("4");
   	  dr.setUuid("ncipid1234");
   	
   	  LinkedList<DatabaseResult> drlist = new LinkedList<>();
@@ -186,7 +186,7 @@ public class TestBasicEnrichmentEngineImpl {
   	  dr = new DatabaseResult();
   	  dr.setDescription("signor networks haha");
   	  dr.setName("signor");
-  	  dr.setNumberOfNetworks("1");
+  	  //dr.setNumberOfNetworks("1");
   	  dr.setUuid("signor1234");
   	  drlist.add(dr);
   	  dres.setResults(drlist);
