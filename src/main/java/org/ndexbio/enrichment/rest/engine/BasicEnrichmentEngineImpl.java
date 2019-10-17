@@ -557,7 +557,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     
     SortedSet<String> networkGenes = new TreeSet<>();
     for (NodesElement node : cxNetwork.getNodes().values()) {
-    	networkGenes.add(node.getNodeName());
+    	if (node.getNodeName() != null) {
+    		networkGenes.add(node.getNodeName());
+    	}
     }
     eqr.setSimilarity(getSimilarity(networkGenes, queryGenes, numHitGenes, idr.getIdfMap()));
   }

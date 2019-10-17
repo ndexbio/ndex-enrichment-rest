@@ -6,3 +6,4 @@ nb-configuration.xml
 validGenes
 invalidGenes
 updatedb.sh
+run.sh
