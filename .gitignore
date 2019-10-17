@@ -3,3 +3,6 @@
 /target/
 nb-configuration.xml
 /enrichdb/
+validGenes
+invalidGenes
+updatedb.sh

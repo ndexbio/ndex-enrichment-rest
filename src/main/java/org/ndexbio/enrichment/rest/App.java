@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -530,10 +531,12 @@ public class App {
             strippedGene = potentialGene.substring(potentialGene.indexOf(":") + 1);
         }
         
-        if (strippedGene.length()>30 || !strippedGene.matches("^[^\\(\\)\\s,']+$")){
+        //if (strippedGene.length()>30 || !strippedGene.matches("^[^\\(\\)\\s,']+$")){
+        if (strippedGene.length()>30 || !strippedGene.matches("(^[A-Z][A-Z0-9-]*$)|(^C[0-9]+orf[0-9]+$)")) {
             _logger.warn("Gene: " + strippedGene + " does not appear to be valid. Skipping...");
             return null;
         }
+        
         return strippedGene;
     }
     /**
