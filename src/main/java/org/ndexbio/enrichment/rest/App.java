@@ -391,6 +391,7 @@ public class App {
         idr.setDatabaseUniqueGeneCount(databaseUniqueGeneCount);
         idr.setGeneMapList(geneMapList);
         idr.setIdfMap(makeIdfMap(geneMapList, totalNetworkCount));
+        idr.setTotalNetworkCount(totalNetworkCount);
         
         _logger.debug("Attempting to write: " + config.getDatabaseResultsFile().getAbsolutePath());
         mappy.writerWithDefaultPrettyPrinter().writeValue(config.getDatabaseResultsFile(), idr);

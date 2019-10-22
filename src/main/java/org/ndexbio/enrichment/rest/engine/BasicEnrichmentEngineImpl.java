@@ -373,8 +373,10 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
       eqr.setDatabaseName(dbres.getName());
       eqr.setImageURL(dbres.getImageURL());
       eqr.setDatabaseUUID(dbres.getUuid());
-      eqr.setHitGenes(new TreeSet<>(networkMap.get(network)));
+      TreeSet<String> hitGenes = new TreeSet<>(networkMap.get(network));
+      eqr.setHitGenes(hitGenes);
       eqr.setNetworkUUID(network);
+      eqr.setUrl(getNetworkUrl(dbres.getUrl(), network));
       NiceCXNetwork cxNetwork = getNetwork(dbres.getUuid(), network);
       if (cxNetwork == null){
         _logger.error("Unable to get network: " + network + " skipping...");
@@ -387,6 +389,14 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
       eqrList.add(eqr);
     }
     return eqrList;
+  }
+  
+  protected String getNetworkUrl(String databaseUrl, String networkUuid) {
+	  int index = databaseUrl.indexOf("networkset");
+	  if (index != -1) {
+		  return databaseUrl.substring(0, index) + "network/" + networkUuid;
+	  }
+	  return null;
   }
 
   /**
@@ -510,8 +520,50 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     return pValue;
   }
   
-  protected double getSimilarity(SortedSet<String> networkGenes, SortedSet<String> queryGenes, int overlap, Map<String, Double> idfMap) {
-	  int size = networkGenes.size() + queryGenes.size() - overlap;
+  protected double getSimilarity(
+	  Collection<NodesElement> networkNodes, Map<Long, Collection<NodeAttributesElement>> nodeAttributes, 
+	  SortedSet<String> queryGenes,
+	  Map<String, Set<Long>> nodeMap, Map<String, Double> idfMap
+  ) {
+	  Set<String> networkGenes = new TreeSet<>();
+	  
+	  for (NodesElement ne : networkNodes) {
+          Collection<NodeAttributesElement> nodeAttribs = nodeAttributes.get(ne.getId());
+          if (nodeAttribs == null){
+              continue;
+          }
+                    
+          boolean validComplex = false;
+          for (NodeAttributesElement nae : nodeAttribs){
+              if (nae.getName().toLowerCase().equals("type")){
+            	  if (nae.getValue().toLowerCase().equals("complex") ||
+                      nae.getValue().toLowerCase().equals("proteinfamily") ||
+                      nae.getValue().toLowerCase().equals("compartment")) {
+            		  	validComplex = true;
+            	  }
+              }
+          }
+          if (validComplex) {
+              for (NodeAttributesElement nae : nodeAttribs){
+                  if (nae.getName().toLowerCase().equals("member")){
+                      for (String entry : nae.getValues()){
+                    	  String validGene = getValidGene(entry);
+                    	  if (validGene != null) {
+                    		  networkGenes.add(validGene);
+                    	  }
+                      }
+                  }
+              }
+          } else {
+        	  String validGene = getValidGene(ne.getNodeName());
+        	  if (validGene != null) {
+        		  networkGenes.add(validGene);
+        	  }
+          }
+	  }
+	  
+	  int size = networkGenes.size() + queryGenes.size();
+	  
 	  GVector networkVector = new GVector(size);
 	  GVector queryVector = new GVector(size);
 	  int index = 0;
@@ -533,6 +585,23 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	  return getCosineSimilarity(networkVector, queryVector);
   }
   
+  protected String getValidGene(final String potentialGene){
+      if (potentialGene == null){
+          return null;
+      }
+      String strippedGene = potentialGene;
+      // strip off hgnc.symbol: prefix if found
+      if (potentialGene.startsWith("hgnc.symbol:") && potentialGene.length()>12){
+          strippedGene = potentialGene.substring(potentialGene.indexOf(":") + 1);
+      }
+      
+      if (strippedGene.length()>30 || !strippedGene.matches("(^[A-Z][A-Z0-9-]*$)|(^C[0-9]+orf[0-9]+$)")) {
+          return null;
+      }
+      
+      return strippedGene;
+  }
+  
   protected double getCosineSimilarity(GVector vec1, GVector vec2) {
 	  return (vec1.dot(vec2)) / (vec1.norm() * vec2.norm());
   }
@@ -544,7 +613,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
    * @param numGenesInQuery 
    */
   protected void updateStatsAboutNetwork(NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr,
-    SortedSet<String> queryGenes){
+		  SortedSet<String> queryGenes){
     eqr.setNodes(cxNetwork.getNodes().size());
     eqr.setEdges(cxNetwork.getEdges().size());
     eqr.setDescription(cxNetwork.getNetworkName());
@@ -554,14 +623,15 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
     InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
     int totalGenesInUniverse = idr.getUniverseUniqueGeneCount();
     eqr.setpValue(getPvalue(totalGenesInUniverse, eqr.getNodes(), numGenesInQuery, numHitGenes));
+    eqr.setTotalNetworkCount(idr.getTotalNetworkCount());
     
-    SortedSet<String> networkGenes = new TreeSet<>();
+    Collection<NodesElement> networkNodes = new LinkedList<>();
     for (NodesElement node : cxNetwork.getNodes().values()) {
     	if (node.getNodeName() != null) {
-    		networkGenes.add(node.getNodeName());
+    		networkNodes.add(node);
     	}
     }
-    eqr.setSimilarity(getSimilarity(networkGenes, queryGenes, numHitGenes, idr.getIdfMap()));
+    eqr.setSimilarity(getSimilarity(networkNodes, cxNetwork.getNodeAttributes(), queryGenes, idr.getNetworkToGeneToNodeMap().get(eqr.getNetworkUUID()), idr.getIdfMap()));
   }
 
   protected NiceCXNetwork getNetwork(final String databaseUUID, final String networkUUID){
