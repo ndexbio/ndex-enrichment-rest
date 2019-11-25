@@ -31,6 +31,8 @@ public class Configuration {
     public static final String TASK_DIR = "enrichment.task.dir";
     public static final String HOST_URL = "enrichment.host.url";
     
+    public static final String NUM_WORKERS = "enrichment.number.workers";
+    
     public static final String NDEX_USER = "ndex.user";
     public static final String NDEX_PASS = "ndex.password";
     public static final String NDEX_SERVER = "ndex.server";
@@ -46,6 +48,7 @@ public class Configuration {
     private static String _enrichDatabaseDir;
     private static String _enrichTaskDir;
     private static String _enrichHostURL;
+    private static int _numWorkers;
     /**
      * Constructor that attempts to get configuration from properties file
      * specified via configPath
@@ -71,6 +74,7 @@ public class Configuration {
         _enrichDatabaseDir = props.getProperty(Configuration.DATABASE_DIR, "/tmp");
         _enrichTaskDir = props.getProperty(Configuration.TASK_DIR, "/tmp");
         _enrichHostURL = props.getProperty(Configuration.HOST_URL, "");
+        _numWorkers = Integer.parseInt(props.getProperty(Configuration.NUM_WORKERS, "1"));
         if (_enrichHostURL.trim().isEmpty()){
             _enrichHostURL = "";
         } else if (!_enrichHostURL.endsWith("/")){
@@ -108,6 +112,14 @@ public class Configuration {
      */
     public String getEnrichmentTaskDirectory(){
         return _enrichTaskDir;
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public int getNumberWorkers() {
+    	return _numWorkers;
     }
 
     public File getDatabaseResultsFile(){
