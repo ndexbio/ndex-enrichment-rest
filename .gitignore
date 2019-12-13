@@ -2,3 +2,8 @@
 /nbproject/
 /target/
 nb-configuration.xml
+/enrichdb/
+validGenes
+invalidGenes
+updatedb.sh
+run.sh

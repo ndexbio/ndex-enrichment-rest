@@ -1,6 +1,8 @@
 package org.ndexbio.enrichment.rest.services; // Note your package will be {{ groupId }}.rest
 
 import java.net.URI;
+import java.util.UUID;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
