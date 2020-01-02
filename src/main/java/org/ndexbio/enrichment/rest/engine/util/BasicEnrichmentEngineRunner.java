@@ -22,7 +22,7 @@ import javax.vecmath.GVector;
 import org.apache.commons.math3.distribution.HypergeometricDistribution;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
-import org.ndexbio.enrichment.rest.model.DatabaseResult;
+import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;

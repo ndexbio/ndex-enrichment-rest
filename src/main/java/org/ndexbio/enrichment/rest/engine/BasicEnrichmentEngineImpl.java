@@ -43,7 +43,7 @@ import org.ndexbio.cxio.core.NdexCXNetworkWriter;
 import org.ndexbio.cxio.core.writers.NiceCXNetworkWriter;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.engine.util.BasicEnrichmentEngineRunner;
-import org.ndexbio.enrichment.rest.model.DatabaseResult;
+import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;

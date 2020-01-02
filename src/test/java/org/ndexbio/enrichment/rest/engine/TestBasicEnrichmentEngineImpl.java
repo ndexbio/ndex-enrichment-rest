@@ -5,44 +5,6 @@
  */
 package org.ndexbio.enrichment.rest.engine;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.ExecutionException;
-
-import javax.ws.rs.core.MediaType;
-
-import org.jboss.resteasy.core.Dispatcher;
-import org.jboss.resteasy.mock.*;
-import static org.junit.Assert.*;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
-import org.ndexbio.cxio.aspects.datamodels.NodesElement;
-import org.ndexbio.enrichment.rest.model.DatabaseResult;
-
-import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
-import org.ndexbio.enrichment.rest.services.Configuration;
-import org.ndexbio.enrichment.rest.services.Enrichment;
-import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
-import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
-import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
-import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
-import org.ndexbio.enrichment.rest.model.ErrorResponse;
-import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
-import org.ndexbio.model.cx.NiceCXNetwork;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  *
  * @author churas
