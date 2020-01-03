@@ -45,16 +45,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
-import org.ndexbio.enrichment.rest.model.DatabaseResult;
+import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
 import org.ndexbio.enrichment.rest.model.InternalNdexConnectionParams;
-import org.ndexbio.enrichment.rest.model.Network;
+import org.ndexbio.ndexsearch.rest.model.NetworkInfo;
 import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.object.NetworkSet;
-import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.client.NdexRestClientUtilities;
@@ -231,13 +230,13 @@ public class App {
      * @throws Exception 
      */
     public static String generateExampleDatabaseResults() throws Exception {
-    	Network nw = new Network();
+    	NetworkInfo nw = new NetworkInfo();
     	nw.setName("Network Name");
     	nw.setDescription("Network description");
     	nw.setUuid("640e2cef-795d-11e8-a4bf-0ac135e8bacf");
     	nw.setUrl("http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf");
     	nw.setImageUrl("http://www.home.ndexbio.org/img/pid-logo-ndex.jpg");
-    	List<Network> networkList = new ArrayList<>();
+    	List<NetworkInfo> networkList = new ArrayList<>();
     	networkList.add(nw);
     	
         DatabaseResult dr = new DatabaseResult();
@@ -327,7 +326,7 @@ public class App {
         InternalDatabaseResults idr = config.getNDExDatabases();
         ObjectMapper mappy = new ObjectMapper();
         Set<String> universeUniqueGeneSet = new HashSet<>();
-        List<InternalGeneMap> geneMapList = new LinkedList<InternalGeneMap>();
+        List<InternalGeneMap> geneMapList = new LinkedList<>();
         Map<String, Integer> databaseUniqueGeneCount = new HashMap<>();
         Set<String> networksToExclude = idr.getNetworksToExclude();
         int totalNetworkCount = 0;
@@ -360,7 +359,7 @@ public class App {
                                               dr.getUuid());
             }
             int networkCount = 0;
-            List<Network> networkList = new ArrayList<>();
+            List<NetworkInfo> networkList = new ArrayList<>();
             
             Set<String> uniqueGeneSet = new HashSet<>();
             for (UUID netid :  ns.getNetworks()){
@@ -372,7 +371,7 @@ public class App {
                 _logger.debug("Saving network: " + netid.toString());
                 NiceCXNetwork network = saveNetwork(client, netid, databasedir);
                 String networkUrl = getNetworkUrl(cParams.getServer(), netid.toString());
-                Network simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL());
+                NetworkInfo simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL());
                 networkList.add(simpleNetwork);
                 updateGeneMap(network, netid.toString(), geneMap,
                         uniqueGeneSet, idr);
@@ -435,7 +434,7 @@ public class App {
         if (mappy == null){
             _logger.debug("Adding mappy");
             mappy = new HashMap<>();
-            geneMap.setGeneMap((Map<String, Set<String>>)mappy);
+            geneMap.setGeneMap(mappy);
         }
         
         Map<String, Set<Long>> geneToNodeMap = new HashMap<>();
@@ -512,7 +511,7 @@ public class App {
         if (geneToNodeMap.size() > 0){
             Map<String, Map<String, Set<Long>>> geneToNodeBigMap = idr.getNetworkToGeneToNodeMap();
             if (geneToNodeBigMap == null){
-                geneToNodeBigMap = new HashMap<String, Map<String, Set<Long>>>();
+                geneToNodeBigMap = new HashMap<>();
             } else 
             geneToNodeBigMap.put(externalId, geneToNodeMap);
             idr.setNetworkToGeneToNodeMap(geneToNodeBigMap);
@@ -549,36 +548,24 @@ public class App {
      * @throws Exception 
      */
     public static NiceCXNetwork saveNetwork(NdexRestClientModelAccessLayer client, final UUID networkuuid, final File savedir) throws Exception{
-        Configuration config = Configuration.getInstance();
+        Configuration.getInstance();
         File dest = new File(savedir.getAbsolutePath() + File.separator + networkuuid.toString() + ".cx");
         
-        FileOutputStream fos = new FileOutputStream(dest);
-        InputStream instream = client.getNetworkAsCXStream(networkuuid);
-        byte[] buffer = new byte[8 * 1024];
-        int bytesRead;
-        while ((bytesRead = instream.read(buffer)) != -1) {
-            fos.write(buffer, 0, bytesRead);
-        }
-        try {
-            instream.close();
-        }
-        catch(IOException ex){
-            _logger.error("error closing input stream", ex);
-        }
-        try {
-            fos.close();
-        }
-        catch(IOException ex){
-            _logger.error("error closing output stream", ex);
-        }
-        
-        ObjectMapper mappy = new ObjectMapper();
-        FileInputStream fis = new FileInputStream(dest);
-        return NdexRestClientUtilities.getCXNetworkFromStream(fis);
+		try (FileOutputStream fos = new FileOutputStream(dest)) {
+			try (InputStream instream = client.getNetworkAsCXStream(networkuuid)) {
+				byte[] buffer = new byte[8 * 1024];
+				int bytesRead;
+				while ((bytesRead = instream.read(buffer)) != -1) {
+					fos.write(buffer, 0, bytesRead);
+				}
+			}
+			FileInputStream fis = new FileInputStream(dest);
+			return NdexRestClientUtilities.getCXNetworkFromStream(fis);
+		}
     }
     
-    public static Network getSimpleNetwork(NiceCXNetwork network, String networkUuid, String networkUrl, String imageUrl) {
-    	Network nw = new Network();
+    public static NetworkInfo getSimpleNetwork(NiceCXNetwork network, String networkUuid, String networkUrl, String imageUrl) {
+    	NetworkInfo nw = new NetworkInfo();
     	nw.setName(network.getNetworkName());
     	nw.setDescription(network.getNetworkDescription());
     	nw.setUuid(networkUuid);

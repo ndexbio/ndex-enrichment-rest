@@ -4,7 +4,7 @@
 
     <groupId>org.ndexbio.enrichment</groupId>
     <artifactId>ndex-enrichment-rest</artifactId>
-    <version>0.6.4</version>
+    <version>0.6.5</version>
     <packaging>war</packaging>
 
     <name>NDEx Enrichment REST Service</name>
@@ -23,9 +23,8 @@
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.6</commons-io.version>
-        <ndex-object-model.version>2.4.4</ndex-object-model.version>
-        <ndex-enrichment-rest-model.version>0.1.1</ndex-enrichment-rest-model.version>
-        <ndex-java-client.version>2.4.3</ndex-java-client.version>
+        <ndex-enrichment-rest-model.version>0.2.1</ndex-enrichment-rest-model.version>
+        <ndex-java-client.version>2.4.4</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
         <guava.version>27.0.1-jre</guava.version>
@@ -61,11 +60,6 @@
             <groupId>org.ndexbio.client</groupId>
             <artifactId>ndex-java-client</artifactId>
             <version>${ndex-java-client.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ndexbio</groupId>
-            <artifactId>ndex-object-model</artifactId>
-            <version>${ndex-object-model.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ndexbio.enrichment.rest.model</groupId>
@@ -256,7 +250,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -288,7 +282,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.6</version>
                 <executions>
                     <execution>
                         <phase>validate</phase>

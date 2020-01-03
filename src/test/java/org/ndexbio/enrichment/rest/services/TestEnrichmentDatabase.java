@@ -22,7 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
-import org.ndexbio.enrichment.rest.model.DatabaseResult;
+import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.ErrorResponse;
 

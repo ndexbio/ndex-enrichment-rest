@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.ndexbio.enrichment.rest.model.DatabaseResult;
+import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
