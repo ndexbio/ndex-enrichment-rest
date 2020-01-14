@@ -111,33 +111,55 @@ The **databaseresults.json** file will look like this:
 
 ```bash
 {
-  "geneMapList" : null,
-  "databaseUniqueGeneCount" : null,
-  "universeUniqueGeneCount" : 0,
   "databaseConnectionMap" : {
     "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6" : {
       "password" : "somepassword",
       "user" : "bob",
       "server" : "dev.ndexbio.org",
-      "networkSetId" : "d718366d-34e0-48cd-81bf-211a8b9a3fde"
+      "networkSetId" : "f884cd40-5426-49e6-a311-fc046802b5f6"
     },
     "e508cf31-79af-463e-b8b6-ff34c87e1734" : {
       "password" : "somepassword",
       "user" : "bob",
       "server" : "dev.ndexbio.org",
-      "networkSetId" : "e2ce01a3-5ce0-4d9e-be06-e20dad286d76"
+      "networkSetId" : "bf0616dd-5d7e-403a-92f3-6e12cc02eb37"
     }
   },
+  "networksToExclude" : [ "4671adc9-670d-474c-84db-37774fc885ba", "309e834a-3005-41f2-8d28-46f2594aaaa8" ],
+  "universeUniqueGeneCount" : 0,
+  "databaseUniqueGeneCount" : null,
+  "geneMapList" : null,
+  "idfMap" : null,
+  "totalNetworkCount" : 0,
+  "networkToGeneToNodeMap" : null,
   "results" : [ {
-    "name" : "signor",
     "description" : "This is a description of a signor database",
-    "numberOfNetworks" : "50",
-    "uuid" : "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6"
+    "uuid" : "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6",
+    "url" : null,
+    "networks" : [ {
+      "description" : "Network description",
+      "uuid" : "640e2cef-795d-11e8-a4bf-0ac135e8bacf",
+      "url" : "http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf",
+      "imageUrl" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
+      "name" : "Network Name"
+    } ],
+    "imageURL" : "http://signor.uniroma2.it/img/signor_logo.png",
+    "numberOfNetworks" : null,
+    "name" : "signor"
   }, {
-    "name" : "ncipid",
     "description" : "This is a description of a ncipid database",
-    "numberOfNetworks" : "200",
-    "uuid" : "e508cf31-79af-463e-b8b6-ff34c87e1734"
+    "uuid" : "e508cf31-79af-463e-b8b6-ff34c87e1734",
+    "url" : null,
+    "networks" : [ {
+      "description" : "Network description",
+      "uuid" : "640e2cef-795d-11e8-a4bf-0ac135e8bacf",
+      "url" : "http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf",
+      "imageUrl" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
+      "name" : "Network Name"
+    } ],
+    "imageURL" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
+    "numberOfNetworks" : null,
+    "name" : "ncipid"
   } ]
 }
 ```
