@@ -136,13 +136,7 @@ The **databaseresults.json** file will look like this:
     "description" : "This is a description of a signor database",
     "uuid" : "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6",
     "url" : null,
-    "networks" : [ {
-      "description" : "Network description",
-      "uuid" : "640e2cef-795d-11e8-a4bf-0ac135e8bacf",
-      "url" : "http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf",
-      "imageUrl" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
-      "name" : "Network Name"
-    } ],
+    "networks" : null,
     "imageURL" : "http://signor.uniroma2.it/img/signor_logo.png",
     "numberOfNetworks" : null,
     "name" : "signor"
@@ -150,13 +144,7 @@ The **databaseresults.json** file will look like this:
     "description" : "This is a description of a ncipid database",
     "uuid" : "e508cf31-79af-463e-b8b6-ff34c87e1734",
     "url" : null,
-    "networks" : [ {
-      "description" : "Network description",
-      "uuid" : "640e2cef-795d-11e8-a4bf-0ac135e8bacf",
-      "url" : "http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf",
-      "imageUrl" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
-      "name" : "Network Name"
-    } ],
+    "networks" : null,
     "imageURL" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
     "numberOfNetworks" : null,
     "name" : "ncipid"
@@ -169,8 +157,8 @@ that needs to be updated.The networks for the database will be all networks
 under network set specified by value of **networkSetId**
 
 The **results** section is what will be returned to caller on service. During
-actual database creation the **numberOfNetworks** will be updated, but its
-up to you to set name and description and to pick a **uuid** that matches
+database creation the **numberOfNetworks**, **networks**, **url** will be updated, but its
+up to you to set **name** and **description** and to pick a **uuid** that matches
 the values under **databaseConnectionMap**
 
  ### Step 3 create database
