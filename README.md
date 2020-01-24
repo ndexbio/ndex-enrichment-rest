@@ -80,6 +80,9 @@ enrichment.database.dir = /tmp/db
 # Sets Enrichment task directory where results from queries are stored
 enrichment.task.dir = /tmp/tasks
 
+# Sets HOST URL prefix (value is prefixed to Location header when query is invoked. Can be commented out)
+# enrichment.host.url = http://ndexbio.org
+
 # Sets directory where log files will be written for Jetty web server
 runserver.log.dir = /tmp/logs
 
