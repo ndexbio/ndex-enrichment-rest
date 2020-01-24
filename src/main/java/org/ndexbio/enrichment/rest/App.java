@@ -311,6 +311,9 @@ public class App {
         
         sb.append("# Valid log levels DEBUG INFO WARN ERROR ALL\n");
         sb.append(App.RUNSERVER_LOGLEVEL + " = INFO\n");
+	    
+	sb.append("# Number of workers in thread pool\n");
+	sb.append(Configuration.NUM_WORKERS + " = 1\n");
 
         return sb.toString();
     }
