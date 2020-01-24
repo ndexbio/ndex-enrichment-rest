@@ -92,6 +92,12 @@ runserver.port = 8081
 # sets Jetty Context Path for Enrichment
 runserver.contextpath = /
 
+# Valis log levels DEBUG INFO WARN ERROR ALL
+runserver.log.level = INFO
+
+# Number of workers in thread pool
+enrichment.number.workers = 2
+
 ```
 
 Replace **/tmp** paths with full path location to **enrichdb** directory 
