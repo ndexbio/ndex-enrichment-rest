@@ -96,7 +96,7 @@ runserver.contextpath = /
 runserver.log.level = INFO
 
 # Number of workers in thread pool
-enrichment.number.workers = 2
+enrichment.number.workers = 1
 
 ```
 
