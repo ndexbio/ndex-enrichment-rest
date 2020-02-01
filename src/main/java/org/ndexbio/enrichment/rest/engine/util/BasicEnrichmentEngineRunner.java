@@ -20,6 +20,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.vecmath.GVector;
 
 import org.apache.commons.math3.distribution.HypergeometricDistribution;
+import org.apache.commons.math3.exception.NotPositiveException;
+import org.apache.commons.math3.exception.NotStrictlyPositiveException;
+import org.apache.commons.math3.exception.NumberIsTooLargeException;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
 import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
@@ -44,6 +47,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 	private String _dbDir;
 	private AtomicReference<InternalDatabaseResults> _databaseResults;
 	private ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>> _databases;
+	private HashSet<String> _uniqueGenesInUniverse;
 	private EnrichmentQueryResultByPvalue _pvalueComparator;
 	
 	public BasicEnrichmentEngineRunner(final String id,
@@ -51,6 +55,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 			final String dbDir,
 			final AtomicReference<InternalDatabaseResults> databaseResults,
 			final ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>> databases,
+			final HashSet<String> uniqueGenesInUniverse,
 			final EnrichmentQuery eq,
 			EnrichmentQueryResults eqr) {
 		_id = id;
@@ -58,6 +63,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		_dbDir = dbDir;
 		_databaseResults = databaseResults;
 		_databases = databases;
+		_uniqueGenesInUniverse = uniqueGenesInUniverse;
 		_eq = eq;
 		_eqr = eqr;
 		_pvalueComparator = new EnrichmentQueryResultByPvalue();
@@ -93,7 +99,8 @@ public class BasicEnrichmentEngineRunner implements Callable {
 				continue;
 			}
 			_logger.debug("Querying database: " + databaseName);
-			SortedSet<String> uniqueGeneList = query.getGeneList();
+			SortedSet<String> uniqueGeneList = getUniqueQueryGeneSetFilteredByUniverseGenes(query.getGeneList());
+			
 			HashMap<String, HashSet<String>> networkMap = remapNetworksToGenes(dbres.getUuid(), uniqueGeneList);
 			if (networkMap == null){
 				continue;
@@ -106,9 +113,20 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		// combine all EnrichmentQueryResults generated above and create
 		// EnrichmentQueryResults object and store in _queryResults 
 		// replacing any existing entry
-		//updateEnrichmentQueryResultsInDb(id, EnrichmentQueryResults.COMPLETE_STATUS, 100, enrichmentResult);
 		updateEnrichmentQueryResults(EnrichmentQueryResults.COMPLETE_STATUS, 100, enrichmentResult);
-		//saveEnrichmentQueryResultsToFilesystem(id);
+	}
+	
+	protected SortedSet<String> getUniqueQueryGeneSetFilteredByUniverseGenes(SortedSet<String> queryGeneList){
+		SortedSet<String> filteredUniqueGenes = new TreeSet<>();
+		if (queryGeneList == null){
+			return filteredUniqueGenes;
+		}
+		for(String gene : queryGeneList){
+			if (_uniqueGenesInUniverse.contains(gene)){
+				filteredUniqueGenes.add(gene);
+			}
+		}
+		return filteredUniqueGenes;
 	}
 	
 	protected void updateEnrichmentQueryResults(final String status, int progress,
@@ -121,22 +139,6 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		}
 		_eqr.setWallTime(System.currentTimeMillis() - _eqr.getStartTime());
 	}
-	
-	/*
-	protected void updateEnrichmentQueryResultsInDb(final String id,
-			final String status, int progress,
-			List<EnrichmentQueryResult> result){
-		EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDb(id);
-
-		eqr.setProgress(progress);
-		eqr.setStatus(status);
-		if (result != null){
-			eqr.setNumberOfHits(result.size());
-			eqr.setResults(result);
-		}
-		eqr.setWallTime(System.currentTimeMillis() - eqr.getStartTime());
-		_queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));  
-	}*/
 	
 	protected DatabaseResult getDatabaseResultFromDb(final String dbName){
 		String dbNameLower = dbName.toLowerCase();
@@ -294,7 +296,10 @@ public class BasicEnrichmentEngineRunner implements Callable {
 	 * @param numGenesMatch
 	 * @return 
 	 */
-	protected double getPvalue(int totalGenesInUniverse, int totalGenesInNetwork, int numberGenesInQuery, int numGenesMatch){
+	protected double getPvalue(int totalGenesInUniverse,
+			int totalGenesInNetwork, int numberGenesInQuery,
+			int numGenesMatch){
+		try {
 		HypergeometricDistribution hd = new HypergeometricDistribution(totalGenesInUniverse, 
 				totalGenesInNetwork, numberGenesInQuery);
 		double pValue = ((double)1.0 - hd.cumulativeProbability(numGenesMatch));
@@ -302,6 +307,15 @@ public class BasicEnrichmentEngineRunner implements Callable {
 			return 0.0;
 		}
 		return pValue;
+		} catch(NotPositiveException npe){
+			_logger.error("Total genes in network is negative", npe);
+			
+		} catch(NotStrictlyPositiveException nspe){
+			_logger.error("Total genes in universe is negative", nspe);
+		} catch(NumberIsTooLargeException ntle){
+			_logger.error("Number of hits or query size greater then total genes in universe", ntle);
+		}
+		return 100.0;
 	}
 	
 	protected double getSimilarity(
