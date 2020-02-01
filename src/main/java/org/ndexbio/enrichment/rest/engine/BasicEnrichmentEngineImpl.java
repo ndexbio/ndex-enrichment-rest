@@ -12,16 +12,12 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,19 +27,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import javax.vecmath.GVector;
-
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.math3.distribution.HypergeometricDistribution;
 import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
-import org.ndexbio.cxio.aspects.datamodels.NodesElement;
 import org.ndexbio.cxio.core.NdexCXNetworkWriter;
 import org.ndexbio.cxio.core.writers.NiceCXNetworkWriter;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.engine.util.BasicEnrichmentEngineRunner;
-import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
@@ -51,8 +41,6 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryStatus;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.ServerStatus;
-import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue;
-import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.NdexException;
@@ -82,7 +70,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	private boolean _shutdown;
 	private ExecutorService _executorService;
 	private ConcurrentHashMap<String, Future> _futureTaskMap;
-	private EnrichmentQueryResultByPvalue _pvalueComparator;
 
 	/**
 	 * This should be a map of <query String> => EnrichmentQuery object
@@ -118,7 +105,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		_queryResults = new ConcurrentHashMap<>();
 		_databaseResults = new AtomicReference<>();
 		_queryTasks = new ConcurrentLinkedQueue<>();
-		_pvalueComparator = new EnrichmentQueryResultByPvalue();
 
 		RemovalListener<EnrichmentQuery, String> removalListener = new RemovalListener<EnrichmentQuery, String>() {
 			@Override
@@ -210,23 +196,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 				}
 			}
 			threadSleep();
-			
-			
-			
-			
-			
-			/*
-			EnrichmentQuery eq = _queryTasks.poll();
-			if (eq == null) {
-				threadSleep();
-				continue;
-			}
-			try {
-				processQuery(geneSetSearchCache.get(eq), eq);
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
 		}
 		_logger.debug("Shutdown was invoked");
 	}
@@ -273,22 +242,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		_databaseResults.set(dr);
 	}
 
-	/*
-	protected void updateEnrichmentQueryResultsInDb(final String id,
-			final String status, int progress,
-			List<EnrichmentQueryResult> result){
-		EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDb(id);
-
-		eqr.setProgress(progress);
-		eqr.setStatus(status);
-		if (result != null){
-			eqr.setNumberOfHits(result.size());
-			eqr.setResults(result);
-		}
-		eqr.setWallTime(System.currentTimeMillis() - eqr.getStartTime());
-		_queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));  
-	}*/
-
 	/**
 	 * First tries to get EnrichmentQueryResults from _queryResults list
 	 * and if that fails method creates a new EnrichmentQueryResults setting
@@ -323,59 +276,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		return null;
 	}
 
-	/*
-	protected DatabaseResult getDatabaseResultFromDb(final String dbName){
-		String dbNameLower = dbName.toLowerCase();
-		for (DatabaseResult res : _databaseResults.get().getResults()){
-			if (res.getName().toLowerCase().equals(dbNameLower)){
-				return res;
-			}
-		}
-		return null;
-	}*/
-
-	/**
-	 * Runs enrichment on query storing results in _queryResults and _queryStatus
-	 * @param id 
-	 */
-	/*
-	protected void processQuery(final String id, EnrichmentQuery query){
-		File taskDir = new File(this._taskDir + File.separator + id.toString());
-		_logger.debug("Creating new task directory:" + taskDir.getAbsolutePath());
-
-		if (taskDir.mkdirs() == false){
-			_logger.error("Unable to create task directory: " + taskDir.getAbsolutePath());
-			updateEnrichmentQueryResultsInDb(id, EnrichmentQueryResults.FAILED_STATUS, 100, null);
-			return;
-		}
-
-		//check gene list
-		List<EnrichmentQueryResult> enrichmentResult = new LinkedList<EnrichmentQueryResult>();
-		for (String databaseName : query.getDatabaseList()){
-			DatabaseResult dbres = getDatabaseResultFromDb(databaseName);
-
-			if (dbres == null){
-				_logger.error("No database matching: " + databaseName + " found. Skipping");
-				continue;
-			}
-			_logger.debug("Querying database: " + databaseName);
-			SortedSet<String> uniqueGeneList = query.getGeneList();
-			HashMap<String, HashSet<String>> networkMap = remapNetworksToGenes(dbres.getUuid(), uniqueGeneList);
-			if (networkMap == null){
-				continue;
-			}
-			// generate EnrichmentQueryResult from networkMap
-			enrichmentResult.addAll(getEnrichmentQueryResultObjectsFromNetworkMap(taskDir, dbres, networkMap, uniqueGeneList));
-		}
-		sortEnrichmentQueryResultByPvalueAndRank(enrichmentResult);
-
-		// combine all EnrichmentQueryResults generated above and create
-		// EnrichmentQueryResults object and store in _queryResults 
-		// replacing any existing entry
-		updateEnrichmentQueryResultsInDb(id, EnrichmentQueryResults.COMPLETE_STATUS, 100, enrichmentResult);
-		saveEnrichmentQueryResultsToFilesystem(id);
-	}*/
-
 	protected String getEnrichmentQueryResultsFilePath(final String id){
 		return this._taskDir + File.separator + id.toString() + File.separator + BasicEnrichmentEngineImpl.EQR_JSON_FILE;
 	}
@@ -394,79 +294,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		}
 		_queryResults.remove(id);
 	}
-
-	/**
-	 * Generates EnrichmentQueryResult objects from data passed in
-	 * @param dbres Database associated with this result
-	 * @param networkMap Map where key is networkUUID and value is list of genes
-	 *                   that were found to match the query on that network
-	 * @param uniqueGeneList Unique list of genes
-	 * @return List of EnrichmentQueryResult objects 
-	 *//*
-	protected List<EnrichmentQueryResult> getEnrichmentQueryResultObjectsFromNetworkMap(File taskDir, DatabaseResult dbres,
-			HashMap<String, HashSet<String>> networkMap, SortedSet<String> uniqueGeneList){
-		if (dbres == null){
-			_logger.error("DatabaseResult is null");
-			return null;
-		}
-
-		if (networkMap == null){
-			_logger.error("Network map is null");
-			return null;
-		}
-
-		if (uniqueGeneList == null){
-			_logger.error("Unique Gene List is null");
-			return null;
-		}
-		int numGenesInQuery = uniqueGeneList.size();
-		List<EnrichmentQueryResult> eqrList = new LinkedList<EnrichmentQueryResult>();
-		for (String network : networkMap.keySet()){
-			EnrichmentQueryResult eqr = new EnrichmentQueryResult();
-			eqr.setDatabaseName(dbres.getName());
-			eqr.setImageURL(dbres.getImageURL());
-			eqr.setDatabaseUUID(dbres.getUuid());
-			TreeSet<String> hitGenes = new TreeSet<>(networkMap.get(network));
-			eqr.setHitGenes(hitGenes);
-			eqr.setNetworkUUID(network);
-			eqr.setUrl(getNetworkUrl(dbres.getUrl(), network));
-			NiceCXNetwork cxNetwork = getNetwork(dbres.getUuid(), network);
-			if (cxNetwork == null){
-				_logger.error("Unable to get network: " + network + " skipping...");
-				continue;
-			}
-
-			updateStatsAboutNetwork(cxNetwork, eqr, uniqueGeneList);
-			//File destFile = new File(taskDir.getAbsolutePath() + File.separator + network + ".cx");
-			//annotateAndSaveNetwork(destFile, cxNetwork, eqr);
-			eqrList.add(eqr);
-		}
-		return eqrList;
-	}*/
-
-	/*
-	protected String getNetworkUrl(String databaseUrl, String networkUuid) {
-		int index = databaseUrl.indexOf("networkset");
-		if (index != -1) {
-			return databaseUrl.substring(0, index) + "network/" + networkUuid;
-		}
-		return null;
-	}*/
-
-	/**
-	 * Sorts in place list of {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult}
-	 * by pvalue and sets the rank starting from 0 for each object based on sorting
-	 * with lowest pvalue having highest rank which in this case is 0.
-	 * @param eqrList list of {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult} objects to sort by 
-	 *                        {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult#getpValue()}
-	 *//*
-	protected void sortEnrichmentQueryResultByPvalueAndRank(List<EnrichmentQueryResult> eqrList){
-		Collections.sort(eqrList, _pvalueComparator);
-		int rank = 0;
-		for(EnrichmentQueryResult eqr : eqrList){
-			eqr.setRank(rank++);
-		}
-	}*/
 
 	public void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
 		try (FileOutputStream fos = new FileOutputStream(destFile)) {
@@ -557,139 +384,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		}
 		return;
 	}
-
-	/**
-	 * @param totalGenesInNetwork
-	 * @param numberGenesInQuery
-	 * @param numGenesMatch
-	 * @return 
-	 *//*
-	protected double getPvalue(int totalGenesInUniverse, int totalGenesInNetwork, int numberGenesInQuery, int numGenesMatch){
-		HypergeometricDistribution hd = new HypergeometricDistribution(totalGenesInUniverse, 
-				totalGenesInNetwork, numberGenesInQuery);
-		double pValue = ((double)1.0 - hd.cumulativeProbability(numGenesMatch));
-		if (pValue < 0) {
-			return 0.0;
-		}
-		return pValue;
-	}*/
-
-	/*
-	protected double getSimilarity(
-			Collection<NodesElement> networkNodes, Map<Long, Collection<NodeAttributesElement>> nodeAttributes, 
-			SortedSet<String> queryGenes,
-			Map<String, Set<Long>> nodeMap, Map<String, Double> idfMap
-			) {
-		Set<String> networkGenes = new TreeSet<>();
-
-		for (NodesElement ne : networkNodes) {
-			Collection<NodeAttributesElement> nodeAttribs = nodeAttributes.get(ne.getId());
-			if (nodeAttribs == null){
-				continue;
-			}
-
-			boolean validComplex = false;
-			for (NodeAttributesElement nae : nodeAttribs){
-				if (nae.getName().toLowerCase().equals("type")){
-					if (nae.getValue().toLowerCase().equals("complex") ||
-							nae.getValue().toLowerCase().equals("proteinfamily") ||
-							nae.getValue().toLowerCase().equals("compartment")) {
-						validComplex = true;
-					}
-				}
-			}
-			if (validComplex) {
-				for (NodeAttributesElement nae : nodeAttribs){
-					if (nae.getName().toLowerCase().equals("member")){
-						for (String entry : nae.getValues()){
-							String validGene = getValidGene(entry);
-							if (validGene != null) {
-								networkGenes.add(validGene);
-							}
-						}
-					}
-				}
-			} else {
-				String validGene = getValidGene(ne.getNodeName());
-				if (validGene != null) {
-					networkGenes.add(validGene);
-				}
-			}
-		}
-
-		int size = networkGenes.size() + queryGenes.size();
-
-		GVector networkVector = new GVector(size);
-		GVector queryVector = new GVector(size);
-		int index = 0;
-		for (String gene : networkGenes) {
-			if (idfMap.containsKey(gene)) {
-				networkVector.setElement(index, idfMap.get(gene));
-				if (queryGenes.contains(gene)) {
-					queryVector.setElement(index, idfMap.get(gene));
-				}
-				index++;
-			}
-		}
-		for (String gene : queryGenes) {
-			if (!networkGenes.contains(gene) && idfMap.containsKey(gene)) {
-				queryVector.setElement(index, idfMap.get(gene));
-				index++;
-			}
-		}
-		return getCosineSimilarity(networkVector, queryVector);
-	}
-	
-
-	protected String getValidGene(final String potentialGene){
-		if (potentialGene == null){
-			return null;
-		}
-		String strippedGene = potentialGene;
-		// strip off hgnc.symbol: prefix if found
-		if (potentialGene.startsWith("hgnc.symbol:") && potentialGene.length()>12){
-			strippedGene = potentialGene.substring(potentialGene.indexOf(":") + 1);
-		}
-
-		if (strippedGene.length()>30 || !strippedGene.matches("(^[A-Z][A-Z0-9-]*$)|(^C[0-9]+orf[0-9]+$)")) {
-			return null;
-		}
-
-		return strippedGene;
-	}
-
-	protected double getCosineSimilarity(GVector vec1, GVector vec2) {
-		return (vec1.dot(vec2)) / (vec1.norm() * vec2.norm());
-	}*/
-
-	/**
-	 * Updates <b>eqr</b> with pvalue and other stats
-	 * @param cxNetwork {@link org.ndexbio.model.cx.NiceCXNetwork} to extract node and edge count from
-	 * @param eqr {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult} to update
-	 * @param numGenesInQuery 
-	 *//*
-	protected void updateStatsAboutNetwork(NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr,
-			SortedSet<String> queryGenes){
-		eqr.setNodes(cxNetwork.getNodes().size());
-		eqr.setEdges(cxNetwork.getEdges().size());
-		eqr.setDescription(cxNetwork.getNetworkName());
-		int numHitGenes = eqr.getHitGenes().size();
-		int numGenesInQuery = queryGenes.size();
-		eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)numGenesInQuery)*(float)100));
-		InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
-		int totalGenesInUniverse = idr.getUniverseUniqueGeneCount();
-		eqr.setpValue(getPvalue(totalGenesInUniverse, eqr.getNodes(), numGenesInQuery, numHitGenes));
-		eqr.setTotalNetworkCount(idr.getTotalNetworkCount());
-
-		Collection<NodesElement> networkNodes = new LinkedList<>();
-		for (NodesElement node : cxNetwork.getNodes().values()) {
-			if (node.getNodeName() != null) {
-				networkNodes.add(node);
-			}
-		}
-		eqr.setSimilarity(getSimilarity(networkNodes, cxNetwork.getNodeAttributes(), queryGenes, idr.getNetworkToGeneToNodeMap().get(eqr.getNetworkUUID()), idr.getIdfMap()));
-	}*/
-
 	
 	protected NiceCXNetwork getNetwork(final String databaseUUID, final String networkUUID){
 		FileInputStream fis = null;
@@ -710,41 +404,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		}
 		return null;
 	}
-
-	/**
-	 * Uses {@link #_databases} data structure to build a HashMap from database
-	 * with {@code databaseId} id where the
-	 * key is the id of the network and value is a set of genes that were
-	 * found on that network
-	 * @param databaseId id of database
-	 * @param uniqueGeneList list of genes that are assumed to be unique and upper cased. 
-	 *                 Ideally generated from call to {@link #getUniqueGeneList(java.util.List)}
-	 * @return {@link java.util.HashMap} where key is network id and value is a {@link java.util.HashSet<String>} of gene symbols
-	 *//*
-	protected HashMap<String, HashSet<String>> remapNetworksToGenes(final String databaseId, final SortedSet<String> uniqueGeneList){
-		HashMap<String, HashSet<String>> networkMap = new HashMap<String, HashSet<String>>();
-
-		ConcurrentHashMap<String, HashSet<String>> dbMap = _databases.get(databaseId);
-		if (dbMap == null){
-			_logger.debug("No database with id: " + databaseId + " found. Skipping");
-			return null;
-		}
-		for (String gene : uniqueGeneList){
-			if (dbMap.containsKey(gene) == false){
-				continue;
-			}
-			HashSet<String> networkSet = dbMap.get(gene);
-			for (String network : networkSet){
-				HashSet<String> geneSet = networkMap.get(network);
-				if (geneSet == null){
-					geneSet = new HashSet<String>();
-					networkMap.put(network, geneSet);
-				}
-				geneSet.add(gene);
-			}    
-		}
-		return networkMap;
-	} */
 
 	@Override
 	public String query(EnrichmentQuery thequery) throws EnrichmentException, ExecutionException {
