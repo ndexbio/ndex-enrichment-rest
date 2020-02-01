@@ -87,6 +87,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	private ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>> _databases;
 
 	private AtomicReference<InternalDatabaseResults> _databaseResults;
+	
+	private HashSet<String> _uniqueGeneSet;
 
 	private long _threadSleep = 10;
 
@@ -105,6 +107,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		_queryResults = new ConcurrentHashMap<>();
 		_databaseResults = new AtomicReference<>();
 		_queryTasks = new ConcurrentLinkedQueue<>();
+		_uniqueGeneSet = new HashSet<>();
 
 		RemovalListener<EnrichmentQuery, String> removalListener = new RemovalListener<EnrichmentQuery, String>() {
 			@Override
@@ -132,7 +135,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 								
 								EnrichmentQueryResults eqr = new EnrichmentQueryResults(System.currentTimeMillis());
 								eqr.setStatus(EnrichmentQueryResults.SUBMITTED_STATUS);
-								BasicEnrichmentEngineRunner task = new BasicEnrichmentEngineRunner(id, _taskDir, _dbDir, _databaseResults, _databases, eq, eqr);
+								BasicEnrichmentEngineRunner task = new BasicEnrichmentEngineRunner(id, _taskDir, _dbDir, _databaseResults, _databases, _uniqueGeneSet, eq, eqr);
 								_futureTaskMap.put(id, _executorService.submit(task));
 
 								//EnrichmentQueryResults eqr = new EnrichmentQueryResults(System.currentTimeMillis());
@@ -234,6 +237,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 			geneSet = new HashSet<String>();
 			dbHash.put(geneUpperCase, geneSet);
 		}
+		_uniqueGeneSet.add(geneUpperCase);
 		geneSet.clear();
 		geneSet.addAll(networkIds);
 	}
