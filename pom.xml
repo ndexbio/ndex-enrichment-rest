@@ -15,6 +15,7 @@
         <resteasy.version>3.1.4.Final</resteasy.version>
         <junit.version>4.12</junit.version>
         <easymock.version>4.0.2</easymock.version>
+        <mockito.version>3.2.4</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
         <jetty.version>9.4.17.v20190418</jetty.version>
         <jetty.maven.plugin.version>9.4.14.v20181114</jetty.maven.plugin.version>
         <swagger.version>2.0.0</swagger.version>
@@ -201,6 +202,13 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
             <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+         <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
