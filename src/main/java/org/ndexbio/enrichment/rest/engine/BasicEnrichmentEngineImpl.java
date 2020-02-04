@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -208,42 +207,13 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		_shutdown = true;
 	}
 
-	/**
-	 * Adds {@code gene} gene symbol (as upper case) to HashMap specified by 
-	 * {@code databaseId} to allow quick retrieval of all networks for a given
-	 * database that contain a specific gene.
-	 * 
-	 * Structure of data being stored.
-	 * 
-	 * {@code databaseId} -> {@code gene upper case} -> {@code networkIds}
-	 * 
-	 * @param databaseId Unique identifier for the database
-	 * @param gene Gene name
-	 * @param networkIds {@link java.util.Collection} of network ids
-	 */
-	public void addGeneToDatabase(final String databaseId, final String gene,
-			Collection<String> networkIds){
-		if (_databases == null){
-			_databases = new ConcurrentHashMap<>();
-		}
-		String geneUpperCase = gene.toUpperCase();
-		ConcurrentHashMap<String, HashSet<String>> dbHash = _databases.get(databaseId);
-		if (dbHash == null){
-			dbHash = new ConcurrentHashMap<String, HashSet<String>>();
-			_databases.put(databaseId, dbHash);
-		}
-		HashSet<String> geneSet = dbHash.get(geneUpperCase);
-		if (geneSet == null){
-			geneSet = new HashSet<String>();
-			dbHash.put(geneUpperCase, geneSet);
-		}
-		_uniqueGeneSet.add(geneUpperCase);
-		geneSet.clear();
-		geneSet.addAll(networkIds);
-	}
 
 	public void setDatabaseResults(InternalDatabaseResults dr){
 		_databaseResults.set(dr);
+	}
+	
+	public void setDatabaseMap(ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>> databases){
+		_databases = databases;
 	}
 
 	/**
