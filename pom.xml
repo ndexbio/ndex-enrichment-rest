@@ -7,7 +7,7 @@
     <version>0.6.5</version>
     <packaging>war</packaging>
 
-    <name>NDEx Enrichment REST Service</name>
+    <name>NDEx Pathway Relevance REST Service</name>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -25,6 +25,7 @@
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.6</commons-io.version>
         <ndex-enrichment-rest-model.version>0.2.1</ndex-enrichment-rest-model.version>
+        <ndex-object-model.version>2.4.4</ndex-object-model.version>
         <ndex-java-client.version>2.4.4</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
@@ -218,9 +219,15 @@
 		</dependency>
     </dependencies>
     <scm>
-	  <connection>scm:git:https://github.com/ndexbio/ndex-enrichment-rest.git</connection>
+	  <connection>scm:git:https://github.com/cytoscape/ndex-enrichment-rest.git</connection>
     </scm>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
               <plugin>
