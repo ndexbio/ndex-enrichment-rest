@@ -27,6 +27,9 @@ public class TestBasicEnrichmentEngineRunner {
 		
 		// test where query size greater then universe
 		assertEquals(Double.MAX_VALUE, runner.getPvalue(50, 20, 100, 5), 0.001);
+		
+		// test where valid answer is returned
+		assertEquals(0.0, runner.getPvalue(50, 20, 5, 5), 0.1);
 	}
 	
 	@Test
