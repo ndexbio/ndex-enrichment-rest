@@ -25,6 +25,7 @@ import org.apache.commons.math3.exception.NotStrictlyPositiveException;
 import org.apache.commons.math3.exception.NumberIsTooLargeException;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
+import org.ndexbio.enrichment.rest.App;
 import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
@@ -32,6 +33,7 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue;
 import org.ndexbio.model.cx.NiceCXNetwork;
+import org.ndexbio.ndexsearch.rest.model.NetworkInfo;
 import org.ndexbio.rest.client.NdexRestClientUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,13 +86,13 @@ public class BasicEnrichmentEngineRunner implements Callable {
 
 		if (taskDir.mkdirs() == false){
 			_logger.error("Unable to create task directory: " + taskDir.getAbsolutePath());
-			//updateEnrichmentQueryResultsInDb(id, EnrichmentQueryResults.FAILED_STATUS, 100, null);
 			updateEnrichmentQueryResults(EnrichmentQueryResults.FAILED_STATUS, 100, null);
 			return;
 		}
 
 		//check gene list
 		List<EnrichmentQueryResult> enrichmentResult = new LinkedList<EnrichmentQueryResult>();
+		SortedSet<String> uniqueGeneList = getUniqueQueryGeneSetFilteredByUniverseGenes(query.getGeneList());
 		for (String databaseName : query.getDatabaseList()){
 			DatabaseResult dbres = getDatabaseResultFromDb(databaseName);
 
@@ -99,7 +101,6 @@ public class BasicEnrichmentEngineRunner implements Callable {
 				continue;
 			}
 			_logger.debug("Querying database: " + databaseName);
-			SortedSet<String> uniqueGeneList = getUniqueQueryGeneSetFilteredByUniverseGenes(query.getGeneList());
 			
 			HashMap<String, HashSet<String>> networkMap = remapNetworksToGenes(dbres.getUuid(), uniqueGeneList);
 			if (networkMap == null){
@@ -209,6 +210,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 			_logger.error("Unique Gene List is null");
 			return null;
 		}
+		NetworkInfo networkInfo = null;
 		int numGenesInQuery = uniqueGeneList.size();
 		List<EnrichmentQueryResult> eqrList = new LinkedList<EnrichmentQueryResult>();
 		for (String network : networkMap.keySet()){
@@ -225,10 +227,13 @@ public class BasicEnrichmentEngineRunner implements Callable {
 				_logger.error("Unable to get network: " + network + " skipping...");
 				continue;
 			}
-
-			updateStatsAboutNetwork(cxNetwork, eqr, uniqueGeneList);
-			//File destFile = new File(taskDir.getAbsolutePath() + File.separator + network + ".cx");
-			//annotateAndSaveNetwork(destFile, cxNetwork, eqr);
+			networkInfo = null;
+			for (NetworkInfo ni : dbres.getNetworks()){
+				if (ni.getUuid().equals(network)){
+					networkInfo = ni;
+				}
+			}
+			updateStatsAboutNetwork(cxNetwork, eqr, uniqueGeneList, networkInfo);
 			eqrList.add(eqr);
 		}
 		return eqrList;
@@ -269,7 +274,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 	 * @param numGenesInQuery 
 	 */
 	protected void updateStatsAboutNetwork(NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr,
-			SortedSet<String> queryGenes){
+			SortedSet<String> queryGenes, NetworkInfo networkInfo){
 		eqr.setNodes(cxNetwork.getNodes().size());
 		eqr.setEdges(cxNetwork.getEdges().size());
 		eqr.setDescription(cxNetwork.getNetworkName());
@@ -278,7 +283,8 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		eqr.setPercentOverlap(Math.round(((float)numHitGenes/(float)numGenesInQuery)*(float)100));
 		InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
 		int totalGenesInUniverse = idr.getUniverseUniqueGeneCount();
-		eqr.setpValue(getPvalue(totalGenesInUniverse, eqr.getNodes(), numGenesInQuery, numHitGenes));
+		eqr.setpValue(getPvalue(totalGenesInUniverse, networkInfo.getGeneCount(), 
+				numGenesInQuery, numHitGenes));
 		eqr.setTotalNetworkCount(idr.getTotalNetworkCount());
 
 		Collection<NodesElement> networkNodes = new LinkedList<>();
@@ -315,7 +321,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		} catch(NumberIsTooLargeException ntle){
 			_logger.error("Number of hits or query size greater then total genes in universe", ntle);
 		}
-		return 100.0;
+		return Double.MAX_VALUE;
 	}
 	
 	protected double getSimilarity(
@@ -334,9 +340,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 			boolean validComplex = false;
 			for (NodeAttributesElement nae : nodeAttribs){
 				if (nae.getName().toLowerCase().equals("type")){
-					if (nae.getValue().toLowerCase().equals("complex") ||
-							nae.getValue().toLowerCase().equals("proteinfamily") ||
-							nae.getValue().toLowerCase().equals("compartment")) {
+					if (App.isTypeComplex(nae.getValue())) {
 						validComplex = true;
 					}
 				}
@@ -345,7 +349,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 				for (NodeAttributesElement nae : nodeAttribs){
 					if (nae.getName().toLowerCase().equals("member")){
 						for (String entry : nae.getValues()){
-							String validGene = getValidGene(entry);
+							String validGene = App.getValidGene(entry);
 							if (validGene != null) {
 								networkGenes.add(validGene);
 							}
@@ -353,7 +357,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 					}
 				}
 			} else {
-				String validGene = getValidGene(ne.getNodeName());
+				String validGene = App.getValidGene(ne.getNodeName());
 				if (validGene != null) {
 					networkGenes.add(validGene);
 				}
@@ -381,23 +385,6 @@ public class BasicEnrichmentEngineRunner implements Callable {
 			}
 		}
 		return getCosineSimilarity(networkVector, queryVector);
-	}
-	
-	protected String getValidGene(final String potentialGene){
-		if (potentialGene == null){
-			return null;
-		}
-		String strippedGene = potentialGene;
-		// strip off hgnc.symbol: prefix if found
-		if (potentialGene.startsWith("hgnc.symbol:") && potentialGene.length()>12){
-			strippedGene = potentialGene.substring(potentialGene.indexOf(":") + 1);
-		}
-
-		if (strippedGene.length()>30 || !strippedGene.matches("(^[A-Z][A-Z0-9-]*$)|(^C[0-9]+orf[0-9]+$)")) {
-			return null;
-		}
-
-		return strippedGene;
 	}
 
 	protected double getCosineSimilarity(GVector vec1, GVector vec2) {
