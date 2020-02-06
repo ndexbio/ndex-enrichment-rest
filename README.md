@@ -6,13 +6,13 @@
 
 [make]: https://www.gnu.org/software/make
 
-NDEx Enrichment REST Service
-============================
+NDEx Pathway Relevance REST Service
+=====================================
 
-[![Build Status](https://travis-ci.org/ndexbio/ndex-enrichment-rest.svg?branch=master)](https://travis-ci.org/ndexbio/ndex-enrichment-rest) 
-[![Coverage Status](https://coveralls.io/repos/github/ndexbio/ndex-enrichment-rest/badge.svg)](https://coveralls.io/github/ndexbio/ndex-enrichment-rest)
+[![Build Status](https://travis-ci.org/cytoscape/ndex-enrichment-rest.svg?branch=master)](https://travis-ci.org/cytoscape/ndex-enrichment-rest) 
+[![Coverage Status](https://coveralls.io/repos/github/cytoscape/ndex-enrichment-rest/badge.svg)](https://coveralls.io/github/cytoscape/ndex-enrichment-rest)
 
-Provides enrichment REST service using select networks from NDEx as a backend.
+Provides a pathway relevance REST service using select networks from NDEx as a backend.
 This service runs using an embedded [Jetty][jetty] server and is invoked
 from the command line. 
 
@@ -24,12 +24,6 @@ Requirements
 * [Java][java] 8+ **(jdk to build)**
 * [Make][make] **(to build)**
 * [Maven][maven] 3.3 or higher **(to build)** -- tested with 3.6
-
-Special software to install (cause we haven't put these into maven central)
-
-* [ndex-enrichment-rest-model](https://github.com/ndexbio/ndex-enrichment-rest-model) built and installed via `mvn install`
-* [ndex-object-model](https://github.com/ndexbio/ndex-object-model) built and installed via `mvn install`
-* [ndex-java-client](https://github.com/ndexbio/ndex-java-client) built and installed via `mvn install`
 
 
 Building NDEx Enrichment REST Service
@@ -112,7 +106,7 @@ database.
 Run the following to create an example **databaseresults.json** file:
 
 ```bash
-java -jar enrichment.jar --mode exampledbresults > db/databaseresults.json
+java -jar enrichment.jar --mode exampledbresults > databaseresults.json
 
 ```
 
@@ -175,7 +169,7 @@ the values under **databaseConnectionMap**
 To create the database run the following command:
  
  ```bash
-java -jar enrichment.jar --mode createdb --conf enrichment.conf 
+java -jar enrichment.jar --mode createdb --conf enrichment.conf --dbresults databaseresults.json
 ```
 
 The above command will read the configuration and **databaseresults.json** 
@@ -191,7 +185,7 @@ jav -jar enrichment.jar --mode runserver --conf enrichment.conf
 More Information
 =================
 
-[Visit our wiki for more information](https://github.com/ndexbio/ndex-enrichment-rest/wiki)
+[Visit our wiki for more information](https://github.com/cytoscape/ndex-enrichment-rest/wiki)
 
 COPYRIGHT AND LICENSE
 =====================
