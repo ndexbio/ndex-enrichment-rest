@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.ndexbio.enrichment.rest;
 
 
@@ -66,8 +61,7 @@ public class App {
     
     static Logger _logger = LoggerFactory.getLogger(App.class);
 
-    public static final String DESCRIPTION = "\nNDEx Enrichment REST service\n\n"
-            + "For usage information visit:  https://github.com/ndexbio/ndex-enrichment-rest\n\n";
+	public static final String APP_PROPERTIES = "app.properties";
     
     /**
      * Sets logging level valid values DEBUG INFO WARN ALL ERROR
@@ -128,7 +122,7 @@ public class App {
             //help check
             for (String helpArgName : helpArgs) {
                 if (optionSet.has(helpArgName)) {
-                    System.out.println(DESCRIPTION);
+                    System.out.println(App.getDescription());
                     parser.printHelpOn(System.out);
                     System.exit(2);
                 }
@@ -152,7 +146,7 @@ public class App {
                     throw new EnrichmentException("--" + CONF + " required for --" + MODE + " mode");
                 }
                 Configuration.setAlternateConfigurationFile(optionSet.valueOf(CONF).toString());
-                downloadNetworks();
+                downloadNetworks(NdexRestClientModelAccessLayerFactory.getInstance());
                 
                 return;
             }
@@ -217,7 +211,39 @@ public class App {
         }
 
     }
-    
+	
+    public static Properties getAppNameAndVersionProperties(){
+		Properties props = new Properties();
+		try {
+			props.load(App.class.getClassLoader().getResourceAsStream(APP_PROPERTIES));
+		} catch(IOException io){
+			Log.getRootLogger().warn("Unable to get information from " +
+					App.APP_PROPERTIES + " needed for description", io);
+		}
+		return props;
+	}
+	
+	/**
+	 * Using {@link #APP_PROPERTIES} configuration file within this jar
+	 * this function returns a brief description of this application
+	 * @return 
+	 */
+	public static String getDescription(){
+		Properties props = App.getAppNameAndVersionProperties();
+		String appName = props.getProperty("project.name", "Unknown");
+		String appVersion = props.getProperty("project.version", "Unknown");
+		
+		return "\n" + appName + " v" + appVersion + "\n\nFor usage information visit:\n" +
+				"https://github.com/cytoscape/ndex-enrichment-rest\n\n";
+	}
+	
+	/**
+	 * Loads properties from configuration file {@code path} passed in
+	 * @param path configuration file to load
+	 * @return Properties loaded with data from {@code path} file
+	 * @throws IOException
+	 * @throws FileNotFoundException 
+	 */
     public static Properties getPropertiesFromConf(final String path) throws IOException, FileNotFoundException {
         Properties props = new Properties();
         props.load(new FileInputStream(path));
@@ -317,14 +343,8 @@ public class App {
 
         return sb.toString();
     }
-    
-    public static NdexRestClientModelAccessLayer getNdexClient(InternalNdexConnectionParams params) throws Exception {
-        NdexRestClient nrc = new NdexRestClient(params.getUser(), params.getPassword(), 
-                params.getServer(), "Enrichment/0.4.0");
-        
-        return new NdexRestClientModelAccessLayer(nrc);
-    }
-    public static void downloadNetworks() throws Exception {
+
+    public static void downloadNetworks(NdexRestClientModelAccessLayerFactory clientFactory) throws Exception {
         Configuration config = Configuration.getInstance();
         InternalDatabaseResults idr = config.getNDExDatabases();
         ObjectMapper mappy = new ObjectMapper();
@@ -347,7 +367,7 @@ public class App {
                 _logger.debug("Creating directory " + databasedir.getAbsolutePath());
                 databasedir.mkdirs();
             }
-            NdexRestClientModelAccessLayer client = getNdexClient(cParams);
+            NdexRestClientModelAccessLayer client = clientFactory.getNdexClient(cParams);
             NetworkSet ns = client.getNetworkSetById(UUID.fromString(cParams.getNetworkSetId()), null);
             if (ns == null){
                 throw new EnrichmentException("null returned when querying for networks "
@@ -376,8 +396,9 @@ public class App {
                 String networkUrl = getNetworkUrl(cParams.getServer(), netid.toString());
                 NetworkInfo simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL());
                 networkList.add(simpleNetwork);
-                updateGeneMap(network, netid.toString(), geneMap,
-                        uniqueGeneSet, idr);
+                int geneCount = updateGeneMap(network, netid.toString(), geneMap,
+                                              uniqueGeneSet, idr);
+				simpleNetwork.setGeneCount(geneCount);
                 networkCount++;
             }
             client.getNdexRestClient().signOut();
@@ -414,7 +435,47 @@ public class App {
     	}
     	return idfMap;
     }
-    
+	
+	/**
+	 * Compares {@code value} with known node types that denote if a node is
+	 * of type "protein" in that the node name is a gene
+	 * @param value
+	 * @return true if {@code value} denotes a node of type protein otherwise false 
+	 */
+    public static boolean isTypeProtein(final String value){
+		if (value == null){
+			return false;
+		}
+		String lowerCaseValue = value.toLowerCase();
+		if (lowerCaseValue.equals("gene") ||
+				lowerCaseValue.equals("protein") ||
+                lowerCaseValue.equals("geneproduct")){
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Compares {@code value} with known node types that denote if a node is
+	 * of type "complex" in that it contains a list of genes within "member"
+	 * node attribute.
+	 * @param value
+	 * @return true if {@code value} denotes a node of type complex otherwise false 
+	 */
+	public static boolean isTypeComplex(final String value){
+		if (value == null){
+			return false;
+		}
+		String lowerCaseValue = value.toLowerCase();
+		if (lowerCaseValue.equals("complex") ||
+				lowerCaseValue.equals("proteinfamily") ||
+                lowerCaseValue.equals("compartment")){
+			return true;
+		}
+		return false;
+		
+		
+	}
     /**
      * Adds network to gene map which has the following structure:
      * 
@@ -427,7 +488,7 @@ public class App {
      * @param uniqueGeneSet unique set of genes
      * @throws Exception 
      */
-    public static void updateGeneMap(final NiceCXNetwork network,
+    public static int updateGeneMap(final NiceCXNetwork network,
             final String externalId, InternalGeneMap geneMap,
             final Set<String> uniqueGeneSet,
             InternalDatabaseResults idr) throws Exception {
@@ -441,6 +502,7 @@ public class App {
         }
         
         Map<String, Set<Long>> geneToNodeMap = new HashMap<>();
+		int geneCount = 0;
         for (NodesElement ne : network.getNodes().values()){
             Collection<NodeAttributesElement> nodeAttribs = attribMap.get(ne.getId());
             
@@ -453,15 +515,11 @@ public class App {
             boolean validcomplex = false;
             for (NodeAttributesElement nae : nodeAttribs){
                 if (nae.getName().toLowerCase().equals("type")){
-                    if (nae.getValue().toLowerCase().equals("gene") ||
-                          nae.getValue().toLowerCase().equals("protein") ||
-                            nae.getValue().toLowerCase().equals("geneproduct")){
+					if (App.isTypeProtein(nae.getValue())){
                         validgene = true;
                         break;
                     }
-                    if (nae.getValue().toLowerCase().equals("complex") ||
-                          nae.getValue().toLowerCase().equals("proteinfamily") ||
-                          nae.getValue().toLowerCase().equals("compartment")){
+                    if (App.isTypeComplex(nae.getValue())){
                         validcomplex = true;
                         break;
                     }
@@ -484,6 +542,7 @@ public class App {
                 geneToNodeMap.get(name).add(ne.getId());
                 
                 uniqueGeneSet.add(name);
+				geneCount++;
                 continue;
             }
             if (validcomplex == true){
@@ -504,7 +563,8 @@ public class App {
                                 geneToNodeMap.put(name, new HashSet<Long>());
                             }
                             geneToNodeMap.get(name).add(ne.getId());
-                            uniqueGeneSet.add(entry);
+                            uniqueGeneSet.add(name);
+							geneCount++;
                         }
                         break;
                     }
@@ -519,6 +579,7 @@ public class App {
             geneToNodeBigMap.put(externalId, geneToNodeMap);
             idr.setNetworkToGeneToNodeMap(geneToNodeBigMap);
         }
+		return geneCount;
 
     }
     
@@ -535,7 +596,7 @@ public class App {
         
         //if (strippedGene.length()>30 || !strippedGene.matches("^[^\\(\\)\\s,']+$")){
         if (strippedGene.length()>30 || !strippedGene.matches("(^[A-Z][A-Z0-9-]*$)|(^C[0-9]+orf[0-9]+$)")) {
-            _logger.warn("Gene: " + strippedGene + " does not appear to be valid. Skipping...");
+            _logger.debug("Gene: " + strippedGene + " does not appear to be valid. Skipping...");
             return null;
         }
         
@@ -551,8 +612,9 @@ public class App {
      * @throws Exception 
      */
     public static NiceCXNetwork saveNetwork(NdexRestClientModelAccessLayer client, final UUID networkuuid, final File savedir) throws Exception{
-        Configuration.getInstance();
-        File dest = new File(savedir.getAbsolutePath() + File.separator + networkuuid.toString() + ".cx");
+
+		File dest = new File(savedir.getAbsolutePath() +
+				File.separator + networkuuid.toString() + ".cx");
         
 		try (FileOutputStream fos = new FileOutputStream(dest)) {
 			try (InputStream instream = client.getNetworkAsCXStream(networkuuid)) {
