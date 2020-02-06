@@ -86,6 +86,7 @@ public class App {
     public static final String MODE = "mode";
     public static final String CONF = "conf";    
     public static final String CREATEDB_MODE = "createdb";
+	public static final String DBRES = "dbresults";
     public static final String EXAMPLE_CONF_MODE = "exampleconf";
     public static final String EXAMPLE_DBRES_MODE = "exampledbresults";
     public static final String RUNSERVER_MODE = "runserver";
@@ -105,6 +106,12 @@ public class App {
                     accepts(MODE, "Mode to run. Supported modes: " + SUPPORTED_MODES).withRequiredArg().ofType(String.class).required();
                     accepts(CONF, "Configuration file")
                             .withRequiredArg().ofType(String.class);
+					accepts(DBRES, "Loads alternate dbresults "
+							+ "JSON file for database creation "
+							+ "(Optionally used with --" + MODE
+							+ " "
+							+ CREATEDB_MODE
+							+ ")").withRequiredArg().ofType(File.class);
                     acceptsAll(helpArgs, "Show Help").forHelp();
                 }
             };
@@ -146,7 +153,23 @@ public class App {
                     throw new EnrichmentException("--" + CONF + " required for --" + MODE + " mode");
                 }
                 Configuration.setAlternateConfigurationFile(optionSet.valueOf(CONF).toString());
-                downloadNetworks(NdexRestClientModelAccessLayerFactory.getInstance());
+				InternalDatabaseResults idr = null;
+				if (optionSet.has(DBRES) == true){
+					ObjectMapper mapper = new ObjectMapper();
+					File dbresFile = new File(optionSet.valueOf(DBRES).toString());
+					System.out.println("Using " + dbresFile.getAbsolutePath() +
+							" set via --" + DBRES + " flag as input database");
+					try {
+						idr = mapper.readValue(dbresFile, InternalDatabaseResults.class);
+					}
+					catch(IOException io){
+						throw new EnrichmentException("Error loading database " +
+								dbresFile.getAbsolutePath() + " : " + io.getMessage());
+					}
+				} else {
+					idr = Configuration.getInstance().getNDExDatabases();
+				}
+                downloadNetworks(NdexRestClientModelAccessLayerFactory.getInstance(), idr);
                 
                 return;
             }
@@ -232,9 +255,8 @@ public class App {
 		Properties props = App.getAppNameAndVersionProperties();
 		String appName = props.getProperty("project.name", "Unknown");
 		String appVersion = props.getProperty("project.version", "Unknown");
-		
-		return "\n" + appName + " v" + appVersion + "\n\nFor usage information visit:\n" +
-				"https://github.com/cytoscape/ndex-enrichment-rest\n\n";
+		String desc = props.getProperty("description", "");
+		return "\n" + appName + " v" + appVersion + "\n\n" + desc;
 	}
 	
 	/**
@@ -344,9 +366,9 @@ public class App {
         return sb.toString();
     }
 
-    public static void downloadNetworks(NdexRestClientModelAccessLayerFactory clientFactory) throws Exception {
+    public static void downloadNetworks(NdexRestClientModelAccessLayerFactory clientFactory,
+			InternalDatabaseResults idr) throws Exception {
         Configuration config = Configuration.getInstance();
-        InternalDatabaseResults idr = config.getNDExDatabases();
         ObjectMapper mappy = new ObjectMapper();
         Set<String> universeUniqueGeneSet = new HashSet<>();
         List<InternalGeneMap> geneMapList = new LinkedList<>();
@@ -418,7 +440,6 @@ public class App {
         
         _logger.debug("Attempting to write: " + config.getDatabaseResultsFile().getAbsolutePath());
         mappy.writerWithDefaultPrettyPrinter().writeValue(config.getDatabaseResultsFile(), idr);
-        return;
     }
     
     private static Map<String, Double> makeIdfMap(List<InternalGeneMap> geneMapList, int totalNetworkCount) {

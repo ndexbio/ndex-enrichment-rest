@@ -161,7 +161,7 @@ public class TestApp {
 	public void testGetDescription(){
 		String desc = App.getDescription();
 		assertNotNull(desc);
-		assertTrue(desc.contains("For usage information visit:"));
+		assertTrue(desc.contains("For more information visit:"));
 	}
 	
 	@Test
