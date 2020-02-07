@@ -431,6 +431,7 @@ public class App {
             databaseUniqueGeneCount.put(dr.getUuid(), uniqueGeneSet.size());
             uniqueGeneSet.clear();
             dr.setUrl(getNetworkSetUrl(cParams.getServer(), cParams.getNetworkSetId()));
+			dr.setNumberOfNetworks(Integer.toString(networkCount));
         }
         idr.setUniverseUniqueGeneCount(universeUniqueGeneSet.size());
         idr.setDatabaseUniqueGeneCount(databaseUniqueGeneCount);
