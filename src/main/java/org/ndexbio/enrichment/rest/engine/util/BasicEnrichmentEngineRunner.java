@@ -92,7 +92,9 @@ public class BasicEnrichmentEngineRunner implements Callable {
 
 		//check gene list
 		List<EnrichmentQueryResult> enrichmentResult = new LinkedList<EnrichmentQueryResult>();
-		SortedSet<String> uniqueGeneList = getUniqueQueryGeneSetFilteredByUniverseGenes(query.getGeneList());
+		// @TODO enable filtering of query genes by genes in universe which is not being done
+		//       cause _uniqueGenesInUniverse has not been populated. 
+		SortedSet<String> uniqueGeneList = query.getGeneList(); // getUniqueQueryGeneSetFilteredByUniverseGenes(query.getGeneList());
 		for (String databaseName : query.getDatabaseList()){
 			DatabaseResult dbres = getDatabaseResultFromDb(databaseName);
 
@@ -117,6 +119,11 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		updateEnrichmentQueryResults(EnrichmentQueryResults.COMPLETE_STATUS, 100, enrichmentResult);
 	}
 	
+	/**
+	 * Filters {@code queryGeneList} by known genes in universe
+	 * @param queryGeneList query genes
+	 * @return sorted set of filtered genes
+	 */
 	protected SortedSet<String> getUniqueQueryGeneSetFilteredByUniverseGenes(SortedSet<String> queryGeneList){
 		SortedSet<String> filteredUniqueGenes = new TreeSet<>();
 		if (queryGeneList == null){
