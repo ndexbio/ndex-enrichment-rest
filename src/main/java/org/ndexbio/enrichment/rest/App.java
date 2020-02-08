@@ -169,7 +169,9 @@ public class App {
 				} else {
 					idr = Configuration.getInstance().getNDExDatabases();
 				}
-                downloadNetworks(NdexRestClientModelAccessLayerFactory.getInstance(), idr);
+                downloadNetworks(NdexRestClientModelAccessLayerFactory.getInstance(), idr,
+						Configuration.getInstance().getEnrichmentDatabaseDirectory(),
+						Configuration.getInstance().getDatabaseResultsFile());
                 
                 return;
             }
@@ -367,15 +369,19 @@ public class App {
     }
 
     public static void downloadNetworks(NdexRestClientModelAccessLayerFactory clientFactory,
-			InternalDatabaseResults idr) throws Exception {
-        Configuration config = Configuration.getInstance();
+			InternalDatabaseResults idr, final String enrichmentDatabaseDir,
+			final File databaseResultsFile) throws Exception {
         ObjectMapper mappy = new ObjectMapper();
         Set<String> universeUniqueGeneSet = new HashSet<>();
         List<InternalGeneMap> geneMapList = new LinkedList<>();
         Map<String, Integer> databaseUniqueGeneCount = new HashMap<>();
         Set<String> networksToExclude = idr.getNetworksToExclude();
+		StringBuffer failedNetworks = null;
         int totalNetworkCount = 0;
-        
+        if (idr.getResults() == null){
+			throw new NullPointerException("Results in database passed in was null");
+		}
+		Set<String> uniqueGeneSet = new HashSet<>();
         for (DatabaseResult dr : idr.getResults()){
             _logger.debug("Downloading networks for: " + dr.getName());
             InternalGeneMap geneMap = new InternalGeneMap();
@@ -384,7 +390,7 @@ public class App {
             InternalNdexConnectionParams cParams = idr.getDatabaseConnectionMap().get(dr.getUuid());
             
             _logger.debug("networkset id for maps is: " + cParams.getNetworkSetId());
-            File databasedir = new File(config.getEnrichmentDatabaseDirectory() + File.separator + dr.getUuid());
+            File databasedir = new File(enrichmentDatabaseDir + File.separator + dr.getUuid());
             if (databasedir.isDirectory() == false){
                 _logger.debug("Creating directory " + databasedir.getAbsolutePath());
                 databasedir.mkdirs();
@@ -406,19 +412,33 @@ public class App {
             int networkCount = 0;
             List<NetworkInfo> networkList = new ArrayList<>();
             
-            Set<String> uniqueGeneSet = new HashSet<>();
+            uniqueGeneSet.clear();
             for (UUID netid :  ns.getNetworks()){
-                if (networksToExclude.contains(netid.toString())){
+                if (networksToExclude != null && networksToExclude.contains(netid.toString())){
                     _logger.debug("Network: " + netid.toString() + " in exclude list. skipping.");
                     continue;
                 }
                
                 _logger.debug("Saving network: " + netid.toString());
                 NiceCXNetwork network = saveNetwork(client, netid, databasedir);
-                String networkUrl = getNetworkUrl(cParams.getServer(), netid.toString());
-                NetworkInfo simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL());
+				if (network == null){
+					String errorMsg = "Unable to save network: "
+							+ netid.toString()
+							+ " in database: "
+							+ dr.getName() + " (" + dr.getUuid() +")";
+					_logger.error(errorMsg
+							+ " Skipping...");
+					if (failedNetworks == null){
+						failedNetworks = new StringBuffer();
+					}
+					failedNetworks.append(errorMsg);
+					failedNetworks.append("\n");
+					continue;
+				}
+				String networkUrl = getNetworkUrl(cParams.getServer(), netid.toString());
+				NetworkInfo simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL());
                 networkList.add(simpleNetwork);
-                int geneCount = updateGeneMap(network, netid.toString(), geneMap,
+				int geneCount = updateGeneMap(network, netid.toString(), geneMap,
                                               uniqueGeneSet, idr);
 				simpleNetwork.setGeneCount(geneCount);
                 networkCount++;
@@ -429,7 +449,6 @@ public class App {
             universeUniqueGeneSet.addAll(uniqueGeneSet);
             geneMapList.add(geneMap);
             databaseUniqueGeneCount.put(dr.getUuid(), uniqueGeneSet.size());
-            uniqueGeneSet.clear();
             dr.setUrl(getNetworkSetUrl(cParams.getServer(), cParams.getNetworkSetId()));
 			dr.setNumberOfNetworks(Integer.toString(networkCount));
         }
@@ -439,8 +458,11 @@ public class App {
         idr.setIdfMap(makeIdfMap(geneMapList, totalNetworkCount));
         idr.setTotalNetworkCount(totalNetworkCount);
         
-        _logger.debug("Attempting to write: " + config.getDatabaseResultsFile().getAbsolutePath());
-        mappy.writerWithDefaultPrettyPrinter().writeValue(config.getDatabaseResultsFile(), idr);
+        _logger.debug("Attempting to write: " + databaseResultsFile.getAbsolutePath());
+        mappy.writerWithDefaultPrettyPrinter().writeValue(databaseResultsFile, idr);
+		if (failedNetworks != null){
+			throw new EnrichmentException(failedNetworks.toString());
+		}
     }
     
     private static Map<String, Double> makeIdfMap(List<InternalGeneMap> geneMapList, int totalNetworkCount) {

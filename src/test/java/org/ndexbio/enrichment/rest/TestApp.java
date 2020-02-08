@@ -1,13 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.ndexbio.enrichment.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -20,8 +19,14 @@ import org.junit.rules.TemporaryFolder;
 import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
+import org.ndexbio.enrichment.rest.model.InternalNdexConnectionParams;
+import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
+import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.model.cx.NiceCXNetwork;
+import org.ndexbio.model.object.NetworkSet;
+import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.ndexsearch.rest.model.NetworkInfo;
+import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.client.NdexRestClientUtilities;
 
@@ -264,6 +269,155 @@ public class TestApp {
 				assertEquals(1, mappy.get(g).size());
 				assertTrue(mappy.get(g).contains("fap_insulin"));
 			}
+		}
+	}
+	
+	@Test
+	public void testDownloadNullResultsInInternalDatabaseResults() throws Exception {
+		try {
+			File tempDir = _folder.newFolder();
+			File dbRes = new File(tempDir.getAbsolutePath() + File.separator
+					+ Configuration.DATABASE_RESULTS_JSON_FILE);
+			NdexRestClientModelAccessLayerFactory mockFac = mock(NdexRestClientModelAccessLayerFactory.class);
+			InternalDatabaseResults idr = new InternalDatabaseResults();
+			App.downloadNetworks(mockFac, idr, tempDir.getAbsolutePath(), dbRes);
+			fail("Expected NullPointerException");
+		} catch(NullPointerException npe){
+			assertEquals("Results in database passed in was null", npe.getMessage());
+	    }finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testDownloadEmptyResultsInInternalDatabaseResults() throws Exception {
+		try {
+			File tempDir = _folder.newFolder();
+			File dbRes = new File(tempDir.getAbsolutePath() + File.separator
+					+ Configuration.DATABASE_RESULTS_JSON_FILE);
+			NdexRestClientModelAccessLayerFactory mockFac = mock(NdexRestClientModelAccessLayerFactory.class);
+			InternalDatabaseResults idr = new InternalDatabaseResults();
+			idr.setResults(new ArrayList<DatabaseResult>());
+			App.downloadNetworks(mockFac, idr, tempDir.getAbsolutePath(), dbRes);
+			assertNotNull(idr.getGeneMapList());
+			assertEquals(0, idr.getUniverseUniqueGeneCount());
+			assertNotNull(idr.getDatabaseUniqueGeneCount());
+			assertEquals(0, idr.getTotalNetworkCount());
+		} finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testDownloadOneDatabaseResultNoNetworks() throws Exception {
+		InternalNdexConnectionParams oneCon = new InternalNdexConnectionParams();
+		oneCon.setNetworkSetId(UUID.randomUUID().toString());
+		oneCon.setPassword("pass");
+		oneCon.setServer("server");
+		oneCon.setUser("user");
+		DatabaseResult dbResOne = new DatabaseResult();
+		dbResOne.setUuid("myuuid");
+		try {
+			File tempDir = _folder.newFolder();
+			File dbResFile = new File(tempDir.getAbsolutePath() + File.separator
+					+ Configuration.DATABASE_RESULTS_JSON_FILE);
+			InternalDatabaseResults idr = new InternalDatabaseResults();
+			List<DatabaseResult> dbList = new ArrayList<>();
+			dbList.add(dbResOne);
+			dbResOne.setUuid("myuuid");
+			dbResOne.setName("dbRes");
+			Map<String, InternalNdexConnectionParams> conMap = new HashMap<>();
+			
+			conMap.put(dbResOne.getUuid(), oneCon);
+			
+			idr.setDatabaseConnectionMap(conMap);
+			
+			NdexRestClientModelAccessLayer mockClient = mock(NdexRestClientModelAccessLayer.class);
+
+			NetworkSet netSet = new NetworkSet();
+			
+			when(mockClient.getNetworkSetById(UUID.fromString(oneCon.getNetworkSetId()), null)).thenReturn(netSet);
+			
+			
+			NdexRestClientModelAccessLayerFactory mockFac = mock(NdexRestClientModelAccessLayerFactory.class);
+			when(mockFac.getNdexClient(oneCon)).thenReturn(mockClient);
+			idr.setResults(dbList);
+			
+			App.downloadNetworks(mockFac, idr, tempDir.getAbsolutePath(), dbResFile);
+			fail("Expected EnrichmentException");
+		} catch(EnrichmentException ee){
+			assertEquals("No networks found in networkset: "
+					+ oneCon.getNetworkSetId()
+					+ " with uuid: " + dbResOne.getUuid(), ee.getMessage());
+		} finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testDownloadOneDatabaseResultTwoNetworks() throws Exception {
+		try {
+			File tempDir = _folder.newFolder();
+			File dbResFile = new File(tempDir.getAbsolutePath() + File.separator
+					+ Configuration.DATABASE_RESULTS_JSON_FILE);
+			InternalDatabaseResults idr = new InternalDatabaseResults();
+			List<DatabaseResult> dbList = new ArrayList<>();
+			DatabaseResult dbResOne = new DatabaseResult();
+			dbList.add(dbResOne);
+			dbResOne.setUuid("myuuid");
+			dbResOne.setName("dbRes");
+			Map<String, InternalNdexConnectionParams> conMap = new HashMap<>();
+			InternalNdexConnectionParams oneCon = new InternalNdexConnectionParams();
+			oneCon.setNetworkSetId(UUID.randomUUID().toString());
+			oneCon.setPassword("pass");
+			oneCon.setServer("server");
+			oneCon.setUser("user");
+			conMap.put(dbResOne.getUuid(), oneCon);
+			
+			idr.setDatabaseConnectionMap(conMap);
+			
+			NdexRestClientModelAccessLayer mockClient = mock(NdexRestClientModelAccessLayer.class);
+			UUID firstUUID = UUID.randomUUID();
+			UUID secondUUID = UUID.randomUUID();
+
+			NetworkSet netSet = new NetworkSet();
+			List<UUID> netList = new ArrayList<>();
+			netList.add(firstUUID);
+			netList.add(secondUUID);
+			
+			netSet.setNetworks(netList);
+			when(mockClient.getNetworkSetById(UUID.fromString(oneCon.getNetworkSetId()), null)).thenReturn(netSet);
+			when(mockClient.getNetworkAsCXStream(firstUUID)).thenReturn(TestApp.class.getClassLoader().getResourceAsStream("glypican_3_network.cx"));
+			when(mockClient.getNetworkAsCXStream(secondUUID)).thenReturn(TestApp.class.getClassLoader().getResourceAsStream("fap_insulin_mediated_apipogenesis.cx"));
+			NdexRestClient mockNRC = mock(NdexRestClient.class);
+			
+			when(mockClient.getNdexRestClient()).thenReturn(mockNRC);
+			NdexRestClientModelAccessLayerFactory mockFac = mock(NdexRestClientModelAccessLayerFactory.class);
+			when(mockFac.getNdexClient(oneCon)).thenReturn(mockClient);
+			idr.setResults(dbList);
+			App.downloadNetworks(mockFac, idr, tempDir.getAbsolutePath(), dbResFile);
+			verify(mockNRC, times(1)).signOut();
+			assertNotNull(idr.getGeneMapList());
+			assertEquals(20, idr.getUniverseUniqueGeneCount());
+			assertNotNull(idr.getDatabaseUniqueGeneCount());
+			assertEquals(2, idr.getTotalNetworkCount());
+			Map<String, Integer> uniqueGeneCount = idr.getDatabaseUniqueGeneCount();
+			assertEquals(1, uniqueGeneCount.size());
+			assertEquals((int)20, (int)uniqueGeneCount.get(dbResOne.getUuid()));
+			assertEquals(oneCon.getServer() + "/#/networkset/"
+					+ oneCon.getNetworkSetId(), dbResOne.getUrl());
+			assertEquals("2", dbResOne.getNumberOfNetworks());
+			List<NetworkInfo> resNets = dbResOne.getNetworks();
+			assertEquals(2, resNets.size());
+			assertEquals("Glypican 3 network", resNets.get(0).getName());
+			assertEquals("FAP: Insulin-mediated adipogenesis", resNets.get(1).getName());
+			ObjectMapper mapper = new ObjectMapper();
+			InternalDatabaseResults fileIdr = mapper.readValue(dbResFile, InternalDatabaseResults.class);
+			assertEquals(idr.getTotalNetworkCount(), fileIdr.getTotalNetworkCount());
+			assertEquals(idr.getUniverseUniqueGeneCount(), fileIdr.getUniverseUniqueGeneCount());
+			
+		} finally {
+			_folder.delete();
 		}
 	}
 	
