@@ -42,7 +42,7 @@ public class Configuration {
     public static final String DATABASE_RESULTS_JSON_FILE = "databaseresults.json";
     
     private static Configuration INSTANCE;
-    private static final Logger _logger = LoggerFactory.getLogger(Configuration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Configuration.class);
     private static String _alternateConfigurationFile;
     private static EnrichmentEngine _enrichmentEngine;
     private static String _enrichDatabaseDir;
@@ -60,13 +60,13 @@ public class Configuration {
             props.load(new FileInputStream(configPath));
         }
         catch(FileNotFoundException fne){
-            _logger.error("No configuration found at " + configPath, fne);
+            LOGGER.error("No configuration found at " + configPath, fne);
             throw new EnrichmentException("FileNotFound Exception when attempting to load " 
                     + configPath + " : " +
                     fne.getMessage());
         }
         catch(IOException io){
-            _logger.error("Unable to read configuration " + configPath, io);
+            LOGGER.error("Unable to read configuration " + configPath, io);
             throw new EnrichmentException("IOException when trying to read configuration file " + configPath +
                      " : " + io);
         }
@@ -138,7 +138,7 @@ public class Configuration {
             return mapper.readValue(dbres, InternalDatabaseResults.class);
         }
         catch(IOException io){
-            _logger.error("caught io exception trying to load " + dbres.getAbsolutePath(), io);
+            LOGGER.error("caught io exception trying to load " + dbres.getAbsolutePath(), io);
         }
         return null;
     }
@@ -156,12 +156,12 @@ public class Configuration {
                 String configPath = null;
                 if (_alternateConfigurationFile != null){
                     configPath = _alternateConfigurationFile;
-                    _logger.info("Alternate configuration path specified: " + configPath);
+                    LOGGER.info("Alternate configuration path specified: " + configPath);
                 } else {
                     try {
                         configPath = System.getenv(Configuration.NDEX_ENRICH_CONFIG);
                     } catch(SecurityException se){
-                        _logger.error("Caught security exception ", se);
+                        LOGGER.error("Caught security exception ", se);
                     }
                 }
                 if (configPath == null){
@@ -171,7 +171,7 @@ public class Configuration {
                 }
                 INSTANCE = new Configuration(configPath);
             } catch (NamingException ex) {
-                _logger.error("Error loading configuration", ex);
+                LOGGER.error("Error loading configuration", ex);
                 throw new EnrichmentException("NamingException encountered. Error loading configuration: " 
                          + ex.getMessage());
             }
