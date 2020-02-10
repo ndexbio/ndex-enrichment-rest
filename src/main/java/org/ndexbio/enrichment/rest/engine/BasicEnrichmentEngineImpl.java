@@ -59,7 +59,7 @@ import com.google.common.cache.RemovalNotification;
  * @author churas
  */
 public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
-
+	public static final String CX_SUFFIX = ".cx";
 	public static final String EQR_JSON_FILE = "enrichmentqueryresults.json";
 
 	static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineImpl.class);
@@ -269,7 +269,11 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		_queryResults.remove(id);
 	}
 
-	public void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
+	protected void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
+		if (destFile == null){
+			_logger.error("destFile is null");
+			return;
+		}
 		try (FileOutputStream fos = new FileOutputStream(destFile)) {
 			if (cxNetwork == null){
 				_logger.error("Network passed in is null, cant write out: " + destFile.getAbsolutePath());
@@ -362,7 +366,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	protected NiceCXNetwork getNetwork(final String databaseUUID, final String networkUUID){
 		FileInputStream fis = null;
 		try {
-			fis = new FileInputStream(new File(this._dbDir + File.separator + databaseUUID + File.separator + networkUUID + ".cx"));
+			fis = new FileInputStream(new File(this._dbDir + File.separator + databaseUUID + File.separator + networkUUID + CX_SUFFIX));
 			return NdexRestClientUtilities.getCXNetworkFromStream(fis);
 		}
 		catch(IOException ex){
@@ -509,12 +513,12 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		}
 
 		File destFile = new File(this._taskDir + File.separator + id +
-				File.separator + networkUUID + ".cx");
+				File.separator + networkUUID + CX_SUFFIX);
 
 		try {
 			if (!destFile.exists() || destFile.length() == 0){
 				File tmpFile = new File(this._taskDir + File.separator + id +
-						File.separator + UUID.randomUUID().toString() + ".cx");
+						File.separator + UUID.randomUUID().toString() + CX_SUFFIX);
 				annotateAndSaveNetwork(tmpFile, cxNetwork, eqr);
 				tmpFile.renameTo(destFile);
 			}
@@ -533,21 +537,20 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	 */
 	@Override
 	public ServerStatus getServerStatus() throws EnrichmentException {
-		try {
-			String version = "unknown";
-			ServerStatus sObj = new ServerStatus();
-			sObj.setStatus(ServerStatus.OK_STATUS);
-			sObj.setRestVersion(EnrichmentHttpServletDispatcher.getVersion());
-			OperatingSystemMXBean omb = ManagementFactory.getOperatingSystemMXBean();
-			float unknown = (float)-1;
-			float load = (float)omb.getSystemLoadAverage();
-			sObj.setLoad(Arrays.asList(load, unknown, unknown));
-			File taskDir = new File(this._taskDir);
-			sObj.setPcDiskFull(100-(int)Math.round(((double)taskDir.getFreeSpace()/(double)taskDir.getTotalSpace())*100));
-			return sObj;
-		} catch(Exception ex){
-			_logger.error("ServerStatus error", ex);
-			throw new EnrichmentException("Exception raised when getting ServerStatus: " + ex.getMessage());
+
+		String version = "unknown";
+		ServerStatus sObj = new ServerStatus();
+		sObj.setStatus(ServerStatus.OK_STATUS);
+		sObj.setRestVersion(EnrichmentHttpServletDispatcher.getVersion());
+		OperatingSystemMXBean omb = ManagementFactory.getOperatingSystemMXBean();
+		float unknown = (float)-1;
+		float load = (float)omb.getSystemLoadAverage();
+		sObj.setLoad(Arrays.asList(load, unknown, unknown));
+		if (this._taskDir == null){
+			throw new EnrichmentException("Task directory is null");
 		}
+		File taskDir = new File(this._taskDir);
+		sObj.setPcDiskFull(100-(int)Math.round(((double)taskDir.getFreeSpace()/(double)taskDir.getTotalSpace())*100));
+		return sObj;
 	}
 }
