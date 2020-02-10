@@ -99,7 +99,7 @@ created earlier.
 
 ### Step 2 Create databaseresults.json file
 
-This file (which resides under **enrichment.task.dir**) contains
+This file contains
 information about networks on NDEx to use to generate the Enrichment
 database.
 
