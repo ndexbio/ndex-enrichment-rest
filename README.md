@@ -3,16 +3,16 @@
 [maven]: http://maven.apache.org/
 [java]: https://www.oracle.com/java/index.html
 [git]: https://git-scm.com/
-
+[ndex]: https://ndexbio.org
 [make]: https://www.gnu.org/software/make
 
-NDEx Pathway Relevance REST Service
+[NDEx][ndex] Pathway Relevance REST Service
 =====================================
 
 [![Build Status](https://travis-ci.org/cytoscape/ndex-enrichment-rest.svg?branch=master)](https://travis-ci.org/cytoscape/ndex-enrichment-rest) 
 [![Coverage Status](https://coveralls.io/repos/github/cytoscape/ndex-enrichment-rest/badge.svg)](https://coveralls.io/github/cytoscape/ndex-enrichment-rest)
 
-Provides a pathway relevance REST service using select networks from NDEx as a backend.
+Provides a pathway relevance REST service using select networks from [NDEx][ndex] as a backend.
 This service runs using an embedded [Jetty][jetty] server and is invoked
 from the command line. 
 
@@ -26,10 +26,10 @@ Requirements
 * [Maven][maven] 3.3 or higher **(to build)** -- tested with 3.6
 
 
-Building NDEx Enrichment REST Service
+Building [NDEx][ndex] Pathway Relevance REST Service
 =====================================
 
-Commands build NDEx Enrichment REST Service assuming machine has [Git][git] command line tools 
+Commands build [NDEx][ndex] Pathway Relevance REST Service assuming machine has [Git][git] command line tools 
 installed and above Java modules have been installed.
 
 ```Bash
@@ -45,8 +45,8 @@ The above command will create a jar file under **target/** named
 is a command line application
 
 
-Running Enrichment REST Service
-===============================
+Running [NDEx][ndex] Pathway Relevance REST Service
+========================================================
 
 The following steps cover how to create the Enrichment database.
 In the steps below **enrichment.jar** refers to the jar
