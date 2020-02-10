@@ -421,4 +421,78 @@ public class TestApp {
 		}
 	}
 	
+	@Test
+	public void testDownloadOneDatabaseResultTwoNetworkOneIsNull() throws Exception {
+		try {
+			File tempDir = _folder.newFolder();
+			File dbResFile = new File(tempDir.getAbsolutePath() + File.separator
+					+ Configuration.DATABASE_RESULTS_JSON_FILE);
+			InternalDatabaseResults idr = new InternalDatabaseResults();
+			List<DatabaseResult> dbList = new ArrayList<>();
+			DatabaseResult dbResOne = new DatabaseResult();
+			dbList.add(dbResOne);
+			dbResOne.setUuid("myuuid");
+			dbResOne.setName("dbRes");
+			Map<String, InternalNdexConnectionParams> conMap = new HashMap<>();
+			InternalNdexConnectionParams oneCon = new InternalNdexConnectionParams();
+			oneCon.setNetworkSetId(UUID.randomUUID().toString());
+			oneCon.setPassword("pass");
+			oneCon.setServer("server");
+			oneCon.setUser("user");
+			conMap.put(dbResOne.getUuid(), oneCon);
+			
+			idr.setDatabaseConnectionMap(conMap);
+			
+			NdexRestClientModelAccessLayer mockClient = mock(NdexRestClientModelAccessLayer.class);
+			UUID firstUUID = UUID.randomUUID();
+			UUID secondUUID = UUID.randomUUID();
+
+			NetworkSet netSet = new NetworkSet();
+			List<UUID> netList = new ArrayList<>();
+			netList.add(firstUUID);
+			netList.add(secondUUID);
+			
+			netSet.setNetworks(netList);
+			when(mockClient.getNetworkSetById(UUID.fromString(oneCon.getNetworkSetId()), null)).thenReturn(netSet);
+			when(mockClient.getNetworkAsCXStream(firstUUID)).thenReturn(null);
+			when(mockClient.getNetworkAsCXStream(secondUUID)).thenReturn(TestApp.class.getClassLoader().getResourceAsStream("fap_insulin_mediated_apipogenesis.cx"));
+			NdexRestClient mockNRC = mock(NdexRestClient.class);
+			
+			when(mockClient.getNdexRestClient()).thenReturn(mockNRC);
+			NdexRestClientModelAccessLayerFactory mockFac = mock(NdexRestClientModelAccessLayerFactory.class);
+			when(mockFac.getNdexClient(oneCon)).thenReturn(mockClient);
+			idr.setResults(dbList);
+			try {
+				App.downloadNetworks(mockFac, idr, tempDir.getAbsolutePath(), dbResFile);
+				fail("Expected EnrichmentException");
+			} catch(EnrichmentException ee){
+				assertEquals("Unable to save network: "
+						+ firstUUID.toString()
+						+ " in database: dbRes ("
+						+ dbResOne.getUuid() +")\n" , ee.getMessage());
+			}
+			verify(mockNRC, times(1)).signOut();
+			assertNotNull(idr.getGeneMapList());
+			assertEquals(13, idr.getUniverseUniqueGeneCount());
+			assertNotNull(idr.getDatabaseUniqueGeneCount());
+			assertEquals(1, idr.getTotalNetworkCount());
+			Map<String, Integer> uniqueGeneCount = idr.getDatabaseUniqueGeneCount();
+			assertEquals(1, uniqueGeneCount.size());
+			assertEquals((int)13, (int)uniqueGeneCount.get(dbResOne.getUuid()));
+			assertEquals(oneCon.getServer() + "/#/networkset/"
+					+ oneCon.getNetworkSetId(), dbResOne.getUrl());
+			assertEquals("1", dbResOne.getNumberOfNetworks());
+			List<NetworkInfo> resNets = dbResOne.getNetworks();
+			assertEquals(1, resNets.size());
+			assertEquals("FAP: Insulin-mediated adipogenesis", resNets.get(0).getName());
+			ObjectMapper mapper = new ObjectMapper();
+			InternalDatabaseResults fileIdr = mapper.readValue(dbResFile, InternalDatabaseResults.class);
+			assertEquals(idr.getTotalNetworkCount(), fileIdr.getTotalNetworkCount());
+			assertEquals(idr.getUniverseUniqueGeneCount(), fileIdr.getUniverseUniqueGeneCount());
+			
+		} finally {
+			_folder.delete();
+		}
+	}
+	
 }

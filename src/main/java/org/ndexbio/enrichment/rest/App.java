@@ -49,7 +49,6 @@ import org.ndexbio.enrichment.rest.services.Configuration;
 import org.ndexbio.enrichment.rest.services.EnrichmentHttpServletDispatcher;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.object.NetworkSet;
-import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.client.NdexRestClientUtilities;
 
@@ -420,7 +419,13 @@ public class App {
                 }
                
                 _logger.debug("Saving network: " + netid.toString());
-                NiceCXNetwork network = saveNetwork(client, netid, databasedir);
+				NiceCXNetwork network = null;
+				try {
+					network = saveNetwork(client, netid, databasedir);
+				} catch(Exception e){
+					_logger.error("Error saving network", e);
+					network = null;
+				}
 				if (network == null){
 					String errorMsg = "Unable to save network: "
 							+ netid.toString()
