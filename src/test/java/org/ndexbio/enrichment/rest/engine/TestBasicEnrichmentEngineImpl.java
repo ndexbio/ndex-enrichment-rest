@@ -3,7 +3,9 @@ package org.ndexbio.enrichment.rest.engine;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.UUID;
 import static org.junit.Assert.*;
@@ -284,6 +286,107 @@ public class TestBasicEnrichmentEngineImpl {
 			
 		} catch(EnrichmentException ee){
 			assertEquals("Task directory is null", ee.getMessage());
+		} finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testGetQueryResultsNegativeStartPosition(){
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		try {
+			enricher.getQueryResults(UUID.randomUUID().toString(), -1, 0);
+			fail("Expected EnrichmentException");
+		} catch(EnrichmentException ee){
+			assertEquals("start parameter must be a value of 0 or greater", ee.getMessage());
+		}
+	}
+	
+	@Test
+	public void testGetQueryResultsNegativeSize(){
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		try {
+			enricher.getQueryResults(UUID.randomUUID().toString(), 0, -1);
+			fail("Expected EnrichmentException");
+		} catch(EnrichmentException ee){
+			assertEquals("size parameter must be a value of 0 or greater", ee.getMessage());
+		}
+	}
+	
+	@Test
+	public void testGetQueryResultsNullResult() throws EnrichmentException {
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		EnrichmentQueryResults eqr = enricher.getQueryResults(UUID.randomUUID().toString(), 0, 0);
+		assertNull(eqr);
+		
+		eqr = enricher.getQueryResults(UUID.randomUUID().toString(), 1, 5);
+		assertNull(eqr);
+
+	}
+	@Test
+	public void testGetQueryResultsNoResults() throws IOException, EnrichmentException {
+		File tempDir = _folder.newFolder();
+		try {
+			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
+					tempDir.getAbsolutePath());
+			EnrichmentQueryResults inputEqr = new EnrichmentQueryResults();
+						
+			inputEqr.setNumberOfHits(0);
+			String myuuid = UUID.randomUUID().toString();
+			File eqrFile = new File(enricher.getEnrichmentQueryResultsFilePath(myuuid));
+			assertTrue(eqrFile.getParentFile().mkdirs());
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.writeValue(eqrFile, inputEqr);
+			
+			EnrichmentQueryResults eqr = enricher.getQueryResults(myuuid, 0, 5);
+			assertNull(eqr.getResults());
+			
+		} finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testGetQueryResultsSubList() throws IOException, EnrichmentException {
+		File tempDir = _folder.newFolder();
+		try {
+			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
+					tempDir.getAbsolutePath());
+			EnrichmentQueryResults inputEqr = new EnrichmentQueryResults();
+			
+			List<EnrichmentQueryResult> resList = new ArrayList<>();
+			EnrichmentQueryResult eResOne = new EnrichmentQueryResult();
+			eResOne.setRank(0);
+			eResOne.setDatabaseName("first");
+			resList.add(eResOne);
+			
+			EnrichmentQueryResult eResTwo = new EnrichmentQueryResult();
+			eResTwo.setRank(1);
+			eResTwo.setDatabaseName("second");
+			resList.add(eResTwo);
+			
+			EnrichmentQueryResult eResThree = new EnrichmentQueryResult();
+			eResThree.setRank(2);
+			eResThree.setDatabaseName("three");
+			resList.add(eResThree);
+			inputEqr.setResults(resList);
+			inputEqr.setNumberOfHits(resList.size());
+			String myuuid = UUID.randomUUID().toString();
+			File eqrFile = new File(enricher.getEnrichmentQueryResultsFilePath(myuuid));
+			assertTrue(eqrFile.getParentFile().mkdirs());
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.writeValue(eqrFile, inputEqr);
+			
+			EnrichmentQueryResults eqr = enricher.getQueryResults(myuuid, 0, 0);
+			assertEquals(inputEqr.getNumberOfHits(), eqr.getResults().size());
+			
+			eqr = enricher.getQueryResults(myuuid, 1, 1);
+			assertEquals(1, eqr.getResults().size());
+			
+			eqr = enricher.getQueryResults(myuuid, 1, 5);
+			assertEquals(2, eqr.getResults().size());
+			
+			
 		} finally {
 			_folder.delete();
 		}

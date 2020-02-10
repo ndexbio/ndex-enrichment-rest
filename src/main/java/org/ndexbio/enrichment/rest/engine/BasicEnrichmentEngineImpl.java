@@ -426,17 +426,19 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	public EnrichmentQueryResults getQueryResults(String id, int start, int size) throws EnrichmentException {
 		EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDbOrFilesystem(id);
 		if (start < 0){
-			throw new EnrichmentException("start parameter must be value of 0 or greater");
+			throw new EnrichmentException("start parameter must be a value of 0 or greater");
 		}
 		if (size < 0){
-			throw new EnrichmentException("size parameter must be value of 0 or greater");
+			throw new EnrichmentException("size parameter must be a value of 0 or greater");
 		}
 
-		if (start == 0 && size == 0){
+		if (eqr == null || (start == 0 && size == 0) || eqr.getResults() == null){
 			return eqr;
 		}
+		
 		List<EnrichmentQueryResult> eqrSubList = new LinkedList<>();
 		int numElementsAdded = 0;
+		
 		for (EnrichmentQueryResult element : eqr.getResults()){
 			if (element.getRank() < start){
 				continue;
