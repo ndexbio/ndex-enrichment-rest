@@ -214,7 +214,7 @@ def copy_networks(tempdir=None,
     :return:
     """
     temp_dir = tempfile.mkdtemp(dir=tempdir)
-    LOGGER.debug('Creating temp directory: ' + temp_dir +
+    LOGGER.info('Creating temp directory: ' + temp_dir +
                  ' to temporarily hold CX files')
     try:
         for entry in dbresults['results']:
