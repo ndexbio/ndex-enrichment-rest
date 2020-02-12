@@ -21,6 +21,7 @@ LOGGER = logging.getLogger(__name__)
 LOG_FORMAT = "%(asctime)-15s %(levelname)s %(relativeCreated)dms " \
              "%(filename)s::%(funcName)s():%(lineno)d %(message)s"
 
+
 def _setup_logging(args):
     """
     Sets up logging based on parsed command line arguments.
@@ -326,7 +327,6 @@ def main(arglist):
         return 2
 
     return copy_data(theargs)
-
 
 
 if __name__ == '__main__':  # pragma: no cover
