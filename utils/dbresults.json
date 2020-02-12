@@ -1,0 +1,118 @@
+{
+  "databaseConnectionMap": {
+    "44085631-20e4-11e9-bb6a-0ac135e8bacf": {
+      "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
+      "user": "<ENTER NDEX USERNAME>",
+      "server": "public.ndexbio.org",
+      "networkSetId": "44085631-20e4-11e9-bb6a-0ac135e8bacf"
+    },
+    "23210e5f-20e1-11e9-bb6a-0ac135e8bacf": {
+      "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
+      "user": "<ENTER NDEX USERNAME>",
+      "server": "public.ndexbio.org",
+      "networkSetId": "23210e5f-20e1-11e9-bb6a-0ac135e8bacf"
+    },
+    "5cb2cd56-be00-11e9-8bb4-0ac135e8bacf": {
+      "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
+      "user": "<ENTER NDEX USERNAME>",
+      "server": "public.ndexbio.org",
+      "networkSetId": "5cb2cd56-be00-11e9-8bb4-0ac135e8bacf"
+    },
+    "453c1c63-5c10-11e9-9f06-0ac135e8bacf": {
+      "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
+      "user": "<ENTER NDEX USERNAME>",
+      "server": "public.ndexbio.org",
+      "networkSetId": "453c1c63-5c10-11e9-9f06-0ac135e8bacf"
+    },
+    "edbc373a-f529-11e9-bb65-0ac135e8bacf": {
+      "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
+      "user": "<ENTER NDEX USERNAME>",
+      "server": "public.ndexbio.org",
+      "networkSetId": "edbc373a-f529-11e9-bb65-0ac135e8bacf"
+    },
+    "654bbeeb-dafb-11e9-bb65-0ac135e8bacf": {
+      "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
+      "user": "<ENTER NDEX USERNAME>",
+      "server": "public.ndexbio.org",
+      "networkSetId": "654bbeeb-dafb-11e9-bb65-0ac135e8bacf"
+    },
+    "4b7b1e45-b494-11e9-8bb4-0ac135e8bacf": {
+      "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
+      "user": "<ENTER NDEX USERNAME>",
+      "server": "public.ndexbio.org",
+      "networkSetId": "4b7b1e45-b494-11e9-8bb4-0ac135e8bacf"
+    }
+  },
+  "networksToExclude": [],
+  "universeUniqueGeneCount": 0,
+  "databaseUniqueGeneCount": {},
+  "geneMapList": [],
+  "idfMap": {},
+  "totalNetworkCount": 0,
+  "networkToGeneToNodeMap": {},
+  "results": [
+    {
+      "description": "Derived from the latest BioPAX3 version of the Pathway Interaction Database (PID) curated by NCI/Nature. The BioPAX was first converted to Extended Binary SIF (EBS) by the PAXTools v5 utility. It was then processed to remove redundant edges and to add a graphic style using Cytoscape Visual Properties. This network can be found in searches using its original PID accession id, present in the 'labels' property.",
+      "uuid": "44085631-20e4-11e9-bb6a-0ac135e8bacf",
+      "url": "public.ndexbio.org/#/networkset/44085631-20e4-11e9-bb6a-0ac135e8bacf",
+      "networks": [],
+      "imageURL": "http://search.ndexbio.org/networkicons/ncipid.png",
+      "numberOfNetworks": "0",
+      "name": "ncipid"
+    },
+    {
+      "description": "The SIGnaling Network Open Resource organizes and stores signaling information published in the scientific literature in a structured format. The core of this project is a collection of more than 11000 manually-annotated causal relationships between proteins that participate in signal transduction.",
+      "uuid": "23210e5f-20e1-11e9-bb6a-0ac135e8bacf",
+      "url": "public.ndexbio.org/#/networkset/23210e5f-20e1-11e9-bb6a-0ac135e8bacf",
+      "networks": [],
+      "imageURL": "http://search.ndexbio.org/networkicons/signor.png",
+      "numberOfNetworks": "0",
+      "name": "signor"
+    },
+    {
+      "description": "Network models of cancer hallmarks based on collections of CPTAC pathways. Each network is composed of multiple pathway models merged together in Cytoscape. See original, editable version at http://cptac.wikipathways.org",
+      "uuid": "5cb2cd56-be00-11e9-8bb4-0ac135e8bacf",
+      "url": "public.ndexbio.org/#/networkset/5cb2cd56-be00-11e9-8bb4-0ac135e8bacf",
+      "networks": [],
+      "imageURL": "http://search.ndexbio.org/networkicons/wikipathways.png",
+      "numberOfNetworks": "0",
+      "name": "cptac"
+    },
+    {
+      "description": "WikiPathways Project networks",
+      "uuid": "453c1c63-5c10-11e9-9f06-0ac135e8bacf",
+      "url": "public.ndexbio.org/#/networkset/453c1c63-5c10-11e9-9f06-0ac135e8bacf",
+      "networks": [],
+      "imageURL": "http://search.ndexbio.org/networkicons/wikipathways.png",
+      "numberOfNetworks": "0",
+      "name": "wikipathways"
+    },
+    {
+      "description": "Cancer Cell Mapping Initiative networks",
+      "uuid": "edbc373a-f529-11e9-bb65-0ac135e8bacf",
+      "url": "public.ndexbio.org/#/networkset/edbc373a-f529-11e9-bb65-0ac135e8bacf",
+      "networks": [],
+      "imageURL": "http://search.ndexbio.org/networkicons/ccmi.png",
+      "numberOfNetworks": "0",
+      "name": "ccmi"
+    },
+    {
+      "description": "Host Pathogen Mapping Initiative networks",
+      "uuid": "654bbeeb-dafb-11e9-bb65-0ac135e8bacf",
+      "url": "public.ndexbio.org/#/networkset/654bbeeb-dafb-11e9-bb65-0ac135e8bacf",
+      "networks": [],
+      "imageURL": "http://search.ndexbio.org/networkicons/hpmi.png",
+      "numberOfNetworks": "0",
+      "name": "hpmi"
+    },
+    {
+      "description": "Indra GO networks",
+      "uuid": "4b7b1e45-b494-11e9-8bb4-0ac135e8bacf",
+      "url": "public.ndexbio.org/#/networkset/4b7b1e45-b494-11e9-8bb4-0ac135e8bacf",
+      "networks": [],
+      "imageURL": "http://search.ndexbio.org/networkicons/indra.png",
+      "numberOfNetworks": "0",
+      "name": "Indra GO"
+    }
+  ]
+}
