@@ -3,43 +3,43 @@
     "44085631-20e4-11e9-bb6a-0ac135e8bacf": {
       "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
       "user": "<ENTER NDEX USERNAME>",
-      "server": "public.ndexbio.org",
+      "server": "https://public.ndexbio.org/v2",
       "networkSetId": "44085631-20e4-11e9-bb6a-0ac135e8bacf"
     },
     "23210e5f-20e1-11e9-bb6a-0ac135e8bacf": {
       "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
       "user": "<ENTER NDEX USERNAME>",
-      "server": "public.ndexbio.org",
+      "server": "https://public.ndexbio.org/v2",
       "networkSetId": "23210e5f-20e1-11e9-bb6a-0ac135e8bacf"
     },
     "5cb2cd56-be00-11e9-8bb4-0ac135e8bacf": {
       "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
       "user": "<ENTER NDEX USERNAME>",
-      "server": "public.ndexbio.org",
+      "server": "https://public.ndexbio.org/v2",
       "networkSetId": "5cb2cd56-be00-11e9-8bb4-0ac135e8bacf"
     },
     "453c1c63-5c10-11e9-9f06-0ac135e8bacf": {
       "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
       "user": "<ENTER NDEX USERNAME>",
-      "server": "public.ndexbio.org",
+      "server": "https://public.ndexbio.org/v2",
       "networkSetId": "453c1c63-5c10-11e9-9f06-0ac135e8bacf"
     },
     "edbc373a-f529-11e9-bb65-0ac135e8bacf": {
       "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
       "user": "<ENTER NDEX USERNAME>",
-      "server": "public.ndexbio.org",
+      "server": "https://public.ndexbio.org/v2",
       "networkSetId": "edbc373a-f529-11e9-bb65-0ac135e8bacf"
     },
     "654bbeeb-dafb-11e9-bb65-0ac135e8bacf": {
       "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
       "user": "<ENTER NDEX USERNAME>",
-      "server": "public.ndexbio.org",
+      "server": "https://public.ndexbio.org/v2",
       "networkSetId": "654bbeeb-dafb-11e9-bb65-0ac135e8bacf"
     },
     "4b7b1e45-b494-11e9-8bb4-0ac135e8bacf": {
       "password": "<ENTER PASSWORD FOR NDEX ACCOUNT>",
       "user": "<ENTER NDEX USERNAME>",
-      "server": "public.ndexbio.org",
+      "server": "https://public.ndexbio.org/v2",
       "networkSetId": "4b7b1e45-b494-11e9-8bb4-0ac135e8bacf"
     }
   },
