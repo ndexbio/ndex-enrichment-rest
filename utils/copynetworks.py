@@ -298,7 +298,7 @@ def main(arglist):
     theargs = _parse_arguments(desc, arglist[1:])
     _setup_logging(theargs)
     theargs.source_server = input('Enter source NDEx server '
-                          '(default is ' + constants.DEFAULT_SERVER + '): ')
+                          '(default ' + constants.DEFAULT_SERVER + '): ')
     if theargs.source_server is None or len(theargs.source_server) == 0:
         theargs.source_server = constants.DEFAULT_SERVER
 
