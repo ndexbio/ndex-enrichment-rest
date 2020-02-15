@@ -10,7 +10,7 @@ import tempfile
 import shutil
 
 from ndex2.client import Ndex2
-
+from ndex2 import constants
 
 class Formatter(argparse.ArgumentDefaultsHelpFormatter,
                 argparse.RawDescriptionHelpFormatter):
@@ -298,9 +298,9 @@ def main(arglist):
     theargs = _parse_arguments(desc, arglist[1:])
     _setup_logging(theargs)
     theargs.source_server = input('Enter source NDEx server '
-                          '(default is ' + Ndex2.DEFAULT_SERVER + '): ')
+                          '(default is ' + constants.DEFAULT_SERVER + '): ')
     if theargs.source_server is None or len(theargs.source_server) == 0:
-        theargs.source_server = Ndex2.DEFAULT_SERVER
+        theargs.source_server = constants.DEFAULT_SERVER
 
     theargs.source_user = input('Enter source NDEx user: ')
     theargs.source_pass = getpass.getpass(prompt='Enter source '
