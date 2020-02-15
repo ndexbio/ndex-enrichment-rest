@@ -317,7 +317,7 @@ def main(arglist):
     sys.stdout.write('\n\tSource NDEx Server: (' + theargs.source_server +
                      ') connecting with user: ' + theargs.source_user + '\n\n')
     sys.stdout.write('\tDestination NDEx Server: (' + theargs.dest_server +
-                     ') connecting user: ' + theargs.dest_user + '\n\n')
+                     ') connecting with user: ' + theargs.dest_user + '\n\n')
 
     is_right = input('Is this correct? (y|n): ')
     if is_right != 'y':
