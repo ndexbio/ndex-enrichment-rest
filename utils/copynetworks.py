@@ -298,9 +298,9 @@ def main(arglist):
     theargs = _parse_arguments(desc, arglist[1:])
     _setup_logging(theargs)
     theargs.source_server = input('Enter source NDEx server '
-                          '(default is production NDEx): ')
+                          '(default is ' + Ndex2.DEFAULT_SERVER + '): ')
     if theargs.source_server is None or len(theargs.source_server) == 0:
-        theargs.source_server = None
+        theargs.source_server = Ndex2.DEFAULT_SERVER
 
     theargs.source_user = input('Enter source NDEx user: ')
     theargs.source_pass = getpass.getpass(prompt='Enter source '
@@ -314,7 +314,6 @@ def main(arglist):
     theargs.dest_user = input('Enter destination NDEx user: ')
     theargs.dest_pass = getpass.getpass(prompt='Enter destination '
                                                'NDEx password: ')
-
     sys.stdout.write('\n\tSource NDEx Server: (' + theargs.source_server +
                      ') connecting with user: ' + theargs.source_user + '\n\n')
     sys.stdout.write('\tDestination NDEx Server: ' + theargs.dest_server +
