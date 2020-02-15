@@ -83,7 +83,7 @@ def get_client(server, username, thepassword):
     :param thepassword:
     :return:
     """
-    return Ndex2(server, username, thepassword)
+    return Ndex2(host=server, username=username, password=thepassword)
 
 
 def load_dbresults_and_populate_networkids(inputfile):
@@ -298,18 +298,18 @@ def main(arglist):
     theargs = _parse_arguments(desc, arglist[1:])
     _setup_logging(theargs)
     theargs.source_server = input('Enter source NDEx server '
-                          '(default public.ndexbio.org): ')
+                          '(default is production NDEx): ')
     if theargs.source_server is None or len(theargs.source_server) == 0:
-        theargs.source_server = 'public.ndexbio.org'
+        theargs.source_server = None
 
     theargs.source_user = input('Enter source NDEx user: ')
     theargs.source_pass = getpass.getpass(prompt='Enter source '
                                                  'NDEx password: ')
 
     theargs.dest_server = input('Enter destination NDEx server '
-                                '(default localhost): ')
+                                '(default http://localhost/v2): ')
     if len(theargs.dest_server) == 0:
-        theargs.dest_server = 'localhost'
+        theargs.dest_server = 'http://localhost/v2'
 
     theargs.dest_user = input('Enter destination NDEx user: ')
     theargs.dest_pass = getpass.getpass(prompt='Enter destination '
