@@ -20,12 +20,11 @@
         <jetty.maven.plugin.version>9.4.14.v20181114</jetty.maven.plugin.version>
         <swagger.version>2.0.0</swagger.version>
         <jackson.version>2.9.9</jackson.version>
-        <jackson.databind.version>2.9.10.1</jackson.databind.version>
+        <jackson.databind.version>2.9.10.3</jackson.databind.version>
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.6</commons-io.version>
         <ndex-enrichment-rest-model.version>0.2.1</ndex-enrichment-rest-model.version>
-        <ndex-object-model.version>2.4.5-SNAPSHOT</ndex-object-model.version>
         <ndex-java-client.version>2.4.5-SNAPSHOT</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
