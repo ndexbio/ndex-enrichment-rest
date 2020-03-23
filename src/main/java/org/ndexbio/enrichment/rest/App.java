@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -689,10 +691,29 @@ public class App {
     }
     
     public static String getNetworkUrl(String server, String networkUuid) {
-    	return server + "/#/network/" + networkUuid;
+    	return trimServerString(server) + "/#/network/" + networkUuid;
     }
     
     public static String getNetworkSetUrl(String server, String networkSetUuid) {
-    	return server + "/#/networkset/" + networkSetUuid;
+    	return trimServerString(server) + "/#/networkset/" + networkSetUuid;
+    }
+
+    public static String trimServerString(String server) {
+        if (server.startsWith("http://")) {
+            server = server.substring("http://".length());
+        } else if (server.startsWith("https://")) {
+            server = server.substring("https://".length());
+        }
+  
+        Pattern pattern = Pattern.compile("/v");
+        Matcher matcher = pattern.matcher(server);
+        int lastIndex = server.length();
+        
+        while (matcher.find()) {
+          lastIndex = matcher.start();
+        }
+        
+        server = server.substring(0, lastIndex);
+        return server;
     }
 }
