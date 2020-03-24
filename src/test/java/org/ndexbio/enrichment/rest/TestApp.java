@@ -145,14 +145,22 @@ public class TestApp {
 	
 	@Test
 	public void testGetNetworkUrl(){
-		assertEquals("http://someserver.com/#/network/uuid",
+		assertEquals("someserver.com/#/network/uuid",
 				App.getNetworkUrl("http://someserver.com", "uuid"));
+		assertEquals("someserver.com/#/network/uuid",
+				App.getNetworkUrl("https://someserver.com", "uuid"));
+		assertEquals("someserver.com/#/network/uuid",
+				App.getNetworkUrl("someserver.com/v1", "uuid"));
 	}
 	
 	@Test
 	public void testGetNetworkSetUrletNetworkUrl(){
-		assertEquals("http://someserver.com/#/networkset/uuid",
+		assertEquals("someserver.com/#/networkset/uuid",
 				App.getNetworkSetUrl("http://someserver.com", "uuid"));
+		assertEquals("someserver.com/#/networkset/uuid",
+				App.getNetworkSetUrl("https://someserver.com", "uuid"));
+		assertEquals("someserver.com/#/networkset/uuid",
+				App.getNetworkSetUrl("someserver.com/v1", "uuid"));
 	}
 	
 	@Test
