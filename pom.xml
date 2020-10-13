@@ -13,7 +13,7 @@
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <resteasy.version>3.1.4.Final</resteasy.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <easymock.version>4.0.2</easymock.version>
         <mockito.version>3.2.4</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
         <jetty.version>9.4.17.v20190418</jetty.version>
