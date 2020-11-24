@@ -2,12 +2,16 @@ package org.ndexbio.enrichment.rest.engine.util;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
+import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
+import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 /**
  *
  * @author churas
@@ -93,6 +97,64 @@ public class TestBasicEnrichmentEngineRunner {
 		assertTrue(eqr.getWallTime() > 0);
 		assertEquals(2, eqr.getNumberOfHits());
 		assertNotNull(eqr.getResults());
+	}
+	
+	@Test
+	public void testGetDatabaseResultFromDbNoDatabases(){
+		EnrichmentQueryResults eqr = new EnrichmentQueryResults();
+		eqr.setStartTime(100);
+		AtomicReference<InternalDatabaseResults> idr = new AtomicReference<>();
+		InternalDatabaseResults dRes = new InternalDatabaseResults();
+		dRes.setResults(new ArrayList<DatabaseResult>());
+		idr.set(dRes);
+		
+		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
+				idr,null,null,null,eqr);
+		assertNull(runner.getDatabaseResultFromDb("foo"));
+	}
+	
+	@Test
+	public void testGetDatabaseResultFromDbNoMatch(){
+		EnrichmentQueryResults eqr = new EnrichmentQueryResults();
+		eqr.setStartTime(100);
+		AtomicReference<InternalDatabaseResults> idr = new AtomicReference<>();
+		InternalDatabaseResults dRes = new InternalDatabaseResults();
+		List<DatabaseResult> dbList = new ArrayList<>();
+		DatabaseResult dr = new DatabaseResult();
+		dr.setName("notmatchingname");
+		dbList.add(dr);
+		dRes.setResults(dbList);
+		idr.set(dRes);
+		
+		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
+				idr,null,null,null,eqr);
+		assertNull(runner.getDatabaseResultFromDb("foo"));
+	}
+	
+	@Test
+	public void testGetDatabaseResultFromDbWithMatch(){
+		EnrichmentQueryResults eqr = new EnrichmentQueryResults();
+		eqr.setStartTime(100);
+		AtomicReference<InternalDatabaseResults> idr = new AtomicReference<>();
+		InternalDatabaseResults dRes = new InternalDatabaseResults();
+		List<DatabaseResult> dbList = new ArrayList<>();
+		DatabaseResult dr = new DatabaseResult();
+		dr.setName("notmatch");
+		dbList.add(dr);
+		dr = new DatabaseResult();
+		dr.setName("fOO");
+		dbList.add(dr);
+		dr = new DatabaseResult();
+		dr.setName("notmatch2");
+		dbList.add(dr);
+		dRes.setResults(dbList);
+		idr.set(dRes);
+		
+		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
+				idr,null,null,null,eqr);
+		DatabaseResult res = runner.getDatabaseResultFromDb("Foo");
+		assertEquals("fOO", res.getName());
+		
 	}
 	/**
     @Test
