@@ -94,7 +94,7 @@ public class TestBasicEnrichmentEngineRunner {
 		EnrichmentQueryResults eqr = new EnrichmentQueryResults();
 		eqr.setStartTime(100);
 		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
-				null,null,null,new EnrichmentQueryResultBySimilarity(), 25, null,eqr);
+				null,null,null,new EnrichmentQueryResultBySimilarity(), 3, null,eqr);
 		
 		// test update with null result
 		runner.updateEnrichmentQueryResults("done", 55, null);
@@ -102,7 +102,7 @@ public class TestBasicEnrichmentEngineRunner {
 		assertEquals("done", eqr.getStatus());
 		assertTrue(eqr.getWallTime() > 0);
 		
-		// test with a few results
+		// test with a couple results
 		ArrayList<EnrichmentQueryResult> resList = new ArrayList<>();
 		resList.add(new EnrichmentQueryResult());
 		resList.add(new EnrichmentQueryResult());
@@ -111,6 +111,19 @@ public class TestBasicEnrichmentEngineRunner {
 		assertEquals("ha", eqr.getStatus());
 		assertTrue(eqr.getWallTime() > 0);
 		assertEquals(2, eqr.getNumberOfHits());
+		assertNotNull(eqr.getResults());
+		
+		// test with a 4 results (one over limit)
+		resList = new ArrayList<>();
+		resList.add(new EnrichmentQueryResult());
+		resList.add(new EnrichmentQueryResult());
+		resList.add(new EnrichmentQueryResult());
+		resList.add(new EnrichmentQueryResult());
+		runner.updateEnrichmentQueryResults("ha", 85, resList);
+		assertEquals(85, eqr.getProgress());
+		assertEquals("ha", eqr.getStatus());
+		assertTrue(eqr.getWallTime() > 0);
+		assertEquals(3, eqr.getNumberOfHits());
 		assertNotNull(eqr.getResults());
 	}
 	
@@ -270,6 +283,46 @@ public class TestBasicEnrichmentEngineRunner {
 			assertEquals(EnrichmentQueryResults.COMPLETE_STATUS, eqr.getStatus());
 			assertEquals(100, eqr.getProgress());
 			
+		} finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testCallremapNetworkSuccess() throws IOException, Exception {
+		File tmpDir = _folder.newFolder();
+		try {
+			UUID taskId = UUID.randomUUID();
+
+			InternalDatabaseResults idr = new InternalDatabaseResults();
+			DatabaseResult dr = new DatabaseResult();
+			dr.setName("db1");
+			dr.setUuid("uuid");
+			idr.setResults(Arrays.asList(dr));
+			ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>> databases = new ConcurrentHashMap<>();
+			ConcurrentHashMap<String, HashSet<String>> dbMap = new ConcurrentHashMap<>();
+			HashSet<String> networkSetOne = new HashSet<>();
+			networkSetOne.add("network1");
+			networkSetOne.add("network2");
+			dbMap.put("gene1", networkSetOne);
+			databases.put(taskId.toString(), dbMap);
+			AtomicReference<InternalDatabaseResults> idrRef = new AtomicReference<>();
+			idrRef.set(idr);
+			BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(taskId.toString(),
+			tmpDir.getAbsolutePath(), tmpDir.getAbsolutePath(), idrRef, databases, null,
+					new EnrichmentQueryResultBySimilarity(), 25, null, null);
+			
+			SortedSet<String> geneSet = new TreeSet<>();
+			geneSet.add("gene1");
+			geneSet.add("gene2");
+			HashMap<String, HashSet<String>> res = runner.remapNetworksToGenes(taskId.toString(), geneSet);
+			assertEquals(2, res.size());
+			assertTrue(res.containsKey("network1"));
+			assertTrue(res.containsKey("network2"));
+			assertTrue(res.get("network1").contains("gene1"));
+			assertEquals(1, res.get("network1").size());
+			assertTrue(res.get("network2").contains("gene1"));
+			assertEquals(1, res.get("network2").size());
 		} finally {
 			_folder.delete();
 		}

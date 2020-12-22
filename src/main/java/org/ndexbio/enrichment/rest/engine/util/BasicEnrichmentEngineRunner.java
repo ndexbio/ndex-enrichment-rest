@@ -222,7 +222,8 @@ public class BasicEnrichmentEngineRunner implements Callable {
 	 *                 Ideally generated from call to {@link #getUniqueGeneList(java.util.List)}
 	 * @return {@link java.util.HashMap} where key is network id and value is a {@link java.util.HashSet<String>} of gene symbols
 	 */
-	protected HashMap<String, HashSet<String>> remapNetworksToGenes(final String databaseId, final SortedSet<String> uniqueGeneList){
+	protected HashMap<String, HashSet<String>> remapNetworksToGenes(final String databaseId,
+			final SortedSet<String> uniqueGeneList){
 		HashMap<String, HashSet<String>> networkMap = new HashMap<>();
 
 		ConcurrentHashMap<String, HashSet<String>> dbMap = _databases.get(databaseId);
