@@ -1,16 +1,28 @@
 package org.ndexbio.enrichment.rest.engine.util;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
+import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultBySimilarity;
 import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 /**
  *
@@ -18,10 +30,13 @@ import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
  */
 public class TestBasicEnrichmentEngineRunner {
 	
+	@Rule
+	public TemporaryFolder _folder = new TemporaryFolder();
+	
 	@Test
 	public void testGetPvalue(){
 		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
-				null,null,null,null,null);
+				null,null,null, new EnrichmentQueryResultBySimilarity(), 25,null,null);
 		
 		// test where total genes in universe is negative
 		assertEquals(Double.MAX_VALUE, runner.getPvalue(-5, 100, 10, 5), 0.001);
@@ -40,7 +55,7 @@ public class TestBasicEnrichmentEngineRunner {
 	public void testGetUniqueQueryGeneSetFilteredByUniverseGenes(){
 		HashSet<String> uniqueGeneSet = new HashSet<>();
 		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
-				null,null,uniqueGeneSet,null,null);
+				null,null,uniqueGeneSet, new EnrichmentQueryResultBySimilarity(), 25, null,null);
 		
 		// try where universe is empty and input is null
 		assertEquals(0, runner.getUniqueQueryGeneSetFilteredByUniverseGenes(null).size());
@@ -55,7 +70,7 @@ public class TestBasicEnrichmentEngineRunner {
 		uniqueGeneSet.add("Gene2");
 		uniqueGeneSet.add("gene3");
 		runner = new BasicEnrichmentEngineRunner(null,null,null,
-				null,null,uniqueGeneSet,null,null);
+				null,null,uniqueGeneSet,new EnrichmentQueryResultBySimilarity(), 25, null,null);
 		
 		SortedSet<String> res = runner.getUniqueQueryGeneSetFilteredByUniverseGenes(genes);
 		assertEquals(1, res.size());
@@ -79,7 +94,7 @@ public class TestBasicEnrichmentEngineRunner {
 		EnrichmentQueryResults eqr = new EnrichmentQueryResults();
 		eqr.setStartTime(100);
 		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
-				null,null,null,null,eqr);
+				null,null,null,new EnrichmentQueryResultBySimilarity(), 25, null,eqr);
 		
 		// test update with null result
 		runner.updateEnrichmentQueryResults("done", 55, null);
@@ -109,7 +124,7 @@ public class TestBasicEnrichmentEngineRunner {
 		idr.set(dRes);
 		
 		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
-				idr,null,null,null,eqr);
+				idr,null,null, new EnrichmentQueryResultBySimilarity(), 25, null,eqr);
 		assertNull(runner.getDatabaseResultFromDb("foo"));
 	}
 	
@@ -127,7 +142,7 @@ public class TestBasicEnrichmentEngineRunner {
 		idr.set(dRes);
 		
 		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
-				idr,null,null,null,eqr);
+				idr,null,null, new EnrichmentQueryResultBySimilarity(), 25, null,eqr);
 		assertNull(runner.getDatabaseResultFromDb("foo"));
 	}
 	
@@ -151,161 +166,183 @@ public class TestBasicEnrichmentEngineRunner {
 		idr.set(dRes);
 		
 		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
-				idr,null,null,null,eqr);
+				idr,null,null,new EnrichmentQueryResultBySimilarity(), 25, null,eqr);
 		DatabaseResult res = runner.getDatabaseResultFromDb("Foo");
 		assertEquals("fOO", res.getName());
+	}
+	
+	@Test
+	public void testCallWithInvalidDirectory() throws IOException, Exception {
+		File tmpDir = _folder.newFolder();
+		try {
+			UUID taskId = UUID.randomUUID();
+			File tmpFile = new File(tmpDir.getAbsolutePath() + File.separator + taskId.toString());
+			assertTrue(tmpFile.createNewFile());
+			EnrichmentQueryResults eqr = new EnrichmentQueryResults();
+			BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(taskId.toString(),
+			tmpDir.getAbsolutePath(), tmpDir.getAbsolutePath(), null, null, null,
+					new EnrichmentQueryResultBySimilarity(), 25, null, eqr);
+			runner.call();
+			assertEquals(EnrichmentQueryResults.FAILED_STATUS, eqr.getStatus());
+			assertEquals(100, eqr.getProgress());
+			
+		} finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testCallEmptyDatabaseList() throws IOException, Exception {
+		File tmpDir = _folder.newFolder();
+		try {
+			UUID taskId = UUID.randomUUID();
+			EnrichmentQueryResults eqr = new EnrichmentQueryResults();
+			EnrichmentQuery query = new EnrichmentQuery();
+			SortedSet<String> dbSet = new TreeSet<>();
+			query.setDatabaseList(dbSet);
+			SortedSet<String> geneSet = new TreeSet<>();
+			query.setGeneList(geneSet);
+			BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(taskId.toString(),
+			tmpDir.getAbsolutePath(), tmpDir.getAbsolutePath(), null, null, null,
+					new EnrichmentQueryResultBySimilarity(), 25, query, eqr);
+			runner.call();
+			assertEquals(EnrichmentQueryResults.COMPLETE_STATUS, eqr.getStatus());
+			assertEquals(100, eqr.getProgress());
+			
+		} finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testCallNomatchingDatabaseResult() throws IOException, Exception {
+		File tmpDir = _folder.newFolder();
+		try {
+			UUID taskId = UUID.randomUUID();
+			EnrichmentQueryResults eqr = new EnrichmentQueryResults();
+			EnrichmentQuery query = new EnrichmentQuery();
+			SortedSet<String> dbSet = new TreeSet<>();
+			dbSet.add("db1");
+			query.setDatabaseList(dbSet);
+			SortedSet<String> geneSet = new TreeSet<>();
+			query.setGeneList(geneSet);
+			InternalDatabaseResults idr = new InternalDatabaseResults();
+			idr.setResults(new ArrayList<>());
+			
+			AtomicReference<InternalDatabaseResults> idrRef = new AtomicReference<>();
+			idrRef.set(idr);
+			BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(taskId.toString(),
+			tmpDir.getAbsolutePath(), tmpDir.getAbsolutePath(), idrRef, null, null,
+					new EnrichmentQueryResultBySimilarity(), 25, query, eqr);
+			runner.call();
+			assertEquals(EnrichmentQueryResults.COMPLETE_STATUS, eqr.getStatus());
+			assertEquals(100, eqr.getProgress());
+			
+		} finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testCallremapNetworkToGenesReturnsNull() throws IOException, Exception {
+		File tmpDir = _folder.newFolder();
+		try {
+			UUID taskId = UUID.randomUUID();
+			EnrichmentQueryResults eqr = new EnrichmentQueryResults();
+			EnrichmentQuery query = new EnrichmentQuery();
+			SortedSet<String> dbSet = new TreeSet<>();
+			dbSet.add("db1");
+			query.setDatabaseList(dbSet);
+			SortedSet<String> geneSet = new TreeSet<>();
+			query.setGeneList(geneSet);
+			InternalDatabaseResults idr = new InternalDatabaseResults();
+			DatabaseResult dr = new DatabaseResult();
+			dr.setName("db1");
+			dr.setUuid("uuid");
+			idr.setResults(Arrays.asList(dr));
+			ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>> databases = new ConcurrentHashMap<>();
+			AtomicReference<InternalDatabaseResults> idrRef = new AtomicReference<>();
+			idrRef.set(idr);
+			BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(taskId.toString(),
+			tmpDir.getAbsolutePath(), tmpDir.getAbsolutePath(), idrRef, databases, null,
+					new EnrichmentQueryResultBySimilarity(), 25, query, eqr);
+			runner.call();
+			assertEquals(EnrichmentQueryResults.COMPLETE_STATUS, eqr.getStatus());
+			assertEquals(100, eqr.getProgress());
+			
+		} finally {
+			_folder.delete();
+		}
+	}
+	
+	@Test
+	public void testGetNetworkUrl(){
+		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
+				null,null,null,new EnrichmentQueryResultBySimilarity(), 25, null,null);
+		String res = runner.getNetworkUrl("http://foo/#/networkset/12345", "myid");
+		assertEquals("http://foo/#/network/myid", res);
+		
+		res = runner.getNetworkUrl("http://foo/#/networks/12345", "myid");
+		assertNull(res);
 		
 	}
-	/**
-    @Test
-    public void testprocessQuery() throws Exception{
-    	BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null);
-    	
-  	  List<String> networktp = new LinkedList<String>();
-  	  networktp.add("uuid1");
-  	  networktp.add("uuid2");
-  	  networktp.add("uuid3");
-  	  enricher.addGeneToDatabase("ncipid1234", "tp53", networktp);
-  	
-  	  networktp = new LinkedList<String>();
-  	  networktp.add("uuid1");
-  	  networktp.add("uuid3");
-  	  enricher.addGeneToDatabase("ncipid1234", "alpha", networktp);
-  	
-  	  networktp = new LinkedList<String>();
-  	  networktp.add("uuid5");
-  	  networktp.add("uuid6");
-  	  networktp.add("uuid7");
-  	  enricher.addGeneToDatabase("signor1234", "beta", networktp);
-  	
-  	  InternalDatabaseResults dres = new InternalDatabaseResults();
-  	  DatabaseResult dr = new DatabaseResult();
-  	  dr.setDescription("ncipid networks haha");
-  	  dr.setName("ncipid");
-  	  //dr.setNumberOfNetworks("4");
-  	  dr.setUuid("ncipid1234");
-  	
-  	  LinkedList<DatabaseResult> drlist = new LinkedList<>();
-  	  drlist.add(dr);
-  	
-  	  dr = new DatabaseResult();
-  	  dr.setDescription("signor networks haha");
-  	  dr.setName("signor");
-  	  //dr.setNumberOfNetworks("1");
-  	  dr.setUuid("signor1234");
-  	  drlist.add(dr);
-  	  dres.setResults(drlist);
-  	  enricher.setDatabaseResults(dres);
-  	
-  	  EnrichmentQuery query = new EnrichmentQuery();
-  	  query.setDatabaseList(new TreeSet<>(Arrays.asList("ncipid", "signor")));
-  	  query.setGeneList(new TreeSet<>(Arrays.asList("tp53", "beta", "alpha")));
-  	
-  	  enricher.processQuery("12345", query);
-        EnrichmentQueryResults eqr = enricher.getQueryResults("12345", 0, 0);
-        /*
-        assertEquals(6, eqr.getNumberOfHits());
-        assertEquals(EnrichmentQueryResults.COMPLETE_STATUS, eqr.getStatus());
-        assertEquals(100, eqr.getProgress());
-        List<EnrichmentQueryResult> eqlist = eqr.getResults();
-        assertEquals(6, eqlist);
-        assertEquals(6, eqlist.size());
-        
-        HashSet<String> netSet = new HashSet<>();
-        for (EnrichmentQueryResult eRes : eqlist){
-            if (eRes.getNetworkUUID().equals("uuid1")){
-                assertEquals("ncipid", eRes.getDatabaseName());
-                assertEquals("ncipid1234", eRes.getDatabaseUUID());
-                assertEquals(2, eRes.getHitGenes().size());
-                assertTrue(eRes.getHitGenes().contains("TP53"));
-                assertTrue(eRes.getHitGenes().contains("ALPHA"));
-            }
-            netSet.add(eRes.getNetworkUUID());
-        }
-        assertEquals(6, netSet.size());
-        assertTrue(netSet.containsAll(Arrays.asList("uuid1", "uuid2", "uuid3",
-                "uuid5", "uuid6", "uuid7")));  *//*
-    }
-    */
 	
-	/**
-    @Test
-    public void testUpdateStatsAboutNetwork(){
-        NiceCXNetwork net = new NiceCXNetwork();
-        NetworkAttributesElement nameAttrib = new NetworkAttributesElement(0L, "name", "mynetwork");
-        net.addNetworkAttribute(nameAttrib);
-        NodesElement ne = new NodesElement();
-        ne.setId(0);
-        ne.setNodeName("node1");
-        net.addNode(ne);
-        ne = new NodesElement();
-        ne.setId(1);
-        ne.setNodeName("node2");
-        net.addNode(ne);
-        
-        BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
-        InternalDatabaseResults idr = new InternalDatabaseResults();
-        idr.setUniverseUniqueGeneCount(100);
-        enricher.setDatabaseResults(idr);
-        EnrichmentQueryResult eqr = new EnrichmentQueryResult();
-        HashSet<String> geneSet = new HashSet<>();
-        geneSet.add("gene1");
-        geneSet.add("gene2");
-        eqr.setHitGenes(geneSet);
-        /*enricher.updateStatsAboutNetwork(net, eqr, 4);
-        
-        assertEquals(50, eqr.getPercentOverlap());
-        assertEquals(2, eqr.getNodes());
-        assertEquals(0, eqr.getEdges());
-        assertEquals("mynetwork", eqr.getDescription());
-        assertEquals(0.076, enricher.getPvalue(100, 10, 5, 1), 0.01);
-    }*/
+	@Test
+	public void testGetSimilarityEmptyNetworkAndQuery(){
+		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
+				null,null,null,new EnrichmentQueryResultBySimilarity(), 25, null,null);
+		Set<String> networkGenes = new HashSet<>();
+		SortedSet<String> queryGenes = new TreeSet<>();
+		Map<String, Double> idfMap = new HashMap<>();
+		double res = runner.getSimilarity(networkGenes, queryGenes, idfMap);
+		assertEquals(Double.NaN, res, 0.0001);
+	}
 	
-		/**
-  @Test
-  public void testUpdateEnrichmentQueryResultsInDb() {
-	  BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
-	  EnrichmentQuery eq = new EnrichmentQuery();
-	  eq.setDatabaseList(new TreeSet<>(Arrays.asList("ncipid")));
-	  eq.setGeneList(new TreeSet<>(Arrays.asList("aldoa")));
-	  try {
-		//Set wrong values
-		String id = enricher.query(eq);
-		EnrichmentQueryResults eqrs = enricher.getEnrichmentQueryResultsFromDb(id);
-		eqrs.setProgress(0);
-		eqrs.setStatus("wrong status");
-		eqrs.setNumberOfHits(0);
-		List<EnrichmentQueryResult> eqrList1 = new LinkedList<>();
+	@Test
+	public void testGetSimilarityFourNetworkGenesAndTwoQueryGenes(){
+		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
+				null,null,null,new EnrichmentQueryResultBySimilarity(), 25, null,null);
+		Set<String> networkGenes = new HashSet<>();
+		networkGenes.add("g1");
+		networkGenes.add("g2");
+		networkGenes.add("g3");
+		networkGenes.add("g4");
+		
+		
+		SortedSet<String> queryGenes = new TreeSet<>();
+		
+		queryGenes.add("g2");
+		queryGenes.add("g3");
+		Map<String, Set<Long>> nodeMap = new HashMap<>();
+		Map<String, Double> idfMap = new HashMap<>();
+		double res = runner.getSimilarity(networkGenes, queryGenes, idfMap);
+		assertEquals(Double.NaN, res, 0.0001);
+	}
+	
+	
+	
+	@Test
+	public void testSortEnrichmentQueryResultAndSetRank(){
+		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
+				null,null,null,new EnrichmentQueryResultBySimilarity(), 25, null,null);
+		List<EnrichmentQueryResult> eqrList = new ArrayList<>();
 		EnrichmentQueryResult eqr1 = new EnrichmentQueryResult();
-		eqr1.setNetworkUUID("wrong network");
-		eqrList1.add(eqr1);
-		eqrs.setResults(eqrList1);
-		eqrs.setWallTime(0);
+		eqr1.setSimilarity(1.0);
+		eqr1.setDatabaseName("one");
+		eqrList.add(eqr1);
+		eqr1 = new EnrichmentQueryResult();
+		eqr1.setSimilarity(2.0);
+		eqr1.setDatabaseName("two");
+		eqrList.add(eqr1);
 		
-		//Set correct values
-		List<EnrichmentQueryResult> eqrList2 = new LinkedList<>();
-		EnrichmentQueryResult eqr2 = new EnrichmentQueryResult();
-		eqr2.setNetworkUUID("right network 1");
-		eqrList2.add(eqr2);
-		EnrichmentQueryResult eqr3 = new EnrichmentQueryResult();
-		eqr3.setNetworkUUID("right network 2");
-		eqrList2.add(eqr3);
+		runner.sortEnrichmentQueryResultAndSetRank(eqrList);
+		assertEquals(2, eqrList.size());
+		assertEquals("two", eqrList.get(0).getDatabaseName());
+		assertEquals(0, eqrList.get(0).getRank());
 		
-		//Check results
-		EnrichmentQueryResults newEqrs = enricher.getEnrichmentQueryResultsFromDb(id);
-		assertEquals(100, newEqrs.getProgress());
-		assertEquals("right status", newEqrs.getStatus());
-		assertEquals(2, newEqrs.getNumberOfHits());
-		assertEquals("right network 1", newEqrs.getResults().get(0).getNetworkUUID());
-		assertEquals("right network 2", newEqrs.getResults().get(1).getNetworkUUID());
+		assertEquals("one", eqrList.get(1).getDatabaseName());
+		assertEquals(1, eqrList.get(1).getRank());
 
-	} catch (EnrichmentException e) {
-		fail();
-		e.printStackTrace();
-	} catch (ExecutionException e) {
-		fail();
-		e.printStackTrace();
 	}
-  }
-  */
+	
 }

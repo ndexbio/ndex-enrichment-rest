@@ -40,6 +40,32 @@ public class TestBasicEnrichmentEngineFactory {
     }
 	
 	@Test
+	public void testConstructorWithpvalueSortAlgorithm(){
+		Configuration mockConfig = mock(Configuration.class);
+		when (mockConfig.getEnrichmentDatabaseDirectory()).thenReturn("dbdir");
+		when(mockConfig.getEnrichmentTaskDirectory()).thenReturn("taskdir");
+		InternalDatabaseResults idr = new InternalDatabaseResults();
+		when(mockConfig.getNDExDatabases()).thenReturn(idr);
+		when(mockConfig.getNumberWorkers()).thenReturn(5);
+		when(mockConfig.getNumberOfResultsToReturn()).thenReturn(25);
+		when(mockConfig.getSortAlgorithm()).thenReturn("pvalue");
+		BasicEnrichmentEngineFactory fac = new BasicEnrichmentEngineFactory(mockConfig);
+	}
+	
+	@Test
+	public void testConstructorWithInvalidSortAlgorithm(){
+		Configuration mockConfig = mock(Configuration.class);
+		when (mockConfig.getEnrichmentDatabaseDirectory()).thenReturn("dbdir");
+		when(mockConfig.getEnrichmentTaskDirectory()).thenReturn("taskdir");
+		InternalDatabaseResults idr = new InternalDatabaseResults();
+		when(mockConfig.getNDExDatabases()).thenReturn(idr);
+		when(mockConfig.getNumberWorkers()).thenReturn(5);
+		when(mockConfig.getNumberOfResultsToReturn()).thenReturn(25);
+		when(mockConfig.getSortAlgorithm()).thenReturn("invalidalgo");
+		BasicEnrichmentEngineFactory fac = new BasicEnrichmentEngineFactory(mockConfig);
+	}
+	
+	@Test
 	public void testGetEnrichmentEngineEmptyDatabase() throws EnrichmentException {
 		Configuration mockConfig = mock(Configuration.class);
 		when (mockConfig.getEnrichmentDatabaseDirectory()).thenReturn("dbdir");
@@ -47,6 +73,8 @@ public class TestBasicEnrichmentEngineFactory {
 		InternalDatabaseResults idr = new InternalDatabaseResults();
 		when(mockConfig.getNDExDatabases()).thenReturn(idr);
 		when(mockConfig.getNumberWorkers()).thenReturn(5);
+		when(mockConfig.getNumberOfResultsToReturn()).thenReturn(25);
+		when(mockConfig.getSortAlgorithm()).thenReturn("pvalue");
 		BasicEnrichmentEngineFactory fac = new BasicEnrichmentEngineFactory(mockConfig);
 		try {
 			fac.getEnrichmentEngine();
@@ -63,6 +91,8 @@ public class TestBasicEnrichmentEngineFactory {
 		when(mockExecFac.getExecutorService(5)).thenReturn(mockExec);
 		when (mockConfig.getEnrichmentDatabaseDirectory()).thenReturn("dbdir");
 		when(mockConfig.getEnrichmentTaskDirectory()).thenReturn("taskdir");
+		when(mockConfig.getNumberOfResultsToReturn()).thenReturn(25);
+		when(mockConfig.getSortAlgorithm()).thenReturn("similarity");
 		
 		
 		InternalDatabaseResults idr = new InternalDatabaseResults();

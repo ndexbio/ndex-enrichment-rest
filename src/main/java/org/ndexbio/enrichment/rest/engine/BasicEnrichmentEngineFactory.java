@@ -1,15 +1,19 @@
 package org.ndexbio.enrichment.rest.engine;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 
 import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
+import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue;
+import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultBySimilarity;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.enrichment.rest.services.Configuration;
 import org.slf4j.Logger;
@@ -27,7 +31,9 @@ public class BasicEnrichmentEngineFactory {
     private final String _taskDir;
     private final InternalDatabaseResults _databaseResults;
 	private final int _numWorkers;
+	private final int _numResultsToReturn;
 	private ExecutorServiceFactory _executorServiceFac;
+	private Comparator<EnrichmentQueryResult> _comparator;
     
     /**
      * Temp directory where query results will temporarily be stored.
@@ -43,6 +49,17 @@ public class BasicEnrichmentEngineFactory {
 		}
 		_numWorkers = config.getNumberWorkers();
 		_executorServiceFac = new ExecutorServiceFactoryImpl();
+		_numResultsToReturn = config.getNumberOfResultsToReturn();
+		if (config.getSortAlgorithm().equalsIgnoreCase("pvalue")){
+			_comparator = new EnrichmentQueryResultByPvalue();
+		} else if (config.getSortAlgorithm().equalsIgnoreCase("similarity")){
+			_comparator = new EnrichmentQueryResultBySimilarity();
+		} else {
+			_logger.error("{} is an unknown result sort algorithm. Using similarity. "
+					+ "Valid values are pvalue, similarity", config.getSortAlgorithm());
+			_comparator = new EnrichmentQueryResultBySimilarity();
+		}
+		
     }
     
     protected void setAlternateExecutorServiceFactory(ExecutorServiceFactory esf){
@@ -67,7 +84,8 @@ public class BasicEnrichmentEngineFactory {
 			_logger.debug("Done with loading");
 		}
 
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(es, _dbDir, _taskDir);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(es, _dbDir, _taskDir,
+		_numResultsToReturn, _comparator);
 		enricher.setDatabaseResults(_databaseResults);
 		enricher.setDatabaseMap(databases);
         return enricher;

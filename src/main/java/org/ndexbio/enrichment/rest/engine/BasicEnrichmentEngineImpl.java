@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.util.Arrays;
@@ -53,6 +52,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+import java.util.Comparator;
+import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultBySimilarity;
 
 /**
  * Runs enrichment 
@@ -88,16 +89,20 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	private AtomicReference<InternalDatabaseResults> _databaseResults;
 	
 	private HashSet<String> _uniqueGeneSet;
+	
+	private Comparator<EnrichmentQueryResult> _comparator;
 
 	private long _threadSleep = 10;
 
 	//Cache
 	private final LoadingCache<EnrichmentQuery, String> geneSetSearchCache;
 	private static int resultCacheSize = 600;
+	
+	private int _numResultsToReturn;
 
 	public BasicEnrichmentEngineImpl(ExecutorService es, 
 			final String dbDir,
-			final String taskDir){
+			final String taskDir, int numResultsToReturn, Comparator<EnrichmentQueryResult> resComparator){
 		_executorService = es;
 		_futureTaskMap = new ConcurrentHashMap<>();
 		_shutdown = false;
@@ -107,6 +112,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		_databaseResults = new AtomicReference<>();
 		_queryTasks = new ConcurrentLinkedQueue<>();
 		_uniqueGeneSet = new HashSet<>();
+		_comparator = resComparator;
+		_numResultsToReturn = numResultsToReturn;
 
 		RemovalListener<EnrichmentQuery, String> removalListener = new RemovalListener<EnrichmentQuery, String>() {
 			@Override
@@ -115,8 +122,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 				try {
 					delete(id);
 				} catch (EnrichmentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					_logger.error("Cache delete on task {} raised exception", id, e);
 				}
 			}
 		};
@@ -129,16 +135,13 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 				.build(
 						new CacheLoader<EnrichmentQuery, String>() {
 							public String load(EnrichmentQuery eq) {
+								long startTime = System.currentTimeMillis();
 								String id = UUID.nameUUIDFromBytes(getUniqueString(eq).getBytes()).toString();
-								//_queryTasks.add(eq);
-								
+								_logger.info("Creating id {} took {} ms", id, System.currentTimeMillis() - startTime);
 								EnrichmentQueryResults eqr = new EnrichmentQueryResults(System.currentTimeMillis());
 								eqr.setStatus(EnrichmentQueryResults.SUBMITTED_STATUS);
-								BasicEnrichmentEngineRunner task = new BasicEnrichmentEngineRunner(id, _taskDir, _dbDir, _databaseResults, _databases, _uniqueGeneSet, eq, eqr);
+								BasicEnrichmentEngineRunner task = new BasicEnrichmentEngineRunner(id, _taskDir, _dbDir, _databaseResults, _databases, _uniqueGeneSet, _comparator, _numResultsToReturn, eq, eqr);
 								_futureTaskMap.put(id, _executorService.submit(task));
-
-								//EnrichmentQueryResults eqr = new EnrichmentQueryResults(System.currentTimeMillis());
-								//eqr.setStatus(EnrichmentQueryResults.SUBMITTED_STATUS);
 								_queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));        
 								return id;
 							}
@@ -251,7 +254,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	}
 
 	protected String getEnrichmentQueryResultsFilePath(final String id){
-		return this._taskDir + File.separator + id.toString() + File.separator + BasicEnrichmentEngineImpl.EQR_JSON_FILE;
+		return this._taskDir + File.separator + id + File.separator + BasicEnrichmentEngineImpl.EQR_JSON_FILE;
 	}
 
 	protected void saveEnrichmentQueryResultsToFilesystem(final String id){
@@ -317,50 +320,6 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		catch(NdexException nex){
 			_logger.error("Problems writing network as cx", nex);
 		}
-	}
-
-	public static void streamNetwork(OutputStream out, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr,
-			InternalDatabaseResults idr){
-		try  { 
-			if (cxNetwork.getMetadata() == null){
-				_logger.error("No Meta data object for network");
-				return;
-			}
-			long nodeAttrCntr = -1;
-			try {
-				nodeAttrCntr = cxNetwork.getMetadata().getIdCounter(NodeAttributesElement.ASPECT_NAME);
-			} catch(NullPointerException npe){
-				_logger.error("No id counter for network weird: " + cxNetwork.getNetworkName());
-			}
-			Map<String, Set<Long>> geneToNodeMap = idr.getNetworkToGeneToNodeMap().get(eqr.getNetworkUUID());
-			if (geneToNodeMap != null){
-				for (String hitGene : eqr.getHitGenes()){
-					Set<Long> nodeIdSet = geneToNodeMap.get(hitGene);
-					if (nodeIdSet != null){
-						for (Long nodeId : nodeIdSet){
-							NodeAttributesElement nae = new NodeAttributesElement(nodeId, "querynode", "true",
-									ATTRIBUTE_DATA_TYPE.BOOLEAN);
-							cxNetwork.addNodeAttribute(nae);
-							nodeAttrCntr++;
-						}
-					}
-				}
-			}
-
-			_logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
-			cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
-			NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(out, true);
-			NiceCXNetworkWriter writer = new NiceCXNetworkWriter(ndexwriter);
-			writer.writeNiceCXNetwork(cxNetwork);
-			return;
-		}
-		catch(IOException ex){
-			_logger.error("problems writing cx", ex);
-		}
-		catch(NdexException nex){
-			_logger.error("Problems writing network as cx", nex);
-		}
-		return;
 	}
 	
 	protected NiceCXNetwork getNetwork(final String databaseUUID, final String networkUUID){
@@ -521,7 +480,10 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 			if (!destFile.exists() || destFile.length() == 0){
 				File tmpFile = new File(this._taskDir + File.separator + id +
 						File.separator + UUID.randomUUID().toString() + CX_SUFFIX);
+				long startTime = System.currentTimeMillis();
 				annotateAndSaveNetwork(tmpFile, cxNetwork, eqr);
+				_logger.info("Annotating network {} for task {} took {} ms",
+						new Object[]{networkUUID, id, System.currentTimeMillis() - startTime});
 				tmpFile.renameTo(destFile);
 			}
 

@@ -16,6 +16,7 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResults;
 import org.ndexbio.enrichment.rest.model.ServerStatus;
+import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultBySimilarity;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.model.cx.NiceCXNetwork;
 
@@ -30,21 +31,21 @@ public class TestBasicEnrichmentEngineImpl {
     
     @Test
 	public void testThreadSleep(){
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25,null);
 		enricher.updateThreadSleepTime(1);
 		enricher.threadSleep();
 	}
 	
 	@Test
 	public void testRunWithShutdownAlreadyInvoked(){
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25,null);
 		enricher.shutdown();
 		enricher.run();
 	}
 	
 	@Test
 	public void testGetEnrichmentQueryResultsFromDbNotFound(){
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25,new EnrichmentQueryResultBySimilarity());
 		EnrichmentQueryResults eqr = enricher.getEnrichmentQueryResultsFromDb(UUID.randomUUID().toString());
 		assertNotNull(eqr);
 		
@@ -55,7 +56,7 @@ public class TestBasicEnrichmentEngineImpl {
 		File tempDir = _folder.newFolder();
 		try {
 			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
-					tempDir.getAbsolutePath());
+					tempDir.getAbsolutePath(), 25,null);
 			EnrichmentQueryResults eqr = enricher.getEnrichmentQueryResultsFromDbOrFilesystem(UUID.randomUUID().toString());
 			assertNull(eqr);
 		} finally {
@@ -68,7 +69,7 @@ public class TestBasicEnrichmentEngineImpl {
 		File tempDir = _folder.newFolder();
 		try {
 			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
-					tempDir.getAbsolutePath());
+					tempDir.getAbsolutePath(), 25,null);
 			String myuuid = UUID.randomUUID().toString();
 			File subdir = new File(enricher.getEnrichmentQueryResultsFilePath(myuuid));
 			assertTrue(subdir.getParentFile().mkdirs());
@@ -86,7 +87,7 @@ public class TestBasicEnrichmentEngineImpl {
 		File tempDir = _folder.newFolder();
 		try {
 			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
-					tempDir.getAbsolutePath());
+					tempDir.getAbsolutePath(), 25,null);
 			String myuuid = UUID.randomUUID().toString();
 			File subdir = new File(enricher.getEnrichmentQueryResultsFilePath(myuuid));
 			assertTrue(subdir.getParentFile().mkdirs());
@@ -105,14 +106,14 @@ public class TestBasicEnrichmentEngineImpl {
 	
 	@Test
 	public void testSaveEnrichmentQueryResultsToFilesystemNotFound(){
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25, new EnrichmentQueryResultBySimilarity());
 		String myuuid = UUID.randomUUID().toString();
 		enricher.saveEnrichmentQueryResultsToFilesystem(myuuid);
 	}
 	
 	@Test
 	public void testAnnotateAndSaveNetworkWithNullFilePassedIn() {
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25,null);
 		EnrichmentQueryResult eqr = new EnrichmentQueryResult();
 		enricher.annotateAndSaveNetwork(null, new NiceCXNetwork(), eqr);
 	}
@@ -121,7 +122,7 @@ public class TestBasicEnrichmentEngineImpl {
 	public void testAnnotateAndSaveNetworkWithNullNetworkPassedIn() throws IOException {
 		File tempFile = _folder.newFile();
 		try {
-			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25,null);
 			EnrichmentQueryResult eqr = new EnrichmentQueryResult();
 			enricher.annotateAndSaveNetwork(tempFile, null, eqr);
 			
@@ -135,7 +136,7 @@ public class TestBasicEnrichmentEngineImpl {
 		EnrichmentQuery query = new EnrichmentQuery();
 		query.setDatabaseList(new TreeSet<>(Arrays.asList("dbone", "dbtwo")));
 		query.setGeneList(new TreeSet<>(Arrays.asList("gene1", "gene2")));
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25, null);
 		String res = enricher.getUniqueString(query);
 		assertEquals("dbone,dbtwo:GENE1,GENE2", res);
 	}
@@ -162,7 +163,7 @@ public class TestBasicEnrichmentEngineImpl {
   
   @Test
   public void testgetQueryResultsNoResult() {
-	  BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+	  BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25, null);
 	  try {
 		assertEquals(null, enricher.getQueryResults("12345", 0, 0));
 	} catch (EnrichmentException e) {
@@ -236,7 +237,7 @@ public class TestBasicEnrichmentEngineImpl {
 		File tempDir = _folder.newFolder();
 		try {
 			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
-					tempDir.getAbsolutePath());
+					tempDir.getAbsolutePath(), 25, null);
 			enricher.delete(UUID.randomUUID().toString());
 			
 		} finally {
@@ -249,7 +250,7 @@ public class TestBasicEnrichmentEngineImpl {
 		File tempDir = _folder.newFolder();
 		try {
 			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
-					tempDir.getAbsolutePath());
+					tempDir.getAbsolutePath(), 25, null);
 			String myuuid = UUID.randomUUID().toString();
 			File taskFile = new File(enricher.getEnrichmentQueryResultsFilePath(myuuid));
 			assertTrue(taskFile.getParentFile().mkdirs());
@@ -265,7 +266,7 @@ public class TestBasicEnrichmentEngineImpl {
   
 	@Test
 	public void testGetServerStatusErrorCauseNullTaskDir() throws EnrichmentException {
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25, null);
 		try {
 			enricher.getServerStatus();
 			fail("Expected Enrichment Exception");
@@ -279,7 +280,7 @@ public class TestBasicEnrichmentEngineImpl {
 		File tempDir = _folder.newFolder();
 		try {
 			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
-					tempDir.getAbsolutePath());
+					tempDir.getAbsolutePath(), 25, null);
 			ServerStatus ss = enricher.getServerStatus();
 			assertEquals(ServerStatus.OK_STATUS, ss.getStatus());
 			assertNotNull(ss.getRestVersion());
@@ -293,7 +294,7 @@ public class TestBasicEnrichmentEngineImpl {
 	
 	@Test
 	public void testGetQueryResultsNegativeStartPosition(){
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25, null);
 		try {
 			enricher.getQueryResults(UUID.randomUUID().toString(), -1, 0);
 			fail("Expected EnrichmentException");
@@ -304,7 +305,7 @@ public class TestBasicEnrichmentEngineImpl {
 	
 	@Test
 	public void testGetQueryResultsNegativeSize(){
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25, null);
 		try {
 			enricher.getQueryResults(UUID.randomUUID().toString(), 0, -1);
 			fail("Expected EnrichmentException");
@@ -315,7 +316,7 @@ public class TestBasicEnrichmentEngineImpl {
 	
 	@Test
 	public void testGetQueryResultsNullResult() throws EnrichmentException {
-		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null);
+		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25, null);
 		EnrichmentQueryResults eqr = enricher.getQueryResults(UUID.randomUUID().toString(), 0, 0);
 		assertNull(eqr);
 		
@@ -328,7 +329,7 @@ public class TestBasicEnrichmentEngineImpl {
 		File tempDir = _folder.newFolder();
 		try {
 			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
-					tempDir.getAbsolutePath());
+					tempDir.getAbsolutePath(), 25, null);
 			EnrichmentQueryResults inputEqr = new EnrichmentQueryResults();
 						
 			inputEqr.setNumberOfHits(0);
@@ -351,7 +352,7 @@ public class TestBasicEnrichmentEngineImpl {
 		File tempDir = _folder.newFolder();
 		try {
 			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null,
-					tempDir.getAbsolutePath());
+					tempDir.getAbsolutePath(), 25, null);
 			EnrichmentQueryResults inputEqr = new EnrichmentQueryResults();
 			
 			List<EnrichmentQueryResult> resList = new ArrayList<>();
