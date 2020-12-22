@@ -37,6 +37,8 @@ public class Configuration {
     public static final String NDEX_PASS = "ndex.password";
     public static final String NDEX_SERVER = "ndex.server";
     public static final String NDEX_USERAGENT = "ndex.useragent";
+	public static final String NUM_RESULTS = "number.returned.results";
+	public static final String SORT_ALGO = "sort.algorithm";
     
     
     public static final String DATABASE_RESULTS_JSON_FILE = "databaseresults.json";
@@ -48,7 +50,9 @@ public class Configuration {
     private static String _enrichDatabaseDir;
     private static String _enrichTaskDir;
     private static String _enrichHostURL;
+	private static String _sortAlgorithm;
     private static int _numWorkers;
+	private static int _numResults;
     /**
      * Constructor that attempts to get configuration from properties file
      * specified via configPath
@@ -80,6 +84,8 @@ public class Configuration {
         } else if (!_enrichHostURL.endsWith("/")){
             _enrichHostURL =_enrichHostURL + "/";
         }
+		_numResults = Integer.parseInt(props.getProperty(Configuration.NUM_RESULTS, "25"));
+		_sortAlgorithm = props.getProperty(Configuration.SORT_ALGO, "similarity");
     }
         
     protected void setEnrichmentEngine(EnrichmentEngine ee){
@@ -121,6 +127,22 @@ public class Configuration {
     public int getNumberWorkers() {
     	return _numWorkers;
     }
+	
+	/**
+	 * Gets default number of results to return for a query
+	 * @return 
+	 */
+	public int getNumberOfResultsToReturn(){
+		return _numResults;
+	}
+	
+	/**
+	 * Gets sort algorithm used to sort results
+	 * @return 
+	 */
+	public String getSortAlgorithm(){
+		return _sortAlgorithm;
+	}
 
     public File getDatabaseResultsFile(){
         
