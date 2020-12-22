@@ -363,8 +363,14 @@ public class App {
         sb.append("# Valid log levels DEBUG INFO WARN ERROR ALL\n");
         sb.append(App.RUNSERVER_LOGLEVEL + " = INFO\n");
 	    
-	sb.append("# Number of workers in thread pool\n");
-	sb.append(Configuration.NUM_WORKERS + " = 1\n");
+		sb.append("# Number of workers in thread pool\n");
+		sb.append(Configuration.NUM_WORKERS + " = 1\n");
+		
+		sb.append("# number of results to return for a query\n");
+		sb.append(Configuration.NUM_RESULTS + " = 25\n");
+		
+		sb.append("# Algorithm to use to sort results supported values (pvalue, similarity)\n");
+		sb.append(Configuration.SORT_ALGO + " = similarity\n");
 
         return sb.toString();
     }
@@ -377,6 +383,8 @@ public class App {
         List<InternalGeneMap> geneMapList = new LinkedList<>();
         Map<String, Integer> databaseUniqueGeneCount = new HashMap<>();
         Set<String> networksToExclude = idr.getNetworksToExclude();
+		Map<String, Set<String>> networkGeneMap = new HashMap<>();
+		Set<String> networkGeneSet = null;
 		StringBuffer failedNetworks = null;
         int totalNetworkCount = 0;
         if (idr.getResults() == null){
@@ -443,11 +451,16 @@ public class App {
 					continue;
 				}
 				String networkUrl = getNetworkUrl(cParams.getServer(), netid.toString());
-				NetworkInfo simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL());
+				
+				NetworkInfo simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL(), network.getNodes().size(), network.getEdges().size());
                 networkList.add(simpleNetwork);
+				networkGeneSet = new HashSet<>();
+				networkGeneMap.put(netid.toString(), networkGeneSet);
 				int geneCount = updateGeneMap(network, netid.toString(), geneMap,
-                                              uniqueGeneSet, idr);
+                                              networkGeneSet, idr);
+				
 				simpleNetwork.setGeneCount(geneCount);
+				uniqueGeneSet.addAll(networkGeneSet);
                 networkCount++;
             }
             client.getNdexRestClient().signOut();
@@ -464,6 +477,7 @@ public class App {
         idr.setGeneMapList(geneMapList);
         idr.setIdfMap(makeIdfMap(geneMapList, totalNetworkCount));
         idr.setTotalNetworkCount(totalNetworkCount);
+		idr.setNetworkGeneList(networkGeneMap);
         
         _logger.debug("Attempting to write: " + databaseResultsFile.getAbsolutePath());
         mappy.writerWithDefaultPrettyPrinter().writeValue(databaseResultsFile, idr);
@@ -536,12 +550,13 @@ public class App {
      * @param network network to examine
      * @param externalId id of network passed in
      * @param geneMap gene names => [ list of network UUIDs]
-     * @param uniqueGeneSet unique set of genes
+     * @param networkGeneSet this method fills this set with the unique set of genes found
+	 *                       on this network
      * @throws Exception 
      */
     public static int updateGeneMap(final NiceCXNetwork network,
             final String externalId, InternalGeneMap geneMap,
-            final Set<String> uniqueGeneSet,
+            final Set<String> networkGeneSet,
             InternalDatabaseResults idr) throws Exception {
         
         Map<Long, Collection<NodeAttributesElement>> attribMap = network.getNodeAttributes();
@@ -592,7 +607,7 @@ public class App {
                 }
                 geneToNodeMap.get(name).add(ne.getId());
                 
-                uniqueGeneSet.add(name);
+                networkGeneSet.add(name);
 				geneCount++;
                 continue;
             }
@@ -605,16 +620,16 @@ public class App {
                                 continue;
                             }
                             if (mappy.containsKey(name) == false){
-                                mappy.put(name, new HashSet<String>());
+                                mappy.put(name, new HashSet<>());
                             }
                             if (mappy.get(name).contains(externalId) == false){
                                 mappy.get(name).add(externalId);
                             }
                             if (geneToNodeMap.containsKey(name) == false){
-                                geneToNodeMap.put(name, new HashSet<Long>());
+                                geneToNodeMap.put(name, new HashSet<>());
                             }
                             geneToNodeMap.get(name).add(ne.getId());
-                            uniqueGeneSet.add(name);
+                            networkGeneSet.add(name);
 							geneCount++;
                         }
                         break;
@@ -626,9 +641,10 @@ public class App {
             Map<String, Map<String, Set<Long>>> geneToNodeBigMap = idr.getNetworkToGeneToNodeMap();
             if (geneToNodeBigMap == null){
                 geneToNodeBigMap = new HashMap<>();
-            } else 
-            geneToNodeBigMap.put(externalId, geneToNodeMap);
-            idr.setNetworkToGeneToNodeMap(geneToNodeBigMap);
+            } else {
+				geneToNodeBigMap.put(externalId, geneToNodeMap);
+			}
+			idr.setNetworkToGeneToNodeMap(geneToNodeBigMap);
         }
 		return geneCount;
 
@@ -680,13 +696,16 @@ public class App {
 		}
     }
     
-    public static NetworkInfo getSimpleNetwork(NiceCXNetwork network, String networkUuid, String networkUrl, String imageUrl) {
+    public static NetworkInfo getSimpleNetwork(NiceCXNetwork network, String networkUuid, String networkUrl, String imageUrl,
+			int nodeCount, int edgeCount) {
     	NetworkInfo nw = new NetworkInfo();
     	nw.setName(network.getNetworkName());
     	nw.setDescription(network.getNetworkDescription());
     	nw.setUuid(networkUuid);
     	nw.setUrl(networkUrl);
     	nw.setImageUrl(imageUrl);
+	nw.setNodeCount(nodeCount);
+	nw.setEdgeCount(edgeCount);
     	return nw;
     }
     
