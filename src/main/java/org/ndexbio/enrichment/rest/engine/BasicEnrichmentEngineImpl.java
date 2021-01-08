@@ -53,7 +53,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import java.util.Comparator;
-import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultBySimilarity;
 
 /**
  * Runs enrichment 
