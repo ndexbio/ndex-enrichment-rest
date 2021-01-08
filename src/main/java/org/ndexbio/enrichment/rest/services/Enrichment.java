@@ -204,9 +204,9 @@ public class Enrichment {
                description="NOTE: For incomplete/failed 500 will be returned\n",
                responses = {
                    @ApiResponse(responseCode = "200",
-                           description = "Delete request successfully received"),
+                           description = "Request for overlay network successful"),
                    @ApiResponse(responseCode = "410",
-                           description = "Task not found"),
+                           description = "Overlay network not found"),
                    @ApiResponse(responseCode = "500", description = "Server Error",
                                 content = @Content(mediaType = MediaType.APPLICATION_JSON,
                                 schema = @Schema(implementation = ErrorResponse.class)))
