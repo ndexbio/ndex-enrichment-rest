@@ -92,6 +92,11 @@ runserver.log.level = INFO
 # Number of workers in thread pool
 enrichment.number.workers = 1
 
+# number of results to return for a query
+number.returned.results = 25
+
+# Algorithm to use to sort results supported values (pvalue, similarity)
+sort.algorithm = similarity
 ```
 
 Replace **/tmp** paths with full path location to **enrichdb** directory 
@@ -134,25 +139,45 @@ The **databaseresults.json** file will look like this:
   "geneMapList" : null,
   "idfMap" : null,
   "totalNetworkCount" : 0,
+  "networkGeneList" : null,
   "networkToGeneToNodeMap" : null,
   "results" : [ {
+    "numberOfNetworks" : null,
+    "name" : "signor",
     "description" : "This is a description of a signor database",
     "uuid" : "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6",
     "url" : null,
-    "networks" : null,
-    "imageURL" : "http://signor.uniroma2.it/img/signor_logo.png",
-    "numberOfNetworks" : null,
-    "name" : "signor"
+    "networks" : [ {
+      "name" : "Network Name",
+      "description" : "Network description",
+      "uuid" : "640e2cef-795d-11e8-a4bf-0ac135e8bacf",
+      "url" : "http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf",
+      "imageUrl" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
+      "geneCount" : 0,
+      "nodeCount" : 0,
+      "edgeCount" : 0
+    } ],
+    "imageURL" : "http://signor.uniroma2.it/img/signor_logo.png"
   }, {
+    "numberOfNetworks" : null,
+    "name" : "ncipid",
     "description" : "This is a description of a ncipid database",
     "uuid" : "e508cf31-79af-463e-b8b6-ff34c87e1734",
     "url" : null,
-    "networks" : null,
-    "imageURL" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
-    "numberOfNetworks" : null,
-    "name" : "ncipid"
+    "networks" : [ {
+      "name" : "Network Name",
+      "description" : "Network description",
+      "uuid" : "640e2cef-795d-11e8-a4bf-0ac135e8bacf",
+      "url" : "http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf",
+      "imageUrl" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
+      "geneCount" : 0,
+      "nodeCount" : 0,
+      "edgeCount" : 0
+    } ],
+    "imageURL" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg"
   } ]
 }
+
 ```
 
 The **databaseConnectionMap** section is internal and contains NDEx connection information
