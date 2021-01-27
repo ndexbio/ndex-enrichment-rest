@@ -361,13 +361,13 @@ public class App {
         sb.append(App.RUNSERVER_CONTEXTPATH + " = /\n\n");
         
         sb.append("# Valid log levels DEBUG INFO WARN ERROR ALL\n");
-        sb.append(App.RUNSERVER_LOGLEVEL + " = INFO\n");
+        sb.append(App.RUNSERVER_LOGLEVEL + " = INFO\n\n");
 	    
 		sb.append("# Number of workers in thread pool\n");
-		sb.append(Configuration.NUM_WORKERS + " = 1\n");
+		sb.append(Configuration.NUM_WORKERS + " = 1\n\n");
 		
 		sb.append("# number of results to return for a query\n");
-		sb.append(Configuration.NUM_RESULTS + " = 25\n");
+		sb.append(Configuration.NUM_RESULTS + " = 25\n\n");
 		
 		sb.append("# Algorithm to use to sort results supported values (pvalue, similarity)\n");
 		sb.append(Configuration.SORT_ALGO + " = similarity\n");
