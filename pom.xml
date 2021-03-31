@@ -29,7 +29,7 @@
         <ndex-java-client.version>2.4.5</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
-        <guava.version>27.0.1-jre</guava.version>
+        <guava.version>29.0-jre</guava.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <javax.vecmath.version>1.5.2</javax.vecmath.version>
 		<java.version>1.8</java.version>
