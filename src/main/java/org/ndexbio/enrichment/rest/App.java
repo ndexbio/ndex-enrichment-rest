@@ -710,7 +710,7 @@ public class App {
     }
     
     public static String getNetworkUrl(String server, String networkUuid) {
-    	return trimServerString(server) + "/#/network/" + networkUuid;
+    	return trimServerString(server) + "/viewer/networks/" + networkUuid;
     }
     
     public static String getNetworkSetUrl(String server, String networkSetUuid) {
