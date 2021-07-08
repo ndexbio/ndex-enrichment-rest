@@ -145,11 +145,11 @@ public class TestApp {
 	
 	@Test
 	public void testGetNetworkUrl(){
-		assertEquals("someserver.com/#/network/uuid",
+		assertEquals("someserver.com/viewer/networks/uuid",
 				App.getNetworkUrl("http://someserver.com", "uuid"));
-		assertEquals("someserver.com/#/network/uuid",
+		assertEquals("someserver.com/viewer/networks/uuid",
 				App.getNetworkUrl("https://someserver.com", "uuid"));
-		assertEquals("someserver.com/#/network/uuid",
+		assertEquals("someserver.com/viewer/networks/uuid",
 				App.getNetworkUrl("someserver.com/v1", "uuid"));
 	}
 	

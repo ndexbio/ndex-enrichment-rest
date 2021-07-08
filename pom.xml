@@ -4,7 +4,7 @@
 
     <groupId>org.ndexbio.enrichment</groupId>
     <artifactId>ndex-enrichment-rest</artifactId>
-    <version>0.7.0</version>
+    <version>0.7.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>NDEx Pathway Relevance REST Service</name>
@@ -16,20 +16,20 @@
         <junit.version>4.12</junit.version>
         <easymock.version>4.0.2</easymock.version>
         <mockito.version>3.2.4</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
-        <jetty.version>9.4.35.v20201120</jetty.version>
-        <jetty.maven.plugin.version>9.4.35.v20201120</jetty.maven.plugin.version>
+        <jetty.version>9.4.43.v20210629</jetty.version>
+        <jetty.maven.plugin.version>9.4.43.v20210629</jetty.maven.plugin.version>
         <swagger.version>2.0.0</swagger.version>
         <jackson.version>2.9.9</jackson.version>
         <jackson.databind.version>2.9.10.3</jackson.databind.version>
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
-        <commons-io.version>2.6</commons-io.version>
+        <commons-io.version>2.7</commons-io.version>
         <ndex-enrichment-rest-model.version>0.3.0</ndex-enrichment-rest-model.version>
 		<ndex-object-model.version>2.5.1-SNAPSHOT</ndex-object-model.version>
         <ndex-java-client.version>2.4.5</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
-        <guava.version>27.0.1-jre</guava.version>
+        <guava.version>29.0-jre</guava.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <javax.vecmath.version>1.5.2</javax.vecmath.version>
 		<java.version>1.8</java.version>
@@ -45,7 +45,7 @@
                 <enabled>true</enabled>
             </releases>
             <name>Cytoscape Releases</name>
-            <url>http://nrnb-nexus.ucsd.edu/repository/cytoscape_releases/</url>
+            <url>https://nrnb-nexus.ucsd.edu/repository/cytoscape_releases/</url>
         </repository>
         <repository>
             <id>cytoscape_snapshots</id>
@@ -56,7 +56,7 @@
                 <enabled>false</enabled>
             </releases>
             <name>Cytoscape Snapshots</name>
-            <url>http://nrnb-nexus.ucsd.edu/repository/cytoscape_snapshots/</url>
+            <url>https://nrnb-nexus.ucsd.edu/repository/cytoscape_snapshots/</url>
         </repository>
         <repository>
             <id>JBoss repository</id>
