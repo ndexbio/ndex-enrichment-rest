@@ -333,10 +333,13 @@ public class TestBasicEnrichmentEngineRunner {
 		BasicEnrichmentEngineRunner runner = new BasicEnrichmentEngineRunner(null,null,null,
 				null,null,null,new EnrichmentQueryResultBySimilarity(), 25, null,null);
 		String res = runner.getNetworkUrl("http://foo/#/networkset/12345", "myid");
-		assertEquals("http://foo/#/network/myid", res);
+		assertEquals("http://foo/viewer/networks/myid", res);
 		
 		res = runner.getNetworkUrl("http://foo/#/networks/12345", "myid");
 		assertNull(res);
+		res = runner.getNetworkUrl("http://foo/viewer/networks/12345", "myid");
+		assertNull(res);
+
 		
 	}
 	
