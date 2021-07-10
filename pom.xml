@@ -24,15 +24,15 @@
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.7</commons-io.version>
-        <ndex-enrichment-rest-model.version>0.3.0</ndex-enrichment-rest-model.version>
-		<ndex-object-model.version>2.5.1-SNAPSHOT</ndex-object-model.version>
-        <ndex-java-client.version>2.4.5</ndex-java-client.version>
+        <ndex-enrichment-rest-model.version>0.3.1-SNAPSHOT</ndex-enrichment-rest-model.version>
+		<ndex-object-model.version>2.5.1</ndex-object-model.version>
+        <ndex-java-client.version>2.5.1</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
         <guava.version>29.0-jre</guava.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <javax.vecmath.version>1.5.2</javax.vecmath.version>
-		<java.version>1.8</java.version>
+		<java.version>11</java.version>
     </properties>
     
     <repositories>
