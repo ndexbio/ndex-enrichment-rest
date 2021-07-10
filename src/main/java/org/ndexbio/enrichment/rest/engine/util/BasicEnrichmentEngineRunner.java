@@ -282,12 +282,15 @@ public class BasicEnrichmentEngineRunner implements Callable {
 			TreeSet<String> hitGenes = new TreeSet<>(networkMap.get(network));
 			eqr.setHitGenes(hitGenes);
 			eqr.setNetworkUUID(network);
+			// sets url but is doing the old viewer
 			eqr.setUrl(getNetworkUrl(dbres.getUrl(), network));
 
 			networkInfo = null;
 			for (NetworkInfo ni : dbres.getNetworks()){
 				if (ni.getUuid().equals(network)){
 					networkInfo = ni;
+					// gets url for network from configuration file
+					eqr.setUrl(networkInfo.getUrl());
 				}
 			}
 			updateStatsAboutNetwork(eqr, uniqueGeneList, networkInfo);
@@ -306,9 +309,9 @@ public class BasicEnrichmentEngineRunner implements Callable {
 	 * @return URL/network/NETWORKID or null if networkset is not in url
 	 */
 	protected String getNetworkUrl(String databaseUrl, String networkUuid) {
-		int index = databaseUrl.indexOf("networkset");
+		int index = databaseUrl.indexOf("#/networkset");
 		if (index != -1) {
-			return databaseUrl.substring(0, index) + "network/" + networkUuid;
+			return databaseUrl.substring(0, index) + "viewer/networks/" + networkUuid;
 		}
 		_logger.warn("networkset not in URL: {} for network {}",
 				databaseUrl, networkUuid);
