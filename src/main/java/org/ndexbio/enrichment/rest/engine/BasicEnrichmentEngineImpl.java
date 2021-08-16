@@ -288,9 +288,10 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 			}
 			long nodeAttrCntr = -1;
 			try {
-				nodeAttrCntr = cxNetwork.getMetadata().getIdCounter(NodeAttributesElement.ASPECT_NAME);
+				nodeAttrCntr = cxNetwork.getMetadata().getElementCount(NodeAttributesElement.ASPECT_NAME);
 			} catch(NullPointerException npe){
-				_logger.error("No id counter for network weird: " + destFile.getName());
+				_logger.error("No element counter for " + NodeAttributesElement.ASPECT_NAME
+						+ " weird: " + destFile.getName());
 			}
 			InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
 			Map<String, Set<Long>> geneToNodeMap = idr.getNetworkToGeneToNodeMap().get(eqr.getNetworkUUID());
