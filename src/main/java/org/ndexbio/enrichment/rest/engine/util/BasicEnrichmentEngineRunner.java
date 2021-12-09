@@ -291,6 +291,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 					networkInfo = ni;
 					// gets url for network from configuration file
 					eqr.setUrl(networkInfo.getUrl());
+                                        
 				}
 			}
 			updateStatsAboutNetwork(eqr, uniqueGeneList, networkInfo);
@@ -339,6 +340,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		eqr.setTotalNetworkCount(idr.getTotalNetworkCount());
 		eqr.setSimilarity(getSimilarity(idr.getNetworkGeneList().get(eqr.getNetworkUUID()),
 				queryGenes, idr.getIdfMap()));
+                eqr.setTotalGeneCount(networkInfo.getGeneCount());
 	}
 	
 	/**
