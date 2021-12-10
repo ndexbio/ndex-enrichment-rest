@@ -53,6 +53,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import java.util.Comparator;
+import org.ndexbio.enrichment.rest.engine.util.CBioPortalMutationFreqNetworkAnnotator;
 
 /**
  * Runs enrichment 
@@ -310,6 +311,14 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 			}
 			_logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
 			cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
+                        
+                        CBioPortalMutationFreqNetworkAnnotator mutAnnotator = new CBioPortalMutationFreqNetworkAnnotator(idr);
+                        try {
+                            mutAnnotator.annotateNetwork(cxNetwork, eqr);
+                        } catch(EnrichmentException ee){
+                            _logger.error("Caught exception trying to add mutation frequency: " + ee.getMessage(), ee);
+                        }
+                        
 			NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(fos, true);
 			NiceCXNetworkWriter writer = new NiceCXNetworkWriter(ndexwriter);
 			writer.writeNiceCXNetwork(cxNetwork);  
