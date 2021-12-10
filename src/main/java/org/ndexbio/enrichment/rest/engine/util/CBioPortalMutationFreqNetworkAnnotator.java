@@ -52,10 +52,14 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
         }
         
         // @TODO query to get mutation map where key is gene & value is mutation frequency
-        
+        try {
+            Thread.sleep(1000);
+        } catch(InterruptedException ie){
+            // do nothing
+        }
         for (String gene : geneToNodeMap.keySet()){
             // @TODO get mutation frequency for gene
-            double mutationFrequency = 50.0;
+            double mutationFrequency = Math.random()*100.0;
             
             // @TODO need to handle complex nodes cause they will have 
             //       multiple mutation frequencies
@@ -71,6 +75,7 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
                     nodeAttrCntr++;
                 }
             }
+            
         }
         _logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
 	cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
