@@ -1,5 +1,6 @@
 package org.ndexbio.enrichment.rest.engine;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -7,6 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import org.ndexbio.enrichment.rest.engine.util.CBioPortalMutationFreqNetworkAnnotator;
+import org.ndexbio.enrichment.rest.engine.util.HitGeneNetworkAnnotator;
+import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 
 import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
@@ -88,6 +92,13 @@ public class BasicEnrichmentEngineFactory {
 		_numResultsToReturn, _comparator);
 		enricher.setDatabaseResults(_databaseResults);
 		enricher.setDatabaseMap(databases);
+                
+                ArrayList<NetworkAnnotator> netAnnotators = new ArrayList<>();
+                netAnnotators.add(new HitGeneNetworkAnnotator(_databaseResults, null));
+
+                // commenting out for now since this is just testing for cbioportal integration
+                // netAnnotators.add(new CBioPortalMutationFreqNetworkAnnotator(_databaseResults));
+                enricher.setNetworkAnnotators(netAnnotators);
         return enricher;
     }
     
