@@ -14,8 +14,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,8 +24,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
-import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
-import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.core.NdexCXNetworkWriter;
 import org.ndexbio.cxio.core.writers.NiceCXNetworkWriter;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
@@ -53,7 +49,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import java.util.Comparator;
-import org.ndexbio.enrichment.rest.engine.util.CBioPortalMutationFreqNetworkAnnotator;
+import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
 
 /**
  * Runs enrichment 
@@ -87,6 +83,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	private ConcurrentHashMap<String, ConcurrentHashMap<String, HashSet<String>>> _databases;
 
 	private AtomicReference<InternalDatabaseResults> _databaseResults;
+        
+        private List<NetworkAnnotator> _networkAnnotators;
 	
 	private HashSet<String> _uniqueGeneSet;
 	
@@ -210,6 +208,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		_shutdown = true;
 	}
 
+        public void setNetworkAnnotators(List<NetworkAnnotator> annotators){
+            _networkAnnotators = annotators;
+        }
 
 	public void setDatabaseResults(InternalDatabaseResults dr){
 		_databaseResults.set(dr);
@@ -272,6 +273,15 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		_queryResults.remove(id);
 	}
 
+        /**
+         * Annotates and saves network with {@link NetworkAnnotator} objects set via constructor
+         * If there is an issue, error level logging messages are emitted and a destination
+         * file may not be written
+         * 
+         * @param destFile Where to save network
+         * @param cxNetwork Network to annotate and save
+         * @param eqr Query result to annotate network with
+         */
 	protected void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
 		if (destFile == null){
 			_logger.error("destFile is null");
@@ -287,36 +297,16 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 				_logger.error("No Meta data object for network" + destFile.getName());
 				return;
 			}
-			long nodeAttrCntr = -1;
-			try {
-				nodeAttrCntr = cxNetwork.getMetadata().getElementCount(NodeAttributesElement.ASPECT_NAME);
-			} catch(NullPointerException npe){
-				_logger.error("No element counter for " + NodeAttributesElement.ASPECT_NAME
-						+ " weird: " + destFile.getName());
-			}
-			InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
-			Map<String, Set<Long>> geneToNodeMap = idr.getNetworkToGeneToNodeMap().get(eqr.getNetworkUUID());
-			if (geneToNodeMap != null){
-				for (String hitGene : eqr.getHitGenes()){
-					Set<Long> nodeIdSet = geneToNodeMap.get(hitGene);
-					if (nodeIdSet != null){
-						for (Long nodeId : nodeIdSet){
-							NodeAttributesElement nae = new NodeAttributesElement(nodeId, "querynode", "true",
-									ATTRIBUTE_DATA_TYPE.BOOLEAN);
-							cxNetwork.addNodeAttribute(nae);
-							nodeAttrCntr++;
-						}
-					}
-				}
-			}
-			_logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
-			cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
-                        
-                        CBioPortalMutationFreqNetworkAnnotator mutAnnotator = new CBioPortalMutationFreqNetworkAnnotator(idr);
-                        try {
-                            mutAnnotator.annotateNetwork(cxNetwork, eqr);
-                        } catch(EnrichmentException ee){
-                            _logger.error("Caught exception trying to add mutation frequency: " + ee.getMessage(), ee);
+			
+                        if (this._networkAnnotators != null){
+                            for (NetworkAnnotator annotator : _networkAnnotators){
+                                try {
+                                    annotator.annotateNetwork(cxNetwork, eqr);
+                                } catch(EnrichmentException ee){
+                                    _logger.error("Caught exception trying to annotate network with : " + 
+                                            annotator.getClass().getCanonicalName() + " class : " + ee.getMessage(), ee);
+                                }
+                            }
                         }
                         
 			NdexCXNetworkWriter ndexwriter = new NdexCXNetworkWriter(fos, true);
