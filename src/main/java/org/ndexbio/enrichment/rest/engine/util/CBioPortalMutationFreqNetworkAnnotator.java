@@ -1,9 +1,14 @@
 package org.ndexbio.enrichment.rest.engine.util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
+import org.ndexbio.cxio.aspects.datamodels.NodesElement;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
@@ -44,39 +49,64 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
             return;
         }
         
-        long nodeAttrCntr = -1;
+        long nodeAttrCntr = 0;
         try {
             nodeAttrCntr = cxNetwork.getMetadata().getElementCount(NodeAttributesElement.ASPECT_NAME);
         } catch(NullPointerException npe){
             _logger.error("No element counter for " + NodeAttributesElement.ASPECT_NAME);
         }
         
+        
         // @TODO query to get mutation map where key is gene & value is mutation frequency
+        //       CODE NEEDS TO JUST RETURN IF NO MUTATION INFO IS FOUND
         try {
             Thread.sleep(1000);
         } catch(InterruptedException ie){
             // do nothing
         }
+        
+        Map<Long, Set<String>> nodeIdToGenes = new HashMap<>();
+        Set<Long> nodeIdForGenes;
+        Set<String> geneSet;
         for (String gene : geneToNodeMap.keySet()){
-            // @TODO get mutation frequency for gene
-            double mutationFrequency = Math.random()*100.0;
+            nodeIdForGenes = geneToNodeMap.get(gene);
+            for (Long nodeId : nodeIdForGenes){
+                geneSet = nodeIdToGenes.get(gene);
+                if (geneSet == null){
+                    geneSet = new HashSet<>();
+                    nodeIdToGenes.put(nodeId, geneSet);
+                }
+                geneSet.add(gene);
+            }
+        }
+        
+        Map<Long, NodesElement> nodes = cxNetwork.getNodes();
+        for (Long nodeId : nodes.keySet()){
+            geneSet = nodeIdToGenes.get(nodeId);
+            if (geneSet == null){
+                continue;
+            }
+            if (geneSet.isEmpty()){
+                continue;
+            }
+            // okay we have 1 or more genes
+            // dump into list with format GENE::mutationFrequency
+            List<String> mutFreqs = new ArrayList<>();
             
-            // @TODO need to handle complex nodes cause they will have 
-            //       multiple mutation frequencies
-            
-            Set<Long> nodeIdSet = geneToNodeMap.get(gene);
-            if (nodeIdSet != null){
-                for (Long nodeId : nodeIdSet){
-                    NodeAttributesElement nae = new NodeAttributesElement(nodeId,
-                            "iquery::mutationfrequency", 
-                            Double.toString(mutationFrequency),
-                                    ATTRIBUTE_DATA_TYPE.DOUBLE);
+            for (String gene : geneSet){
+                // @TODO get mutation frequency for gene
+                double mutationFrequency = Math.random()*100.0;
+                mutFreqs.add(gene + "::" + Double.toString(mutationFrequency));
+            }
+            _logger.info("Adding iquery::mutationfrequency attribute to (" 
+                    + Long.toString(nodeId) + ") with: " + mutFreqs.toString());
+            NodeAttributesElement nae = new NodeAttributesElement(nodeId,
+                            "iquery::mutationfrequency", mutFreqs,
+                                    ATTRIBUTE_DATA_TYPE.LIST_OF_STRING);
                     cxNetwork.addNodeAttribute(nae);
                     nodeAttrCntr++;
-                }
-            }
-            
         }
+        
         _logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
 	cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
 
