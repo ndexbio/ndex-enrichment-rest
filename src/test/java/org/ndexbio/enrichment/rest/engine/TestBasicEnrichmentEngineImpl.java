@@ -115,7 +115,7 @@ public class TestBasicEnrichmentEngineImpl {
 	public void testAnnotateAndSaveNetworkWithNullFilePassedIn() {
 		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25,null);
 		EnrichmentQueryResult eqr = new EnrichmentQueryResult();
-		enricher.annotateAndSaveNetwork(null, new NiceCXNetwork(), eqr);
+		enricher.annotateAndSaveNetwork(null, new NiceCXNetwork(), null, eqr);
 	}
 	
 	@Test
@@ -124,7 +124,7 @@ public class TestBasicEnrichmentEngineImpl {
 		try {
 			BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25,null);
 			EnrichmentQueryResult eqr = new EnrichmentQueryResult();
-			enricher.annotateAndSaveNetwork(tempFile, null, eqr);
+			enricher.annotateAndSaveNetwork(tempFile, null, null, eqr);
 			
 		} finally {
 			_folder.delete();
