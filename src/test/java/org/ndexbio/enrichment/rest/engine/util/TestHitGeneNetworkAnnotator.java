@@ -29,7 +29,7 @@ public class TestHitGeneNetworkAnnotator {
             HitGeneNetworkAnnotator annotator = new HitGeneNetworkAnnotator(new InternalDatabaseResults(), null);
 
             try {
-                annotator.annotateNetwork(null, new EnrichmentQueryResult());
+                annotator.annotateNetwork(null, null, new EnrichmentQueryResult());
                 fail("expected EnrichmentException");
             } catch(EnrichmentException ee){
                 assertEquals("network is null", ee.getMessage());
@@ -41,7 +41,7 @@ public class TestHitGeneNetworkAnnotator {
             HitGeneNetworkAnnotator annotator = new HitGeneNetworkAnnotator(new InternalDatabaseResults(), null);
 
             try {
-                annotator.annotateNetwork(new NiceCXNetwork(), null);
+                annotator.annotateNetwork(new NiceCXNetwork(), null, null);
                 fail("expected EnrichmentException");
             } catch(EnrichmentException ee){
                 assertEquals("EnrichmentQueryResult is null", ee.getMessage());
@@ -54,7 +54,7 @@ public class TestHitGeneNetworkAnnotator {
 
             try {
                 
-                annotator.annotateNetwork(new NiceCXNetwork(),
+                annotator.annotateNetwork(new NiceCXNetwork(), null,
                         new EnrichmentQueryResult());
                 fail("expected EnrichmentException");
             } catch(EnrichmentException ee){
@@ -75,7 +75,7 @@ public class TestHitGeneNetworkAnnotator {
             
             NiceCXNetwork net = new NiceCXNetwork();
             
-            annotator.annotateNetwork(net, eqr);
+            annotator.annotateNetwork(net, null, eqr);
             assertNotNull(net.getMetadata());
             assertEquals(0L, (long)net.getMetadata().getElementCount(NodeAttributesElement.ASPECT_NAME));
         }
@@ -110,7 +110,7 @@ public class TestHitGeneNetworkAnnotator {
             
             HitGeneNetworkAnnotator annotator = new HitGeneNetworkAnnotator(idr, null);
          
-            annotator.annotateNetwork(net, eqr);
+            annotator.annotateNetwork(net, null, eqr);
             assertNotNull(net.getMetadata());
             assertEquals(3L, (long)net.getMetadata().getElementCount(NodeAttributesElement.ASPECT_NAME));
 
@@ -158,7 +158,7 @@ public class TestHitGeneNetworkAnnotator {
             
             HitGeneNetworkAnnotator annotator = new HitGeneNetworkAnnotator(idr, "foo");
          
-            annotator.annotateNetwork(net, eqr);
+            annotator.annotateNetwork(net, null, eqr);
             assertNotNull(net.getMetadata());
             assertEquals(6L, (long)net.getMetadata().getElementCount(NodeAttributesElement.ASPECT_NAME));
 
