@@ -58,6 +58,7 @@ import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
 public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	public static final String CX_SUFFIX = ".cx";
 	public static final String EQR_JSON_FILE = "enrichmentqueryresults.json";
+        public static final String QUERY_JSON_FILE = "query.json";
 
 	static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineImpl.class);
 
@@ -257,6 +258,25 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	protected String getEnrichmentQueryResultsFilePath(final String id){
 		return this._taskDir + File.separator + id + File.separator + BasicEnrichmentEngineImpl.EQR_JSON_FILE;
 	}
+        
+        protected String getEnrichmentQueryFilePath(final String id){
+		return this._taskDir + File.separator + id + File.separator + BasicEnrichmentEngineImpl.QUERY_JSON_FILE;
+	}
+        
+        protected EnrichmentQuery getEnrichmentQueryFromFilesystem(final String id){
+            ObjectMapper mappy = new ObjectMapper();
+		File eqrFile = new File(getEnrichmentQueryFilePath(id));
+		if (eqrFile.isFile() == false){
+			_logger.error(eqrFile.getAbsolutePath() + " is not a file");
+			return null;
+		}
+		try {
+			return mappy.readValue(eqrFile, EnrichmentQuery.class);
+		} catch(IOException io){
+			_logger.error("Caught exception trying to load " + eqrFile.getAbsolutePath(), io);
+		}
+		return null;
+        }
 
 	protected void saveEnrichmentQueryResultsToFilesystem(final String id){
 		EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDb(id);
@@ -282,7 +302,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
          * @param cxNetwork Network to annotate and save
          * @param eqr Query result to annotate network with
          */
-	protected void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr){
+	protected void annotateAndSaveNetwork(File destFile, NiceCXNetwork cxNetwork, EnrichmentQuery query, EnrichmentQueryResult eqr){
 		if (destFile == null){
 			_logger.error("destFile is null");
 			return;
@@ -301,7 +321,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
                         if (this._networkAnnotators != null){
                             for (NetworkAnnotator annotator : _networkAnnotators){
                                 try {
-                                    annotator.annotateNetwork(cxNetwork, eqr);
+                                    annotator.annotateNetwork(cxNetwork, query, eqr);
                                 } catch(EnrichmentException ee){
                                     _logger.error("Caught exception trying to annotate network with : " + 
                                             annotator.getClass().getCanonicalName() + " class : " + ee.getMessage(), ee);
@@ -480,7 +500,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 				File tmpFile = new File(this._taskDir + File.separator + id +
 						File.separator + UUID.randomUUID().toString() + CX_SUFFIX);
 				long startTime = System.currentTimeMillis();
-				annotateAndSaveNetwork(tmpFile, cxNetwork, eqr);
+                                EnrichmentQuery query = this.getEnrichmentQueryFromFilesystem(id);
+				annotateAndSaveNetwork(tmpFile, cxNetwork, query, eqr);
 				_logger.info("Annotating network {} for task {} took {} ms",
 						new Object[]{networkUUID, id, System.currentTimeMillis() - startTime});
 				tmpFile.renameTo(destFile);
