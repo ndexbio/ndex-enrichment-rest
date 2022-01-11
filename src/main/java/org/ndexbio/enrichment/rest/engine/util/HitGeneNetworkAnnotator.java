@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import org.ndexbio.cxio.aspects.datamodels.ATTRIBUTE_DATA_TYPE;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
+import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
@@ -52,7 +53,7 @@ public class HitGeneNetworkAnnotator implements NetworkAnnotator {
      * @throws EnrichmentException if {@code cxNetwork}, {@code eqr}, or network UUID is {@code null}
      */
     @Override
-    public void annotateNetwork(NiceCXNetwork cxNetwork, EnrichmentQueryResult eqr) throws EnrichmentException {
+    public void annotateNetwork(NiceCXNetwork cxNetwork, EnrichmentQuery query, EnrichmentQueryResult eqr) throws EnrichmentException {
         if (cxNetwork == null){
             throw new EnrichmentException("network is null");
         }
