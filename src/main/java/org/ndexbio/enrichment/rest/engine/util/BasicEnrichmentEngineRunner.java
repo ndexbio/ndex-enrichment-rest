@@ -1,7 +1,8 @@
 package org.ndexbio.enrichment.rest.engine.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,6 +24,7 @@ import org.apache.commons.math3.distribution.HypergeometricDistribution;
 import org.apache.commons.math3.exception.NotPositiveException;
 import org.apache.commons.math3.exception.NotStrictlyPositiveException;
 import org.apache.commons.math3.exception.NumberIsTooLargeException;
+import org.ndexbio.enrichment.rest.engine.BasicEnrichmentEngineImpl;
 import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
@@ -103,6 +105,10 @@ public class BasicEnrichmentEngineRunner implements Callable {
 			updateEnrichmentQueryResults(EnrichmentQueryResults.FAILED_STATUS, 100, null);
 			return;
 		}		
+                
+                // write the query to the filesystem
+                saveEnrichmentQueryToFilesystem(query, taskDir.getAbsolutePath() +
+                        File.separator + BasicEnrichmentEngineImpl.QUERY_JSON_FILE);
 		
 		//check gene list
 		List<EnrichmentQueryResult> enrichmentResult = new LinkedList<>();
@@ -147,6 +153,19 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		updateEnrichmentQueryResults(EnrichmentQueryResults.COMPLETE_STATUS, 100, enrichmentResult);
 	}
 	
+        protected void saveEnrichmentQueryToFilesystem(final EnrichmentQuery query, final String destPath){
+		if (query == null){
+			return;
+		}
+		File destFile = new File(destPath);
+		ObjectMapper mappy = new ObjectMapper();
+		try (FileOutputStream out = new FileOutputStream(destFile)){
+			mappy.writeValue(out, query);
+		} catch(IOException io){
+			_logger.error("Caught exception writing " + destFile.getAbsolutePath(), io);
+		}
+	}
+        
 	/**
 	 * Filters {@code queryGeneList} by known genes in universe
 	 * @param queryGeneList query genes
