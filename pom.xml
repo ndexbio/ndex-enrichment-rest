@@ -25,14 +25,15 @@
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.7</commons-io.version>
         <ndex-enrichment-rest-model.version>0.4.0-SNAPSHOT</ndex-enrichment-rest-model.version>
-		<ndex-object-model.version>2.5.3-SNAPSHOT</ndex-object-model.version>
-        <ndex-java-client.version>2.5.2</ndex-java-client.version>
+	<ndex-object-model.version>2.5.3-SNAPSHOT</ndex-object-model.version>
+        <ndex-java-client.version>2.5.3-SNAPSHOT</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
         <guava.version>29.0-jre</guava.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <javax.vecmath.version>1.5.2</javax.vecmath.version>
-		<java.version>11</java.version>
+        <java.version>11</java.version>
+        <unirest-java.version>3.13.6</unirest-java.version>
     </properties>
     
     <repositories>
@@ -128,6 +129,20 @@
             <version>${jackson.version}</version>
         </dependency>
         
+        <!-- https://mvnrepository.com/artifact/com.konghq/unirest-java -->
+        <dependency>
+            <groupId>com.konghq</groupId>
+            <artifactId>unirest-java</artifactId>
+            <version>${unirest-java.version}</version>
+        </dependency>
+        
+        <!-- https://mvnrepository.com/artifact/com.konghq/unirest-objectmapper-jackson -->
+        <dependency>
+            <groupId>com.konghq</groupId>
+            <artifactId>unirest-objectmapper-jackson</artifactId>
+            <version>${unirest-java.version}</version>
+        </dependency>
+        
         <!--resteasy-->
         <dependency>
             <groupId>org.jboss.resteasy</groupId>
@@ -218,11 +233,18 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.konghq/unirest-mocks -->
+        <dependency>
+            <groupId>com.konghq</groupId>
+            <artifactId>unirest-mocks</artifactId>
+            <version>${unirest-java.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
     		<groupId>javax.vecmath</groupId>
     		<artifactId>vecmath</artifactId>
     		<version>${javax.vecmath.version}</version>
-		</dependency>
+        </dependency>
     </dependencies>
     <scm>
 	  <connection>scm:git:https://github.com/cytoscape/ndex-enrichment-rest.git</connection>
