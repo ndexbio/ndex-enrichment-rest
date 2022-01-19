@@ -133,6 +133,7 @@ public class TestBasicEnrichmentEngineFactory {
 		idr.setGeneMapList(geneMapList);
 		
 		idr.setResults(dbres);
+                idr.setNetworkToGeneToNodeMap(new HashMap<>());
 		
 		when(mockConfig.getNDExDatabases()).thenReturn(idr);
 		when(mockConfig.getNumberWorkers()).thenReturn(5);
