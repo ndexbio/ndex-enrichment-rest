@@ -177,6 +177,11 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
         final String mutationFrequencyURL = validateInputsAndGetMutationService(cxNetwork,
                 query, eqr);
         
+        if (mutationFrequencyURL == null){
+            // something was invalid or unset just return
+            return;
+        }
+        
         Map<String, Set<Long>> geneToNodeMap = _idr.getNetworkToGeneToNodeMap().get(eqr.getNetworkUUID());
         if (geneToNodeMap == null || geneToNodeMap.isEmpty()){
             _logger.info("No genes for network with ID: " + eqr.getNetworkUUID());
@@ -184,18 +189,19 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
         }
 
         Map<Long, Set<String>> nodeIdToGenes = getNodeIdToGenesMap(geneToNodeMap);
-        
+
         Map<String, Double> mutFreqMap = getMutationFrequency(mutationFrequencyURL,
                 geneToNodeMap.keySet());
 
         long nodeAttrCntr = this.getNodeAttributesElementCounter(cxNetwork);
         Set<String> geneSet;
-        
+
         NodeAttributesElement nae;
         StringBuilder sb = new StringBuilder();
         Map<Long, NodesElement> nodes = cxNetwork.getNodes();
         
         for (Long nodeId : nodes.keySet()){
+
             geneSet = nodeIdToGenes.get(nodeId);
             if (geneSet == null || geneSet.isEmpty()){
                 // we need to set the iquery label to the "name" column or 
@@ -222,8 +228,8 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
                 }
                 sb.append(gene);
                 sb.append(" ");
-                    
-                if (freq == Double.NaN){
+                
+                if (Double.isNaN(freq)){
                     mutFreqs.add(gene
                             + CBioPortalMutationFreqNetworkAnnotator.FREQ_ARRAY_DELIMITER 
                             + CBioPortalMutationFreqNetworkAnnotator.UNKNOWN_FREQ);
@@ -312,19 +318,23 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
     private Map<String, Double> getMutationFrequency(final String mutationFrequencyURL,
             Set<String> genes){
         
-        
         GeneList geneList = new GeneList();
-        
+
         List<String> aList = new ArrayList<>();
         aList.addAll(genes);
         geneList.setGenes(aList);
         try {
             MutationFrequencies mutFreqs = _client.getMutationFrequencies(mutationFrequencyURL,
                     geneList);
+            
             return mutFreqs.getMutationFrequencies();
         } catch(EnrichmentException ee){
             _logger.error("Caught exception, going to just "
                     + " return empty Map : " + ee.getMessage(), ee);
+            return new HashMap<>();
+        } catch(NullPointerException npe){
+            _logger.error("Caught NPE exception, going to just return " 
+                    + " empty Map : " + npe.getMessage(), npe);
             return new HashMap<>();
         }
     }
