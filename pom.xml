@@ -15,7 +15,7 @@
         <resteasy.version>3.1.4.Final</resteasy.version>
         <junit.version>4.12</junit.version>
         <easymock.version>4.0.2</easymock.version>
-        <mockito.version>3.2.4</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
+        <mockito.version>3.12.4</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
         <jetty.version>9.4.43.v20210629</jetty.version>
         <jetty.maven.plugin.version>9.4.43.v20210629</jetty.maven.plugin.version>
         <swagger.version>2.0.0</swagger.version>
