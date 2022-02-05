@@ -294,22 +294,22 @@ public class TestCBioPortalMutationFreqNetworkAnnotator {
                     }
                 } else if (nodeId == 2L){
                     if (nae.getName().equals(CBioPortalMutationFreqNetworkAnnotator.IQUERY_LABEL)){
-                        assertEquals("PTCH1 2.0%", nae.getValue());
+                        assertEquals("PTCH1 (2.0%)", nae.getValue());
                     } else if (nae.getName().equals(CBioPortalMutationFreqNetworkAnnotator.IQUERY_MUTFREQ_LIST)){
                         assertEquals("PTCH1::2.0", nae.getValues().get(0));
                     }
                     
                 } else if (nodeId == 5L){
                     if (nae.getName().equals(CBioPortalMutationFreqNetworkAnnotator.IQUERY_LABEL)){
-                        assertEquals("FURIN ?", nae.getValue());
+                        assertEquals("FURIN (?)", nae.getValue());
                     } else if (nae.getName().equals(CBioPortalMutationFreqNetworkAnnotator.IQUERY_MUTFREQ_LIST)){
                         assertEquals("FURIN::?", nae.getValues().get(0));
                     }
                 }
                 else if (nodeId == 8L){
                     if (nae.getName().equals(CBioPortalMutationFreqNetworkAnnotator.IQUERY_LABEL)){
-                        assertTrue("MAPK9 ?,DKK1 4.0%".equals(nae.getValue()) ||
-                                "DKK1 4.0%,MAPK9 ?".equals(nae.getValue()));
+                        assertTrue("MAPK9 (?),DKK1 (4.0%)".equals(nae.getValue()) ||
+                                "DKK1 (4.0%),MAPK9 (?)".equals(nae.getValue()));
                     } else if (nae.getName().equals(CBioPortalMutationFreqNetworkAnnotator.IQUERY_MUTFREQ_LIST)){
                         assertTrue(("MAPK9::?".equals(nae.getValues().get(0)) &&
                                 "DKK1::4.0".equals(nae.getValues().get(1))) ||
