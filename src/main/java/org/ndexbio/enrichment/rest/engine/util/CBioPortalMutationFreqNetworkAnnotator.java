@@ -227,7 +227,7 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
                     sb.append(",");
                 }
                 sb.append(gene);
-                sb.append(" ");
+                sb.append(" (");
                 
                 if (Double.isNaN(freq)){
                     mutFreqs.add(gene
@@ -238,9 +238,11 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
                     mutFreqs.add(gene 
                             + CBioPortalMutationFreqNetworkAnnotator.FREQ_ARRAY_DELIMITER
                             + freq.toString());
+                   
                     sb.append(String.format("%.1f", freq));
                     sb.append("%");
                 }
+                sb.append(")");
             }
             _logger.debug("Adding " + CBioPortalMutationFreqNetworkAnnotator.IQUERY_MUTFREQ_LIST
                     + " attribute to (" 
