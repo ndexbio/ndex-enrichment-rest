@@ -98,7 +98,6 @@ public class BasicEnrichmentEngineFactory {
                 netAnnotators.add(new HitGeneNetworkAnnotator(_databaseResults, null));
 
                 netAnnotators.add(new CBioPortalMutationFreqNetworkAnnotator(_databaseResults));
-                netAnnotators.add(new SetQueryGeneSelectedNetworkAnnotator(_databaseResults));
                 enricher.setNetworkAnnotators(netAnnotators);
         return enricher;
     }

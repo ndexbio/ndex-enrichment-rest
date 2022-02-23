@@ -5,7 +5,7 @@
     <groupId>org.ndexbio.enrichment</groupId>
     <artifactId>ndex-enrichment-rest</artifactId>
     <version>0.8.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <name>NDEx Pathway Relevance REST Service</name>
 
@@ -13,18 +13,17 @@
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <resteasy.version>3.1.4.Final</resteasy.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>5.8.2</junit.version>
         <easymock.version>4.0.2</easymock.version>
         <mockito.version>3.12.4</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
-        <jetty.version>9.4.43.v20210629</jetty.version>
-        <jetty.maven.plugin.version>9.4.43.v20210629</jetty.maven.plugin.version>
+        <jetty.version>9.4.45.v20220203</jetty.version>
+        <jetty.maven.plugin.version>9.4.45.v20220203</jetty.maven.plugin.version>
         <swagger.version>2.0.0</swagger.version>
         <jackson.version>2.9.9</jackson.version>
         <jackson.databind.version>2.9.10.3</jackson.databind.version>
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.7</commons-io.version>
-        <ndex-enrichment-rest-model.version>0.4.0-SNAPSHOT</ndex-enrichment-rest-model.version>
 	<ndex-object-model.version>2.5.3-SNAPSHOT</ndex-object-model.version>
         <ndex-java-client.version>2.5.3-SNAPSHOT</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
@@ -87,15 +86,10 @@
             <artifactId>ndex-java-client</artifactId>
             <version>${ndex-java-client.version}</version>
         </dependency>
-		<dependency>
+	<dependency>
             <groupId>org.ndexbio</groupId>
             <artifactId>ndex-object-model</artifactId>
             <version>${ndex-object-model.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ndexbio.enrichment.rest.model</groupId>
-            <artifactId>ndex-enrichment-rest-model</artifactId>
-            <version>${ndex-enrichment-rest-model.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -209,8 +203,14 @@
         </dependency>
         <!--unit test-->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>

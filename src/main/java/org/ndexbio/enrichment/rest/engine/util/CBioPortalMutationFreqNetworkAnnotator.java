@@ -83,8 +83,9 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
         }
         
         _idr = idr;
-        _labelAnnotator = new LabelNetworkAnnotator("COL=" +
-                CBioPortalMutationFreqNetworkAnnotator.IQUERY_LABEL + ",T=string", null);
+        _labelAnnotator = null;
+        //_labelAnnotator = new LabelNetworkAnnotator("COL=" +
+        //        CBioPortalMutationFreqNetworkAnnotator.IQUERY_LABEL + ",T=string", null);
         _client = new MutationFrequencyRestClientImpl();
     }
     
@@ -121,10 +122,6 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
         
         if (_client == null){
             throw new EnrichmentException("REST client is null");
-        }
-        
-        if (_labelAnnotator == null){
-            throw new EnrichmentException("NetworkLabelAnnotator is null");
         }
         
         if (query == null){
@@ -265,7 +262,9 @@ public class CBioPortalMutationFreqNetworkAnnotator implements NetworkAnnotator 
                     nodeAttrCntr++;
             
         }
-        _labelAnnotator.annotateNetwork(cxNetwork, query, eqr);
+        if (_labelAnnotator != null){
+            _labelAnnotator.annotateNetwork(cxNetwork, query, eqr);
+        }
         _logger.debug("Updating node attributes counter to " + Long.toString(nodeAttrCntr));
 	cxNetwork.getMetadata().setElementCount(NodeAttributesElement.ASPECT_NAME, nodeAttrCntr);
 

@@ -203,9 +203,8 @@ public class TestCBioPortalMutationFreqNetworkAnnotator {
             annotator.setAlternateNetworkLabelAnnotator(null);
             
             annotator.annotateNetwork(new NiceCXNetwork(), query, _defaultEqr);
-            fail("expected EnrichmentException");
         } catch(EnrichmentException ee){
-            assertEquals("NetworkLabelAnnotator is null", ee.getMessage());
+            fail("unexpected exception: " + ee.getMessage());
         }
     }
     
