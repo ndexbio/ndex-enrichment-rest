@@ -49,6 +49,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import java.util.Comparator;
+import java.util.Map;
 import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
 
 /**
@@ -384,6 +385,24 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		//String id = UUID.nameUUIDFromBytes(intermediary.getBytes()).toString();
 		return intermediary;
 	}
+        
+        private void removeQueryFromCache(final String id){
+            Map<EnrichmentQuery, String> cacheMap = this.geneSetSearchCache.asMap();
+            EnrichmentQuery queryToInvalidate = null;
+            for (EnrichmentQuery query : cacheMap.keySet()){
+                String queryId = cacheMap.get(query);
+                if (queryId == null){
+                    continue;
+                }
+                if (queryId.equals(id)){
+                    queryToInvalidate = query;
+                    break;
+                }
+            }
+            if (queryToInvalidate != null){
+                this.geneSetSearchCache.invalidate(queryToInvalidate);
+            }
+        }
 
 	@Override
 	public DatabaseResults getDatabaseResults() throws EnrichmentException {
@@ -445,6 +464,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		if (_queryResults.containsKey(id) == true){
 			_queryResults.remove(id);
 		}
+                
+                removeQueryFromCache(id);
+                
 		File thisTaskDir = new File(this._taskDir + File.separator + id);
 		if (thisTaskDir.exists() == false){
 			return;
@@ -453,6 +475,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		if (FileUtils.deleteQuietly(thisTaskDir) == false){
 			_logger.error("There was a problem deleting the directory: " + thisTaskDir.getAbsolutePath());
 		}
+                
 	}
 
 	protected EnrichmentQueryResult getEnrichmentQueryResult(final String id, 
@@ -526,6 +549,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		ServerStatus sObj = new ServerStatus();
 		sObj.setStatus(ServerStatus.OK_STATUS);
 		sObj.setRestVersion(EnrichmentHttpServletDispatcher.getVersion());
+                if (this.geneSetSearchCache != null){
+                    sObj.setCacheSize(this.geneSetSearchCache.size());
+                }
 		OperatingSystemMXBean omb = ManagementFactory.getOperatingSystemMXBean();
 		float unknown = (float)-1;
 		float load = (float)omb.getSystemLoadAverage();
