@@ -5,6 +5,7 @@
  */
 package org.ndexbio.enrichment.rest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -15,6 +16,7 @@ import java.util.Locale;
  * Encapsulates an error encountered by the server
  * @author churas
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ErrorResponse {
     
     private String _errorCode;

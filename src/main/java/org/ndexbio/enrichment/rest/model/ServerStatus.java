@@ -1,4 +1,5 @@
 package org.ndexbio.enrichment.rest.model;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
@@ -6,6 +7,7 @@ import java.util.List;
  * Represents status of the server
  * @author churas
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ServerStatus {
     
     
@@ -17,6 +19,7 @@ public class ServerStatus {
     private List<Float> _load;
     private List<Integer> _queries;
     private String _restVersion;
+    private long _cacheSize;
     
 
     public ServerStatus(){
@@ -72,5 +75,16 @@ public class ServerStatus {
 
     public void setRestVersion(String _restVersion) {
         this._restVersion = _restVersion;
-    }    
+    }
+
+    @Schema(description="Gets roughly the number of elements in the cache")
+    public long getCacheSize() {
+        return _cacheSize;
+    }
+
+    public void setCacheSize(long _cacheSize) {
+        this._cacheSize = _cacheSize;
+    }
+    
+    
 }

@@ -1,9 +1,12 @@
 package org.ndexbio.enrichment.rest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  *
  * @author churas
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalNdexConnectionParams {
     
     private String _user;

@@ -1,10 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.ndexbio.enrichment.rest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
 import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
@@ -13,6 +9,7 @@ import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
  * Represents results of databases
  * @author churas
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DatabaseResults {
     
     private List<DatabaseResult> _results;

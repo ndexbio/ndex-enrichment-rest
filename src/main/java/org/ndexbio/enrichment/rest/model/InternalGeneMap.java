@@ -1,5 +1,6 @@
 package org.ndexbio.enrichment.rest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 import java.util.Set;
 
@@ -7,6 +8,7 @@ import java.util.Set;
  *
  * @author churas
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InternalGeneMap {
     
     private String _databaseUUID;
