@@ -1,6 +1,7 @@
 package org.ndexbio.enrichment.rest.client;
 
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
@@ -198,12 +199,16 @@ public class EnrichmentRestClientImpl implements EnrichmentRestClient {
             throw new IllegalArgumentException("id cannot be null");
         }
         try {
-            HttpResponse<InputStream> dbRes = Unirest.get(getNetworkOverlayEndPoint(id))
+            
+            
+            HttpResponse<byte[]> dbRes = _unirest.get(getNetworkOverlayEndPoint(id))
                     .header(ACCEPT, APPLICATION_JSON)
                     .queryString("databaseUUID", databaseUUID)
-                    .queryString("networkUUID", networkUUID).asObject(InputStream.class);
-            
-            return dbRes.getBody();
+                    .queryString("networkUUID", networkUUID).asBytes();
+            // TODO need to get this to directly return in the inputstream
+            //      instead of getting the body as a byte array and then
+            //      wrapping it in an InputStream
+            return new ByteArrayInputStream(dbRes.getBody());
         } catch(UnirestException ex){
             throw new EnrichmentException("Caught an exception: " + ex.getMessage());
         }
