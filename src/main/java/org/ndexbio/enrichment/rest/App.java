@@ -370,7 +370,10 @@ public class App {
 		sb.append(Configuration.NUM_RESULTS + " = 25\n\n");
 		
 		sb.append("# Algorithm to use to sort results supported values (pvalue, similarity)\n");
-		sb.append(Configuration.SORT_ALGO + " = similarity\n");
+		sb.append(Configuration.SORT_ALGO + " = similarity\n\n");
+		
+		sb.append("# Denotes whether genes that hit from query are selected (true, false)\n");
+		sb.append(Configuration.SELECT_HIT_GENES + " = false\n");
 
         return sb.toString();
     }

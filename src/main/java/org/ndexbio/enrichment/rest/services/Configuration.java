@@ -39,6 +39,8 @@ public class Configuration {
     public static final String NDEX_USERAGENT = "ndex.useragent";
 	public static final String NUM_RESULTS = "number.returned.results";
 	public static final String SORT_ALGO = "sort.algorithm";
+	
+	public static final String SELECT_HIT_GENES = "select.hit.genes";
     
     
     public static final String DATABASE_RESULTS_JSON_FILE = "databaseresults.json";
@@ -53,6 +55,8 @@ public class Configuration {
 	private static String _sortAlgorithm;
     private static int _numWorkers;
 	private static int _numResults;
+	private static boolean _selectHitGenes;
+	
     /**
      * Constructor that attempts to get configuration from properties file
      * specified via configPath
@@ -86,6 +90,7 @@ public class Configuration {
         }
 		_numResults = Integer.parseInt(props.getProperty(Configuration.NUM_RESULTS, "25"));
 		_sortAlgorithm = props.getProperty(Configuration.SORT_ALGO, "similarity");
+		_selectHitGenes = Boolean.parseBoolean(props.getProperty(Configuration.SELECT_HIT_GENES, "false"));
     }
         
     protected void setEnrichmentEngine(EnrichmentEngine ee){
@@ -95,6 +100,16 @@ public class Configuration {
         return _enrichmentEngine;
     }
 
+	/**
+	 * Denotes whether this service should select aka highlight the
+	 * hit genes from the query
+	 * 
+	 * @return {@code true} if hit genes should be selected 
+	 */
+	public boolean getSelectHitGenes(){
+		return _selectHitGenes;
+	}
+	
     /**
      * Gets alternate URL prefix for the host running this service.
      * @return String containing alternate URL ending with / or empty

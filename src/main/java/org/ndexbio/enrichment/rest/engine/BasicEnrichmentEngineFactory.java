@@ -37,6 +37,7 @@ public class BasicEnrichmentEngineFactory {
     private final InternalDatabaseResults _databaseResults;
 	private final int _numWorkers;
 	private final int _numResultsToReturn;
+	private boolean _selectHitGenes;
 	private ExecutorServiceFactory _executorServiceFac;
 	private Comparator<EnrichmentQueryResult> _comparator;
     
@@ -64,6 +65,7 @@ public class BasicEnrichmentEngineFactory {
 					+ "Valid values are pvalue, similarity", config.getSortAlgorithm());
 			_comparator = new EnrichmentQueryResultBySimilarity();
 		}
+		_selectHitGenes = config.getSelectHitGenes();
 		
     }
     
@@ -94,11 +96,16 @@ public class BasicEnrichmentEngineFactory {
 		enricher.setDatabaseResults(_databaseResults);
 		enricher.setDatabaseMap(databases);
                 
-                ArrayList<NetworkAnnotator> netAnnotators = new ArrayList<>();
-                netAnnotators.add(new HitGeneNetworkAnnotator(_databaseResults, null));
+		ArrayList<NetworkAnnotator> netAnnotators = new ArrayList<>();
+		netAnnotators.add(new HitGeneNetworkAnnotator(_databaseResults, null));
+		
+		// only select hit genes if configuration was set to true
+		if (_selectHitGenes){
+			netAnnotators.add(new SetQueryGeneSelectedNetworkAnnotator(_databaseResults));
+		}
 
-                netAnnotators.add(new CBioPortalMutationFreqNetworkAnnotator(_databaseResults));
-                enricher.setNetworkAnnotators(netAnnotators);
+		netAnnotators.add(new CBioPortalMutationFreqNetworkAnnotator(_databaseResults));
+		enricher.setNetworkAnnotators(netAnnotators);
         return enricher;
     }
     
