@@ -20,10 +20,10 @@ from the command line.
 Requirements
 ============
 
-* Centos 6+, Ubuntu 12+, and most other linux distributions should work
-* [Java][java] 8+ **(jdk to build)**
+* Centos 7+, Ubuntu 12+, and most other linux distributions should work
+* [Java][java] 11+ **(jdk to build)**
 * [Make][make] **(to build)**
-* [Maven][maven] 3.3 or higher **(to build)** -- tested with 3.6
+* [Maven][maven] 3.6 or higher **(to build)**
 
 
 Building [NDEx][ndex] Pathway Relevance REST Service
