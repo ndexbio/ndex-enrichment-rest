@@ -10,6 +10,10 @@ HISTORY
 
 * Bumped jackson-databind to `2.9.10.8`
 
+* Migrated client and model objects from https://github.com/cytoscape/ndex-enrichment-rest-client
+  and https://github.com/cytoscape/ndex-enrichment-rest-model back into this code base and
+  removed the dependencies
+
 0.7.0 (2020-12-22)
 -------------------
 
