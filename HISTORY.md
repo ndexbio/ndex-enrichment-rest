@@ -1,5 +1,15 @@
 HISTORY
 ========
+
+0.8.0 (TBD)
+-------------------
+
+* To be consistent with other IQuery services, version bumped up to `0.8.0`
+
+* Bumped jetty version to `9.4.45.v20220203`
+
+* Bumped jackson-databind to `2.9.10.8`
+
 0.7.0 (2020-12-22)
 -------------------
 
