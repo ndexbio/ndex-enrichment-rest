@@ -14,6 +14,18 @@ HISTORY
   and https://github.com/cytoscape/ndex-enrichment-rest-model back into this code base and
   removed the dependencies
 
+* Added new configuration option `select.hit.genes` which if `true` selects the hit
+  genes. By default this is `false`
+
+* If `geneAnnotationServices` is set in query then this service will annotate
+  nodes in networks with mutation frequencies
+
+* Fixed bug where calling delete endpoint was NOT removing the entry from the
+  cache causing inconsistencies on the get endpoints
+
+* Status endpoint now reports number of elements in cache
+
+
 0.7.0 (2020-12-22)
 -------------------
 
