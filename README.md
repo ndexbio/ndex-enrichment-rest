@@ -10,7 +10,6 @@
 =====================================
 
 [![Build Status](https://app.travis-ci.com/cytoscape/ndex-enrichment-rest.svg?branch=master)](https://app.travis-ci.com/cytoscape/ndex-enrichment-rest)
-[![Coverage Status](https://coveralls.io/repos/github/cytoscape/ndex-enrichment-rest/badge.svg)](https://coveralls.io/github/cytoscape/ndex-enrichment-rest)
 
 Provides a pathway relevance REST service using select networks from [NDEx][ndex] as a backend.
 This service runs using an embedded [Jetty][jetty] server and is invoked
