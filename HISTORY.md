@@ -1,7 +1,7 @@
 HISTORY
 ========
 
-0.8.0 (TBD)
+0.8.0 (2022-03-11)
 -------------------
 
 * To be consistent with other IQuery services, version bumped up to `0.8.0`
