@@ -5,10 +5,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import org.ndexbio.ndexsearch.rest.model.AlterationData;
 
 /**
  * Represents an Enrichment Query
@@ -20,6 +22,7 @@ public class EnrichmentQuery {
     private SortedSet<String> _geneList;
     private SortedSet<String> _databaseList;
     private Map<String, String> _geneAnnotationServices;
+	private List<AlterationData> _alterationData;
 
 
 	/**
@@ -74,7 +77,7 @@ public class EnrichmentQuery {
 		}
     }
     
-        @Schema(description="Map of gene Annotation services")
+    @Schema(description="Optional map of gene Annotation services")
 	public Map<String, String> getGeneAnnotationServices(){
 		return this._geneAnnotationServices;
 	}
@@ -83,6 +86,16 @@ public class EnrichmentQuery {
 		this._geneAnnotationServices = _geneAnnotationServices;
 	}
 
+	@Schema(description="Optional Alteration data for genes in query")
+	public List<AlterationData> getAlterationData() {
+		return _alterationData;
+	}
+
+	public void setAlterationData(List<AlterationData> _alterationData) {
+		this._alterationData = _alterationData;
+	}
+
+	
     
 	/**
 	 * Generates a hashcode by creating a String containing
