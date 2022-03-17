@@ -192,8 +192,11 @@ public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotato
 			// for each gene with percent altered values
             List<String> pcAlteredList = new ArrayList<>();
             sb.setLength(0);
+			boolean addColon = false;
+			int alteredGeneCount = 0;
 			if (geneSet.size() > 1){
 				sb.append(nodes.get(nodeId).getNodeName());
+				addColon = true;
 			}
             for (String gene : geneSet){
                 AlterationData ad = alterationMap.get(gene);
@@ -205,13 +208,24 @@ public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotato
                 if (pcAltered == null){
                     continue;
                 }
-                if (sb.length() > 0){
-                    sb.append(",");
-                }
-                sb.append(gene);
-                sb.append(" (");
-                sb.append(pcAltered);
-				sb.append(")");
+				
+				// only render first two
+				// genes percent altered
+				if (alteredGeneCount < 2){
+					if (addColon == true){
+						sb.append(": ");
+						addColon = false;
+					} else if (sb.length() > 0){
+						sb.append(",");
+					}
+					sb.append(gene);
+					sb.append(" (");
+					sb.append(pcAltered);
+					sb.append(")");
+				} else if (alteredGeneCount == 2){
+					sb.append("...");
+				}
+				alteredGeneCount++;
                 pcAlteredList.add(gene 
                             + CBioPortalAlterationDataNetworkAnnotator.FREQ_ARRAY_DELIMITER
                             + pcAltered);

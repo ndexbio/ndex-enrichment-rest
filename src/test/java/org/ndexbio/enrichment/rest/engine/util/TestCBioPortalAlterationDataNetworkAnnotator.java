@@ -166,17 +166,21 @@ public class TestCBioPortalAlterationDataNetworkAnnotator {
     public void testGlypican3Network() throws IOException, EnrichmentException {
         NiceCXNetwork net = NdexRestClientUtilities.getCXNetworkFromStream(TestApp.class.getClassLoader().getResourceAsStream("glypican_3_network.cx"));
         String restEndPoint = "http://foo.com";
-        GeneList geneList = new GeneList();
-        geneList.setGenes(Arrays.asList("SSH"));
+        
         
         InternalDatabaseResults idr = new InternalDatabaseResults();
         Map<String, Map<String, Set<Long>>> nodeMap = new HashMap<>();
         Map<String, Set<Long>> geneMap = new HashMap<>();
+		geneMap.put("GPC3", new HashSet<>(Arrays.asList(1L)));
+		geneMap.put("J1", new HashSet<>(Arrays.asList(1L)));
         geneMap.put("PTCH1", new HashSet<>(Arrays.asList(2L)));
+		geneMap.put("H1", new HashSet<>(Arrays.asList(2L)));
+		geneMap.put("H2", new HashSet<>(Arrays.asList(2L)));
         geneMap.put("SHH", new HashSet<>(Arrays.asList(3L)));
-        geneMap.put("MAPK8", new HashSet<>(Arrays.asList(7L)));
+        geneMap.put("G1", new HashSet<>(Arrays.asList(7L)));
+		geneMap.put("G2", new HashSet<>(Arrays.asList(7L)));
+		geneMap.put("G3", new HashSet<>(Arrays.asList(7L)));
         geneMap.put("MAPK9", new HashSet<>(Arrays.asList(8L)));
-        geneMap.put("GPC3", new HashSet<>(Arrays.asList(1L)));
         geneMap.put("DKK1", new HashSet<>(Arrays.asList(4L, 8L)));
         geneMap.put("FURIN", new HashSet<>(Arrays.asList(5L)));
         nodeMap.put("UUID", geneMap);
@@ -186,11 +190,37 @@ public class TestCBioPortalAlterationDataNetworkAnnotator {
         CBioPortalAlterationDataNetworkAnnotator annotator = new CBioPortalAlterationDataNetworkAnnotator(idr);
         EnrichmentQuery query = new EnrichmentQuery();
         
-        query.setGeneList(new TreeSet<>(Arrays.asList("SHH")));
+        query.setGeneList(new TreeSet<>(Arrays.asList("SHH", "G1", "G2", "G3", "H1", "H2")));
 		AlterationData shh = new AlterationData();
 		shh.setGene("SHH");
 		shh.setPercentAltered("42%");
-		List<AlterationData> altData = Arrays.asList(shh);
+		
+		AlterationData g1 = new AlterationData();
+		g1.setGene("G1");
+		g1.setPercentAltered("10%");
+		
+		AlterationData g2 = new AlterationData();
+		g2.setGene("G2");
+		g2.setPercentAltered("20%");
+		
+		AlterationData g3 = new AlterationData();
+		g3.setGene("G3");
+		g3.setPercentAltered("30%");
+		
+		AlterationData h1 = new AlterationData();
+		h1.setGene("H1");
+		h1.setPercentAltered("35%");
+		
+		AlterationData h2 = new AlterationData();
+		h2.setGene("H2");
+		h2.setPercentAltered("36%");
+		
+		AlterationData j1 = new AlterationData();
+		j1.setGene("J1");
+		j1.setPercentAltered("37%");
+		
+
+		List<AlterationData> altData = Arrays.asList(shh, g1, g2, g3, h1, h2, j1);
         query.setAlterationData(altData);
         annotator.annotateNetwork(net, query, _defaultEqr);
         
@@ -200,14 +230,43 @@ public class TestCBioPortalAlterationDataNetworkAnnotator {
         Map<Long, Collection<NodeAttributesElement>> n_attrs = net.getNodeAttributes();
         for(Long nodeId : n_attrs.keySet()){
             for (NodeAttributesElement nae : n_attrs.get(nodeId)){
-                System.out.println(nae.getName() + " => " + nae.getValueAsJsonString());
-                if (nodeId == 3L){
+                //System.out.println("NodeID: " + Long.toString(nodeId) + " " + nae.getName() + " => " + nae.getValueAsJsonString());
+				if (nodeId == 1L){
+					if (nae.getName().equals(CBioPortalAlterationDataNetworkAnnotator.IQUERY_LABEL)){
+                        assertTrue("GPC3: J1 (37%)".equals(nae.getValue()));
+						System.out.println("label: " + nae.getValueAsJsonString());
+                    } else if (nae.getName().equals(CBioPortalAlterationDataNetworkAnnotator.IQUERY_PERCENTALTERED_LIST)){
+						assertEquals(1, nae.getValues().size());
+						assertTrue(nae.getValues().get(0).equals("J1::37%"));						
+                    }
+				}
+				else if (nodeId == 2L){
+					if (nae.getName().equals(CBioPortalAlterationDataNetworkAnnotator.IQUERY_LABEL)){
+                        assertTrue("PTCH1: H1 (35%),H2 (36%)".equals(nae.getValue()));
+						System.out.println("label: " + nae.getValueAsJsonString());
+                    } else if (nae.getName().equals(CBioPortalAlterationDataNetworkAnnotator.IQUERY_PERCENTALTERED_LIST)){
+						assertEquals(2, nae.getValues().size());
+						assertTrue(nae.getValues().get(0).equals("H1::35%"));						
+                    }
+				} else if (nodeId == 3L){
                     if (nae.getName().equals(CBioPortalAlterationDataNetworkAnnotator.IQUERY_LABEL)){
                         assertTrue("SHH (42%)".equals(nae.getValue()));
                     } else if (nae.getName().equals(CBioPortalAlterationDataNetworkAnnotator.IQUERY_PERCENTALTERED_LIST)){
                         assertTrue("SHH::42%".equals(nae.getValues().get(0)));
                     }
-                } 
+                } else if (nodeId == 7L){
+					
+					if (nae.getName().equals(CBioPortalAlterationDataNetworkAnnotator.IQUERY_LABEL)){
+                        assertTrue("MAPK8: G1 (10%),G2 (20%)...".equals(nae.getValue()));
+						//System.out.println("label: " + nae.getValueAsJsonString());
+                    } else if (nae.getName().equals(CBioPortalAlterationDataNetworkAnnotator.IQUERY_PERCENTALTERED_LIST)){
+						assertEquals(3, nae.getValues().size());
+						assertTrue(nae.getValues().get(0).equals("G1::10%"));
+						assertTrue(nae.getValues().get(1).equals("G2::20%"));
+						assertTrue(nae.getValues().get(2).equals("G3::30%"));
+						
+                    }
+				}
             }
         }
     }  
