@@ -105,7 +105,8 @@ public class BasicEnrichmentEngineFactory {
 			netAnnotators.add(new SetQueryGeneSelectedNetworkAnnotator(_databaseResults));
 		}
 
-		netAnnotators.add(new CBioPortalMutationFreqNetworkAnnotator(_databaseResults));
+		// Disabled since cbioportal does not offer a mutation frequency service
+		// netAnnotators.add(new CBioPortalMutationFreqNetworkAnnotator(_databaseResults));
 		netAnnotators.add(new CBioPortalAlterationDataNetworkAnnotator(_databaseResults));
 		enricher.setNetworkAnnotators(netAnnotators);
         return enricher;
