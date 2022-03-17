@@ -39,6 +39,7 @@ public class BasicEnrichmentEngineFactory {
 	private final int _numWorkers;
 	private final int _numResultsToReturn;
 	private boolean _selectHitGenes;
+	private boolean _simulatePercentAltered;
 	private ExecutorServiceFactory _executorServiceFac;
 	private Comparator<EnrichmentQueryResult> _comparator;
     
@@ -67,6 +68,7 @@ public class BasicEnrichmentEngineFactory {
 			_comparator = new EnrichmentQueryResultBySimilarity();
 		}
 		_selectHitGenes = config.getSelectHitGenes();
+		_simulatePercentAltered = config.getSimulatePercentAltered();
 		
     }
     
@@ -107,7 +109,8 @@ public class BasicEnrichmentEngineFactory {
 
 		// Disabled since cbioportal does not offer a mutation frequency service
 		// netAnnotators.add(new CBioPortalMutationFreqNetworkAnnotator(_databaseResults));
-		netAnnotators.add(new CBioPortalAlterationDataNetworkAnnotator(_databaseResults));
+		_logger.info("Simulate Percent Altered Flag: " + this._simulatePercentAltered);
+		netAnnotators.add(new CBioPortalAlterationDataNetworkAnnotator(_databaseResults, _simulatePercentAltered));
 		enricher.setNetworkAnnotators(netAnnotators);
         return enricher;
     }

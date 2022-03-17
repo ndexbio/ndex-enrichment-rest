@@ -30,7 +30,10 @@ import org.slf4j.LoggerFactory;
  */
 public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotator {
 
-    
+    /**
+	 * Prepended to simulated percent Altered data values
+	 */
+	public static final String SIMULATED_PERCENT_ALTERED_PREFIX="s";
     
     /**
      * Attribute name containing alternate label that includes the
@@ -60,15 +63,17 @@ public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotato
     static Logger _logger = LoggerFactory.getLogger(CBioPortalAlterationDataNetworkAnnotator.class);
     private InternalDatabaseResults _idr;
     private NetworkAnnotator _labelAnnotator;
+	private boolean _simulatePercentAltered;
     
     /**
      * Constructor
      * 
-     * @param idr Database for Enrichment service 
+     * @param idr Database for Enrichment service
+	 * @param simulatePercentAltered If true simulate percentAltered for genes lacking alteration data
      * @throws EnrichmentException if {@code idr} is {@code null} or 
      *        {@link org.ndexbio.enrichment.rest.model.InternalDatabaseResults#getNetworkToGeneToNodeMap() } is {@code null}
      */
-    public CBioPortalAlterationDataNetworkAnnotator(InternalDatabaseResults idr) throws EnrichmentException{
+    public CBioPortalAlterationDataNetworkAnnotator(InternalDatabaseResults idr, boolean simulatePercentAltered) throws EnrichmentException{
         if (idr == null){
             throw new EnrichmentException("InternalDatabaseResults is null");
         }
@@ -77,11 +82,24 @@ public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotato
         }
         
         _idr = idr;
+		_simulatePercentAltered = simulatePercentAltered;
         _labelAnnotator = null;
         _labelAnnotator = new LabelNetworkAnnotator("COL=" +
                 CBioPortalMutationFreqNetworkAnnotator.IQUERY_LABEL + ",T=string", null);
     }
+	
+	/**
+     * Constructor
+     * 
+     * @param idr Database for Enrichment service
+     * @throws EnrichmentException if {@code idr} is {@code null} or 
+     *        {@link org.ndexbio.enrichment.rest.model.InternalDatabaseResults#getNetworkToGeneToNodeMap() } is {@code null}
+     */
+    public CBioPortalAlterationDataNetworkAnnotator(InternalDatabaseResults idr) throws EnrichmentException{
+		this(idr, false);
+	}
     
+	
     
     /**
      * Sets alternate Network Label annotator
@@ -111,17 +129,40 @@ public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotato
             return null;
         }
 		
-		if (query.getAlterationData() == null){
+		if (_simulatePercentAltered == false && query.getAlterationData() == null){
 			_logger.info("No alteration data, no annotation performed");
 			return null;
+		}
+		
+		return getAlterationMap(query);
+    }
+	
+	private Map<String, AlterationData> getAlterationMap(final EnrichmentQuery query){
+		if (_simulatePercentAltered == true){
+			Map<String, AlterationData> alterationMap = new HashMap<>();
+			if (query.getGeneList() == null || query.getGeneList().isEmpty()){
+				return alterationMap;
+			}
+			_logger.info("Simulating percent altered");
+			
+			AlterationData ad = null;
+			for (String gene : query.getGeneList()){
+				ad = new AlterationData();
+				ad.setGene(gene);
+				ad.setPercentAltered(CBioPortalAlterationDataNetworkAnnotator.SIMULATED_PERCENT_ALTERED_PREFIX
+						+ Long.valueOf(Math.round(Math.random()*99.0)).intValue()
+				        + "%");
+				alterationMap.put(gene, ad);
+			}
+			return alterationMap;
 		}
 		Map<String, AlterationData> alterationMap = new HashMap<>();
 		for (AlterationData ad : query.getAlterationData()){
 			alterationMap.put(ad.getGene(), ad);
 		}
-		
 		return alterationMap;
-    }
+
+	}
     
     /**
      * Annotates the {@code cxNetwork} with percent altered data.

@@ -41,6 +41,8 @@ public class Configuration {
 	public static final String SORT_ALGO = "sort.algorithm";
 	
 	public static final String SELECT_HIT_GENES = "select.hit.genes";
+	
+	public static final String SIMULATE_PERCENT_ALTERED = "simulate.percent.altered";
     
     
     public static final String DATABASE_RESULTS_JSON_FILE = "databaseresults.json";
@@ -56,6 +58,7 @@ public class Configuration {
     private static int _numWorkers;
 	private static int _numResults;
 	private static boolean _selectHitGenes;
+	private static boolean _simulatePercentAltered;
 	
     /**
      * Constructor that attempts to get configuration from properties file
@@ -91,6 +94,7 @@ public class Configuration {
 		_numResults = Integer.parseInt(props.getProperty(Configuration.NUM_RESULTS, "25"));
 		_sortAlgorithm = props.getProperty(Configuration.SORT_ALGO, "similarity");
 		_selectHitGenes = Boolean.parseBoolean(props.getProperty(Configuration.SELECT_HIT_GENES, "false"));
+		_simulatePercentAltered = Boolean.parseBoolean(props.getProperty(Configuration.SIMULATE_PERCENT_ALTERED, "false"));
     }
         
     protected void setEnrichmentEngine(EnrichmentEngine ee){
@@ -100,6 +104,16 @@ public class Configuration {
         return _enrichmentEngine;
     }
 
+	/**
+	 * Denotes whether to simulate percent altered values for query genes
+	 * if <b>no</b> {@code alterationData} is included
+	 * 
+	 * @return {@code true} if percent altered should be simulated
+	 */
+	public boolean getSimulatePercentAltered(){
+		return _simulatePercentAltered;
+	}
+	
 	/**
 	 * Denotes whether this service should select aka highlight the
 	 * hit genes from the query
