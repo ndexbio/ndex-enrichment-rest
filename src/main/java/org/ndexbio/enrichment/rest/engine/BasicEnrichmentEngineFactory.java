@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import org.ndexbio.enrichment.rest.engine.util.CBioPortalAlterationDataNetworkAnnotator;
 import org.ndexbio.enrichment.rest.engine.util.CBioPortalMutationFreqNetworkAnnotator;
 import org.ndexbio.enrichment.rest.engine.util.HitGeneNetworkAnnotator;
 import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
@@ -105,6 +106,7 @@ public class BasicEnrichmentEngineFactory {
 		}
 
 		netAnnotators.add(new CBioPortalMutationFreqNetworkAnnotator(_databaseResults));
+		netAnnotators.add(new CBioPortalAlterationDataNetworkAnnotator(_databaseResults));
 		enricher.setNetworkAnnotators(netAnnotators);
         return enricher;
     }
