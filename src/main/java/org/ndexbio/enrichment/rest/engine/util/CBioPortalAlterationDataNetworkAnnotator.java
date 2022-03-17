@@ -78,8 +78,8 @@ public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotato
         
         _idr = idr;
         _labelAnnotator = null;
-        //_labelAnnotator = new LabelNetworkAnnotator("COL=" +
-        //        CBioPortalMutationFreqNetworkAnnotator.IQUERY_LABEL + ",T=string", null);
+        _labelAnnotator = new LabelNetworkAnnotator("COL=" +
+                CBioPortalMutationFreqNetworkAnnotator.IQUERY_LABEL + ",T=string", null);
     }
     
     
@@ -188,8 +188,13 @@ public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotato
             }
             // okay we have 1 or more genes
             // dump into list with format GENE::mutationFrequency
-            List<String> mutFreqs = new ArrayList<>();
+			// and fill sb buffer with GENE (%), GENE (%) 
+			// for each gene with percent altered values
+            List<String> pcAlteredList = new ArrayList<>();
             sb.setLength(0);
+			if (geneSet.size() > 1){
+				sb.append(nodes.get(nodeId).getNodeName());
+			}
             for (String gene : geneSet){
                 AlterationData ad = alterationMap.get(gene);
 				if (ad == null){
@@ -205,26 +210,31 @@ public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotato
                 }
                 sb.append(gene);
                 sb.append(" (");
-                
-                mutFreqs.add(gene 
+                sb.append(pcAltered);
+				sb.append(")");
+                pcAlteredList.add(gene 
                             + CBioPortalAlterationDataNetworkAnnotator.FREQ_ARRAY_DELIMITER
                             + pcAltered);
-                sb.append(")");
             }
             _logger.debug("Adding " + CBioPortalAlterationDataNetworkAnnotator.IQUERY_PERCENTALTERED_LIST
                     + " attribute to (" 
-                    + Long.toString(nodeId) + ") with: " + mutFreqs.toString());
+                    + Long.toString(nodeId) + ") with: " + pcAlteredList.toString());
             nae = new NodeAttributesElement(nodeId,
                             CBioPortalAlterationDataNetworkAnnotator.IQUERY_PERCENTALTERED_LIST,
-                    mutFreqs,
+                    pcAlteredList,
                                     ATTRIBUTE_DATA_TYPE.LIST_OF_STRING);
                     cxNetwork.addNodeAttribute(nae);
                     nodeAttrCntr++;
             _logger.debug("Adding " + CBioPortalAlterationDataNetworkAnnotator.IQUERY_LABEL
                     + " attribute to (" 
                     + Long.toString(nodeId) + ") with: " + sb.toString());
-                    
-            nae = new NodeAttributesElement(nodeId,
+                
+			// this copies over the node name for non complex nodes containing no genes
+			// with alteration data
+			if (sb.length() == 0){
+				sb.append(nodes.get(nodeId).getNodeName());
+			} 
+		    nae = new NodeAttributesElement(nodeId,
                             CBioPortalAlterationDataNetworkAnnotator.IQUERY_LABEL,
                     sb.toString(),
                                     ATTRIBUTE_DATA_TYPE.STRING);
