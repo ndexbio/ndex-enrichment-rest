@@ -138,7 +138,8 @@ public class CBioPortalAlterationDataNetworkAnnotator implements NetworkAnnotato
     }
 	
 	private Map<String, AlterationData> getAlterationMap(final EnrichmentQuery query){
-		if (_simulatePercentAltered == true){
+		if (_simulatePercentAltered == true 
+				&& (query.getAlterationData() == null || query.getAlterationData().isEmpty())){
 			Map<String, AlterationData> alterationMap = new HashMap<>();
 			if (query.getGeneList() == null || query.getGeneList().isEmpty()){
 				return alterationMap;
