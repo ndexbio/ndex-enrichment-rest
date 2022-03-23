@@ -503,4 +503,52 @@ public class TestApp {
 		}
 	}
 	
+	@Test
+	public void testGetImageUrlFromNetworkNullNetwork(){
+		assertEquals("foo", App.getImageUrlFromNetwork(null, "foo"));
+	}
+	
+	@Test
+	public void testGetImageUrlFromNetworkNoNetworkAttributes(){
+		NiceCXNetwork network = new NiceCXNetwork();
+		assertEquals("foo", App.getImageUrlFromNetwork(network, "foo"));
+		//network.addNetworkAttribute(new NetworkAttributesElement(null, "name", "netname"));
+		//NetworkInfo res = App.getSimpleNetwork(network, "netuuid", "neturl", "imageurl", 10, 20);
+	}
+
+	@Test
+	public void testGetImageUrlFromNetworkNoIconURL(){
+		NiceCXNetwork network = new NiceCXNetwork();
+		network.addNetworkAttribute(new NetworkAttributesElement(null, "name", "netname"));
+		assertEquals("foo", App.getImageUrlFromNetwork(network, "foo"));
+	}
+	
+	@Test
+	public void testGetImageUrlFromNetworkEmptyIconURL(){
+		NiceCXNetwork network = new NiceCXNetwork();
+		network.addNetworkAttribute(new NetworkAttributesElement(null, "name", "netname"));
+		network.addNetworkAttribute(new NetworkAttributesElement(null, App.ICON_URL, " "));
+		
+		assertEquals("foo", App.getImageUrlFromNetwork(network, "foo"));
+	}
+		
+	
+	@Test
+	public void testGetImageUrlFromNetworkNonHttpIconURL(){
+		NiceCXNetwork network = new NiceCXNetwork();
+		network.addNetworkAttribute(new NetworkAttributesElement(null, "name", "netname"));
+		network.addNetworkAttribute(new NetworkAttributesElement(null, App.ICON_URL, "blah"));
+		
+		assertEquals("foo", App.getImageUrlFromNetwork(network, "foo"));
+	}
+	
+	@Test
+	public void testGetImageUrlFromNetworkValidIconURL(){
+		NiceCXNetwork network = new NiceCXNetwork();
+		network.addNetworkAttribute(new NetworkAttributesElement(null, "name", "netname"));
+		network.addNetworkAttribute(new NetworkAttributesElement(null, App.ICON_URL, "https://someimage.png"));
+		
+		assertEquals("https://someimage.png", App.getImageUrlFromNetwork(network, "foo"));
+	}
+	
 }

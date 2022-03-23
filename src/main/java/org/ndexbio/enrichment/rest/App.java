@@ -37,6 +37,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,8 @@ public class App {
     
     static Logger _logger = LoggerFactory.getLogger(App.class);
 
+	public static final String ICON_URL = "__iconurl";
+	
 	public static final String APP_PROPERTIES = "app.properties";
     
     /**
@@ -699,6 +702,35 @@ public class App {
 		}
     }
     
+	/**
+	 * Examines network passed in looking for {@code ICON_URL} network attribute,
+	 * if found that value if not empty is returned otherwise value of {@code imageUrl}
+	 * is returned
+	 * @param network network to examine
+	 * @param imageUrl fall back image icon URL
+	 * @return URL to use as image icon for network
+	 */
+	public static String getImageUrlFromNetwork(NiceCXNetwork network, final String imageUrl){
+		if (network == null){
+			return imageUrl;
+		}
+		if (network.getNetworkAttributes() == null){
+			return imageUrl;
+		}
+		for (NetworkAttributesElement nae : network.getNetworkAttributes()){
+			if (nae.getName().equals(ICON_URL)){
+				if (nae.getValue() != null && !nae.getValue().trim().isEmpty() &&
+						nae.getValue().startsWith("http")){
+					return nae.getValue();
+				}
+				_logger.warn(ICON_URL + " network attribute exists but value is "
+						+ "empty or does not start with http. Using default");
+				break;
+			}
+		}
+		return imageUrl;
+	}
+	
     public static NetworkInfo getSimpleNetwork(NiceCXNetwork network, String networkUuid, String networkUrl, String imageUrl,
 			int nodeCount, int edgeCount) {
     	NetworkInfo nw = new NetworkInfo();
@@ -706,9 +738,9 @@ public class App {
     	nw.setDescription(network.getNetworkDescription());
     	nw.setUuid(networkUuid);
     	nw.setUrl(networkUrl);
-    	nw.setImageUrl(imageUrl);
-	nw.setNodeCount(nodeCount);
-	nw.setEdgeCount(edgeCount);
+    	nw.setImageUrl(App.getImageUrlFromNetwork(network, imageUrl));
+		nw.setNodeCount(nodeCount);
+		nw.setEdgeCount(edgeCount);
     	return nw;
     }
     
