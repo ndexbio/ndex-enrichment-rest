@@ -296,6 +296,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		for (String network : networkMap.keySet()){
 			EnrichmentQueryResult eqr = new EnrichmentQueryResult();
 			eqr.setDatabaseName(dbres.getName());
+			
 			eqr.setImageURL(dbres.getImageURL());
 			eqr.setDatabaseUUID(dbres.getUuid());
 			TreeSet<String> hitGenes = new TreeSet<>(networkMap.get(network));
@@ -310,6 +311,12 @@ public class BasicEnrichmentEngineRunner implements Callable {
 					networkInfo = ni;
 					// gets url for network from configuration file
 					eqr.setUrl(networkInfo.getUrl());
+					
+					// if the network has an overriding image url use it
+					if (networkInfo.getImageUrl() != null
+							&& networkInfo.getImageUrl().startsWith("http")){
+						eqr.setImageURL(networkInfo.getImageUrl());
+					}
                                         
 				}
 			}
