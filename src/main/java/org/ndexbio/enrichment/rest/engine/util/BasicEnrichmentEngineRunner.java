@@ -317,7 +317,8 @@ public class BasicEnrichmentEngineRunner implements Callable {
 							&& networkInfo.getImageUrl().startsWith("http")){
 						eqr.setImageURL(networkInfo.getImageUrl());
 					}
-                                        
+                    break; 
+					
 				}
 			}
 			updateStatsAboutNetwork(eqr, uniqueGeneList, networkInfo);
