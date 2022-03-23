@@ -1,6 +1,13 @@
 HISTORY
 ========
 
+0.8.1 (TBD)
+-------------------
+
+* When returning results `imageURL` is set to value of `__iconurl` network attribute
+  on network if value starts with http, otherwise the value of `imageURL` set within 
+  `databaseresults.json` config file is used. UD-2097
+
 0.8.0 (2022-03-11)
 -------------------
 
