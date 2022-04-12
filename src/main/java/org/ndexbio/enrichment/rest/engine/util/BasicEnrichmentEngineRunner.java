@@ -382,7 +382,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		try {
 		HypergeometricDistribution hd = new HypergeometricDistribution(totalGenesInUniverse, 
 				totalGenesInNetwork, numberGenesInQuery);
-		double pValue = ((double)1.0 - hd.cumulativeProbability(numGenesMatch));
+		double pValue = hd.probability(numGenesMatch);
 		if (pValue < 0) {
 			_logger.warn("Returning 0.0 cause we got a negative value from "
 					+ "Hypergeometric distribution totalGenesInUniverse={} totalGenesInNetwork={}"
