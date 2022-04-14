@@ -15,16 +15,16 @@ import org.slf4j.LoggerFactory;
  * 
  * @author churas
  */
-public class BenjaminiHochbergPValueUpdator implements PValueUpdater {
+public class BenjaminiPValueUpdator implements PValueUpdater {
 
-	static Logger _logger = LoggerFactory.getLogger(BenjaminiHochbergPValueUpdator.class);
+	static Logger _logger = LoggerFactory.getLogger(BenjaminiPValueUpdator.class);
 	
 	private Comparator<EnrichmentQueryResult> _comparator;
 	
 	/**
 	 * Constructor
 	 */
-	public BenjaminiHochbergPValueUpdator(){
+	public BenjaminiPValueUpdator(){
 		_comparator = new EnrichmentQueryResultByPvalue();
 	}
 	
@@ -38,6 +38,13 @@ public class BenjaminiHochbergPValueUpdator implements PValueUpdater {
 	 * 
 	 * New BH p-value = OLD PVALUE * # of EnrichmentQueryResults / RANK #
 	 * 
+	 * Any values over 1.0 should be set to 1.0 and if subsequent pvalues are
+	 * lower those should be propagated to earlier entries so pvalues are
+	 * always ascending
+	 * 
+	 * WARNING: Updated list is NOT sorted by p-value!!!
+	 *          
+	 * 
 	 * @param eqrList 
 	 */
 	@Override
@@ -49,6 +56,24 @@ public class BenjaminiHochbergPValueUpdator implements PValueUpdater {
 			eqr.setpValue(Math.min(1.0, (eqr.getpValue()*(double)num_networks)/(double)rank));
 			rank++;
 		}
+		
+		// reverse list and propagate any lower values forward 
+		Collections.reverse(eqrList);
+		double lastPValue = Double.NaN;
+		boolean first = true;
+		for (EnrichmentQueryResult eqr: eqrList){
+			if (first == false){
+				if (lastPValue < eqr.getpValue()){
+					eqr.setpValue(lastPValue);
+				}
+			} else {
+				first = false;
+			}
+			lastPValue = eqr.getpValue();
+		}
+		// reverse list again so it is in original sorted order
+		Collections.reverse(eqrList);
+		
 	}
 	
 }
