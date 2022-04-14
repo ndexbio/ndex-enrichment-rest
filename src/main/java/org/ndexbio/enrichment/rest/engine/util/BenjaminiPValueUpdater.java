@@ -15,16 +15,16 @@ import org.slf4j.LoggerFactory;
  * 
  * @author churas
  */
-public class BenjaminiPValueUpdator implements PValueUpdater {
+public class BenjaminiPValueUpdater implements PValueUpdater {
 
-	static Logger _logger = LoggerFactory.getLogger(BenjaminiPValueUpdator.class);
+	static Logger _logger = LoggerFactory.getLogger(BenjaminiPValueUpdater.class);
 	
 	private Comparator<EnrichmentQueryResult> _comparator;
 	
 	/**
 	 * Constructor
 	 */
-	public BenjaminiPValueUpdator(){
+	public BenjaminiPValueUpdater(){
 		_comparator = new EnrichmentQueryResultByPvalue();
 	}
 	
@@ -38,12 +38,9 @@ public class BenjaminiPValueUpdator implements PValueUpdater {
 	 * 
 	 * New BH p-value = OLD PVALUE * # of EnrichmentQueryResults / RANK #
 	 * 
-	 * Any values over 1.0 should be set to 1.0 and if subsequent pvalues are
-	 * lower those should be propagated to earlier entries so pvalues are
+	 * Any values over 1.0 are set to 1.0 and if subsequent p-values are
+	 * lower those should be propagated to earlier entries so p-values are
 	 * always ascending
-	 * 
-	 * WARNING: Updated list is NOT sorted by p-value!!!
-	 *          
 	 * 
 	 * @param eqrList 
 	 */

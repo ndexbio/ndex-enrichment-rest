@@ -14,13 +14,13 @@ public class TestBenjaminiPValueUpdator {
 	
 	@Test
 	public void testEmptyList(){
-		BenjaminiPValueUpdator updater = new BenjaminiPValueUpdator();
+		BenjaminiPValueUpdater updater = new BenjaminiPValueUpdater();
 		updater.updatePValues(new ArrayList<EnrichmentQueryResult>());
 	}
 	
 	@Test
 	public void testOneEntry(){
-		BenjaminiPValueUpdator updater = new BenjaminiPValueUpdator();
+		BenjaminiPValueUpdater updater = new BenjaminiPValueUpdater();
 		List<EnrichmentQueryResult> eqrList = new ArrayList<>();
 		EnrichmentQueryResult eqr = new EnrichmentQueryResult();
 		eqr.setpValue(0.5);
@@ -31,7 +31,7 @@ public class TestBenjaminiPValueUpdator {
 	
 	@Test
 	public void testTwoEntries(){
-		BenjaminiPValueUpdator updater = new BenjaminiPValueUpdator();
+		BenjaminiPValueUpdater updater = new BenjaminiPValueUpdater();
 		List<EnrichmentQueryResult> eqrList = new ArrayList<>();
 		EnrichmentQueryResult eqr = new EnrichmentQueryResult();
 		eqr.setpValue(0.0005);
@@ -52,7 +52,7 @@ public class TestBenjaminiPValueUpdator {
 	
 	@Test
 	public void testThreeEntriesUnsorted(){
-		BenjaminiPValueUpdator updater = new BenjaminiPValueUpdator();
+		BenjaminiPValueUpdater updater = new BenjaminiPValueUpdater();
 		List<EnrichmentQueryResult> eqrList = new ArrayList<>();
 		EnrichmentQueryResult eqr = new EnrichmentQueryResult();
 		eqr.setpValue(0.05);
@@ -83,7 +83,7 @@ public class TestBenjaminiPValueUpdator {
 	
 	@Test
 	public void testThreeEntriesSorted(){
-		BenjaminiPValueUpdator updater = new BenjaminiPValueUpdator();
+		BenjaminiPValueUpdater updater = new BenjaminiPValueUpdater();
 		List<EnrichmentQueryResult> eqrList = new ArrayList<>();
 		EnrichmentQueryResult eqr = new EnrichmentQueryResult();
 		eqr.setpValue(0.03);
@@ -113,7 +113,7 @@ public class TestBenjaminiPValueUpdator {
 	
 	@Test
 	public void testThreeEntriesVeryDifferentPValues(){
-		BenjaminiPValueUpdator updater = new BenjaminiPValueUpdator();
+		BenjaminiPValueUpdater updater = new BenjaminiPValueUpdater();
 		List<EnrichmentQueryResult> eqrList = new ArrayList<>();
 		EnrichmentQueryResult eqr = new EnrichmentQueryResult();
 		eqr.setpValue(0.000001);

@@ -19,7 +19,7 @@ public class EnrichmentQueryResult {
     private int _nodes;
     private int _edges;
     private double _pValue;
-    private double _similarity;
+	private double _similarity;
     private int _rank;
     private Set<String> _hitGenes;
     private int _totalNetworkCount;

@@ -48,6 +48,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 	private HashSet<String> _uniqueGenesInUniverse;
 	private Comparator<EnrichmentQueryResult> _comparator;
 	private int _numResultsToReturn;
+	private PValueUpdater _pvalueUpdater; 
 	
 	/**
 	 * Constructor that receives all needed data/objects to run query when call()
@@ -83,6 +84,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		_eq = eq;
 		_eqr = eqr;
 		_comparator = comparator;
+		_pvalueUpdater = new BenjaminiPValueUpdater();
 	}
 	@Override
 	public EnrichmentQueryResults call() throws Exception {
@@ -142,6 +144,12 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		} else {
 			_logger.warn("No databases in query {} ", id);
 		}
+		
+		long pvalueUpdateStart = System.currentTimeMillis();
+		_pvalueUpdater.updatePValues(enrichmentResult);
+		_logger.info("For task {} to apply Benjamini p-value adjustment took {} ms",
+				id , System.currentTimeMillis() - pvalueUpdateStart);
+
 		long sortStart = System.currentTimeMillis();
 		sortEnrichmentQueryResultAndSetRank(enrichmentResult);
 		_logger.info("For task {} to sort results took {} ms" ,id , System.currentTimeMillis() - sortStart);
