@@ -10,7 +10,7 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
  *
  * @author churas
  */
-public class TestBenjaminiPValueUpdator {
+public class TestBenjaminiPValueUpdater {
 	
 	@Test
 	public void testEmptyList(){
