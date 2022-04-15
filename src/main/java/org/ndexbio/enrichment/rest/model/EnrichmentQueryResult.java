@@ -19,6 +19,8 @@ public class EnrichmentQueryResult {
     private int _nodes;
     private int _edges;
     private double _pValue;
+	private double _uncorrectedPValue;
+	private int _pValueRank;
 	private double _similarity;
     private int _rank;
     private Set<String> _hitGenes;
@@ -105,6 +107,23 @@ public class EnrichmentQueryResult {
     public void setpValue(double _pValue) {
         this._pValue = _pValue;
     }
+
+	public int getpValueRank() {
+		return _pValueRank;
+	}
+
+	public void setpValueRank(int _pValueRank) {
+		this._pValueRank = _pValueRank;
+	}
+
+	
+	public double getUncorrectedPValue() {
+		return _uncorrectedPValue;
+	}
+
+	public void setUncorrectedPValue(double _uncorrectedPValue) {
+		this._uncorrectedPValue = _uncorrectedPValue;
+	}
 
     public int getRank() {
         return _rank;

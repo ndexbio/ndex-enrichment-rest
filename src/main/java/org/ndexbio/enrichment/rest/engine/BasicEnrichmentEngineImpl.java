@@ -59,7 +59,8 @@ import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
 public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	public static final String CX_SUFFIX = ".cx";
 	public static final String EQR_JSON_FILE = "enrichmentqueryresults.json";
-        public static final String QUERY_JSON_FILE = "query.json";
+    public static final String QUERY_JSON_FILE = "query.json";
+	public static final String SUMMARY_RESULTS_FILE = "summary_results.csv";
 
 	static Logger _logger = LoggerFactory.getLogger(BasicEnrichmentEngineImpl.class);
 

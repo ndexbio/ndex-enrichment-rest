@@ -1,8 +1,10 @@
 package org.ndexbio.enrichment.rest.engine.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -154,13 +156,61 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		sortEnrichmentQueryResultAndSetRank(enrichmentResult);
 		_logger.info("For task {} to sort results took {} ms" ,id , System.currentTimeMillis() - sortStart);
 		
+		if (uniqueGeneList != null){
+			long tableSaveStart = System.currentTimeMillis();
+			saveEnrichmentQueryResultAsTable(enrichmentResult, uniqueGeneList.size(), taskDir.getAbsolutePath() +
+			                File.separator + BasicEnrichmentEngineImpl.SUMMARY_RESULTS_FILE);
+			_logger.info("For task {} to save summary table took {} ms" ,id , System.currentTimeMillis() - tableSaveStart);
+		}
 
 		// combine all EnrichmentQueryResults generated above and create
 		// EnrichmentQueryResults object and store in _queryResults 
 		// replacing any existing entry
 		updateEnrichmentQueryResults(EnrichmentQueryResults.COMPLETE_STATUS, 100, enrichmentResult);
 	}
-	
+
+	private void saveEnrichmentQueryResultAsTable(final List<EnrichmentQueryResult> eqrList, int numGenesInQuery, final String destPath){
+		if (eqrList == null || eqrList.isEmpty()){
+			return;
+		}
+		InternalDatabaseResults idr = (InternalDatabaseResults)this._databaseResults.get();
+		int totalGenesInUniverse = idr.getUniverseUniqueGeneCount();
+		
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destPath))){
+			bw.write("name,# genes in universe,# query genes,# nodes,# genes,overlap,# hits,uncorrected p-value,p-value,p-value rank,similarity\n");
+			for (EnrichmentQueryResult eqr : eqrList){
+				bw.write(eqr.getDescription());
+				bw.write(",");
+				bw.write(Integer.toString(totalGenesInUniverse));
+				bw.write(",");
+				bw.write(Integer.toString(numGenesInQuery));
+				bw.write(",");
+				bw.write(Integer.toString(eqr.getNodes()));
+				bw.write(",");
+				bw.write(Integer.toString(eqr.getTotalGeneCount()));
+				bw.write(",");
+				bw.write(Integer.toString(eqr.getPercentOverlap()));
+				bw.write(",");
+				if (eqr.getHitGenes() != null){
+					bw.write(Integer.toString(eqr.getHitGenes().size()));
+				} else {
+					bw.write("0"); // this shouldn't happen should it?
+				}
+				bw.write(",");
+				bw.write(Double.toString(eqr.getUncorrectedPValue()));
+				bw.write(",");
+				bw.write(Double.toString(eqr.getpValue()));
+				bw.write(",");
+				bw.write(Integer.toString(eqr.getpValueRank()));
+				bw.write(",");
+				bw.write(Double.toString(eqr.getSimilarity()));
+				bw.write("\n");
+			}
+			
+		} catch(IOException io){
+			_logger.error("Caught exception writing " + destPath, io);
+		}
+	}
         protected void saveEnrichmentQueryToFilesystem(final EnrichmentQuery query, final String destPath){
 		if (query == null){
 			return;
@@ -375,7 +425,7 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		eqr.setTotalNetworkCount(idr.getTotalNetworkCount());
 		eqr.setSimilarity(getSimilarity(idr.getNetworkGeneList().get(eqr.getNetworkUUID()),
 				queryGenes, idr.getIdfMap()));
-                eqr.setTotalGeneCount(networkInfo.getGeneCount());
+        eqr.setTotalGeneCount(networkInfo.getGeneCount());
 	}
 	
 	/**

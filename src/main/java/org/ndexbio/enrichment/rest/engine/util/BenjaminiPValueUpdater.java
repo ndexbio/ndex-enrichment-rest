@@ -50,7 +50,9 @@ public class BenjaminiPValueUpdater implements PValueUpdater {
 		int rank = 1;
 		int num_networks = eqrList.size();
 		for (EnrichmentQueryResult eqr : eqrList){
+			eqr.setUncorrectedPValue(eqr.getpValue());
 			eqr.setpValue(Math.min(1.0, (eqr.getpValue()*(double)num_networks)/(double)rank));
+			eqr.setpValueRank(rank);
 			rank++;
 		}
 		
