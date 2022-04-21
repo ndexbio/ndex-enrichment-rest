@@ -48,7 +48,7 @@ public class TestBasicEnrichmentEngineRunner {
 		assertEquals(Double.MAX_VALUE, runner.getPvalue(50, 20, 100, 5), 0.001);
 		
 		// test where valid answer is returned
-		assertEquals(0.0, runner.getPvalue(50, 20, 5, 5), 0.1);
+		assertEquals(0.00731748, runner.getPvalue(50, 20, 5, 5), 0.0001);
 	}
 	
 	@Test
