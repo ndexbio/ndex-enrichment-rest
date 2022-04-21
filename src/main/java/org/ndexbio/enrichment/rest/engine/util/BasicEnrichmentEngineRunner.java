@@ -147,6 +147,8 @@ public class BasicEnrichmentEngineRunner implements Callable {
 			_logger.warn("No databases in query {} ", id);
 		}
 		
+		
+		// Apply Benjamini p-value correction
 		long pvalueUpdateStart = System.currentTimeMillis();
 		_pvalueUpdater.updatePValues(enrichmentResult);
 		_logger.info("For task {} to apply Benjamini p-value adjustment took {} ms",
@@ -156,6 +158,8 @@ public class BasicEnrichmentEngineRunner implements Callable {
 		sortEnrichmentQueryResultAndSetRank(enrichmentResult);
 		_logger.info("For task {} to sort results took {} ms" ,id , System.currentTimeMillis() - sortStart);
 		
+		
+		// Save a summary table of results (used for debugging purposes)
 		if (uniqueGeneList != null){
 			long tableSaveStart = System.currentTimeMillis();
 			saveEnrichmentQueryResultAsTable(enrichmentResult, uniqueGeneList.size(), taskDir.getAbsolutePath() +
@@ -429,27 +433,21 @@ public class BasicEnrichmentEngineRunner implements Callable {
 	}
 	
 	/**
-	 * @param totalGenesInNetwork
-	 * @param numberGenesInQuery
-	 * @param numGenesMatch
+	 * Calculates the p-value of getting {@code numGenesMatch} matching
+	 * genes in network using hypergeometric test
+	 * 
+	 * @param totalGenesInNetwork Number of unique of genes in network
+	 * @param numberGenesInQuery Number of unique genes in query
+	 * @param numGenesMatch Number of unique genes in network that match in query
 	 * @return 
 	 */
 	protected double getPvalue(int totalGenesInUniverse,
 			int totalGenesInNetwork, int numberGenesInQuery,
 			int numGenesMatch){
 		try {
-		HypergeometricDistribution hd = new HypergeometricDistribution(totalGenesInUniverse, 
-				totalGenesInNetwork, numberGenesInQuery);
-		double pValue = hd.probability(numGenesMatch);
-		if (pValue < 0) {
-			_logger.warn("Returning 0.0 cause we got a negative value from "
-					+ "Hypergeometric distribution totalGenesInUniverse={} totalGenesInNetwork={}"
-					+ " numberGenesInQuery={} numGenesMatch={}", 
-					new Object[]{totalGenesInUniverse,
-						totalGenesInNetwork,numberGenesInQuery, numGenesMatch});
-			return 0.0;
-		}
-		return pValue;
+			HypergeometricDistribution hd = new HypergeometricDistribution(totalGenesInUniverse, 
+					totalGenesInNetwork, numberGenesInQuery);
+			return hd.probability(numGenesMatch);
 		} catch(NotPositiveException npe){
 			_logger.error("Total genes in network is negative", npe);
 			
