@@ -30,7 +30,7 @@ public class BenjaminiPValueUpdater implements PValueUpdater {
 	
 	/**
 	 * This method converts the PValues in each EnrichmentQueryResult to
-	 * Benjamini & Hotchberg adjusted p-values using the formula in the 2009
+	 * Benjamini adjusted p-values using the formula in the 2009
 	 * paper mentioned in the class documentation. 
 	 * 
 	 * Basically the EnrichmentQueryResults are sorted by p-value in ascending
@@ -46,7 +46,10 @@ public class BenjaminiPValueUpdater implements PValueUpdater {
 	 */
 	@Override
 	public void updatePValues(List<EnrichmentQueryResult> eqrList) {
+		
+		// sort list by p-value
 		Collections.sort(eqrList, _comparator);
+		
 		int rank = 1;
 		int num_networks = eqrList.size();
 		for (EnrichmentQueryResult eqr : eqrList){
@@ -55,9 +58,23 @@ public class BenjaminiPValueUpdater implements PValueUpdater {
 			eqr.setpValueRank(rank);
 			rank++;
 		}
+		propagateLowerValuePValues(eqrList);
 		
-		// reverse list and propagate any lower values forward 
+	}
+	
+	/**
+	 * This method iterates over the {@code eqrList} in reverse and propagates
+	 * any lower p-values to earlier entries so the p-values in {@code eqrList} are
+	 * always ascending
+	 * @param eqrList List of {@code EnrichmentQueryResult} objects with p-values already
+	 *                set and list already ordered by p-value
+	 */
+	private void propagateLowerValuePValues(List<EnrichmentQueryResult> eqrList){
+		
+		// reverse list
 		Collections.reverse(eqrList);
+		
+		// propagate any lower p-values forward
 		double lastPValue = Double.NaN;
 		boolean first = true;
 		for (EnrichmentQueryResult eqr: eqrList){
@@ -72,7 +89,5 @@ public class BenjaminiPValueUpdater implements PValueUpdater {
 		}
 		// reverse list again so it is in original sorted order
 		Collections.reverse(eqrList);
-		
 	}
-	
 }
