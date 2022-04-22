@@ -222,9 +222,8 @@ public class TestApp {
 		InternalDatabaseResults idr = new InternalDatabaseResults();
 		HashSet<String> uniqueGeneSet = new HashSet<>();
 		
-		int geneCount = App.updateGeneMap(net, "glypy", geneMap, uniqueGeneSet, idr);
+		App.updateGeneMap(net, "glypy", geneMap, uniqueGeneSet, idr);
 		Map<String, Set<String>> mappy = geneMap.getGeneMap();
-		assertEquals(7, geneCount);
 		assertEquals(7, uniqueGeneSet.size());
 		HashSet<String> glypyGenes = new HashSet<>();
 		for (String g : uniqueGeneSet){
@@ -233,10 +232,10 @@ public class TestApp {
 			glypyGenes.add(g);
 		}
 		
+		uniqueGeneSet.clear();
 		NiceCXNetwork netTwo = NdexRestClientUtilities.getCXNetworkFromStream(TestApp.class.getClassLoader().getResourceAsStream("fap_insulin_mediated_apipogenesis.cx"));
-		geneCount = App.updateGeneMap(netTwo, "fap_insulin", geneMap, uniqueGeneSet, idr);
-		assertEquals(13, geneCount);
-		assertEquals(20, uniqueGeneSet.size());
+		App.updateGeneMap(netTwo, "fap_insulin", geneMap, uniqueGeneSet, idr);
+		assertEquals(13, uniqueGeneSet.size());
 		
 		assertEquals(20, mappy.size());
 		assertEquals(1, mappy.get("AKT1").size());
@@ -257,16 +256,16 @@ public class TestApp {
 			}
 		}
 		
+		uniqueGeneSet.clear();
 		// try adding empty network
 		NiceCXNetwork netThree = new NiceCXNetwork();
-		geneCount = App.updateGeneMap(netThree, "empty", geneMap, uniqueGeneSet, idr);
-		assertEquals(0, geneCount);
-		assertEquals(20, uniqueGeneSet.size());
+		App.updateGeneMap(netThree, "empty", geneMap, uniqueGeneSet, idr);
+		assertEquals(0, uniqueGeneSet.size());
 		
+		uniqueGeneSet.clear();
 		// try adding duplicate network with different id
-		geneCount = App.updateGeneMap(net, "glypy2", geneMap, uniqueGeneSet, idr);
-		assertEquals(7, geneCount);
-		assertEquals(20, uniqueGeneSet.size());
+		App.updateGeneMap(net, "glypy2", geneMap, uniqueGeneSet, idr);
+		assertEquals(7, uniqueGeneSet.size());
 		mappy = geneMap.getGeneMap();
 		for (String g : uniqueGeneSet){
 			if (glypyGenes.contains(g)){

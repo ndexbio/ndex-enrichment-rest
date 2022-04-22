@@ -462,10 +462,10 @@ public class App {
                 networkList.add(simpleNetwork);
 				networkGeneSet = new HashSet<>();
 				networkGeneMap.put(netid.toString(), networkGeneSet);
-				int geneCount = updateGeneMap(network, netid.toString(), geneMap,
-                                              networkGeneSet, idr);
+				updateGeneMap(network, netid.toString(), geneMap,
+                              networkGeneSet, idr);
 				
-				simpleNetwork.setGeneCount(geneCount);
+				simpleNetwork.setGeneCount(networkGeneSet.size());
 				uniqueGeneSet.addAll(networkGeneSet);
                 networkCount++;
             }
@@ -560,7 +560,7 @@ public class App {
 	 *                       on this network
      * @throws Exception 
      */
-    public static int updateGeneMap(final NiceCXNetwork network,
+    public static void updateGeneMap(final NiceCXNetwork network,
             final String externalId, InternalGeneMap geneMap,
             final Set<String> networkGeneSet,
             InternalDatabaseResults idr) throws Exception {
@@ -574,7 +574,6 @@ public class App {
         }
         
         Map<String, Set<Long>> geneToNodeMap = new HashMap<>();
-		int geneCount = 0;
         for (NodesElement ne : network.getNodes().values()){
             Collection<NodeAttributesElement> nodeAttribs = attribMap.get(ne.getId());
             
@@ -612,9 +611,8 @@ public class App {
                     geneToNodeMap.put(name, new HashSet<Long>());
                 }
                 geneToNodeMap.get(name).add(ne.getId());
-                
+
                 networkGeneSet.add(name);
-				geneCount++;
                 continue;
             }
             if (validcomplex == true){
@@ -636,7 +634,6 @@ public class App {
                             }
                             geneToNodeMap.get(name).add(ne.getId());
                             networkGeneSet.add(name);
-							geneCount++;
                         }
                         break;
                     }
@@ -652,8 +649,6 @@ public class App {
 			}
 			idr.setNetworkToGeneToNodeMap(geneToNodeBigMap);
         }
-		return geneCount;
-
     }
     
     public static String getValidGene(final String potentialGene){
