@@ -28,6 +28,10 @@ public class TestEnrichmentQueryResultBySimilarity {
         EnrichmentQueryResult o2 = new EnrichmentQueryResult();
         o2.setSimilarity(0);
 		o2.setpValue(0);
+		
+		// sorting by lexigraphically by description is final fallback
+		o1.setDescription("a");
+		o2.setDescription("a");
         
         // equals
         assertEquals(0, sorter.compare(o1, o2));

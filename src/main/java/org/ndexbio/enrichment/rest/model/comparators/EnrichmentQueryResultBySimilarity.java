@@ -2,10 +2,10 @@ package org.ndexbio.enrichment.rest.model.comparators;
 
 import java.util.Comparator;
 import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
-import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue;
 
 /**
- *
+ * Sorts by similiarity in descending order, then by pvalue in ascending order, then by
+ * overlap and finally alphabetically by description. 
  * @author churas
  */
 public class EnrichmentQueryResultBySimilarity implements Comparator<EnrichmentQueryResult> {
@@ -20,6 +20,7 @@ public class EnrichmentQueryResultBySimilarity implements Comparator<EnrichmentQ
      * Compares two {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult} objects
      * by Similarity. If similarity score is the same then the pvalue is compared using
 	 * {@link org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue}
+	 * If those are the same then alphabetically sort by description
 	 * 
      * @param o1 {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult} object 1 to compare
      * @param o2 {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult} object 2 to compare
