@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import org.ndexbio.enrichment.rest.engine.util.CBioPortalAlterationDataNetworkAnnotator;
-import org.ndexbio.enrichment.rest.engine.util.CBioPortalMutationFreqNetworkAnnotator;
 import org.ndexbio.enrichment.rest.engine.util.HitGeneNetworkAnnotator;
 import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
 import org.ndexbio.enrichment.rest.engine.util.SetQueryGeneSelectedNetworkAnnotator;
@@ -18,6 +17,7 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
 import org.ndexbio.ndexsearch.rest.model.DatabaseResult;
 import org.ndexbio.enrichment.rest.model.InternalDatabaseResults;
 import org.ndexbio.enrichment.rest.model.InternalGeneMap;
+import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByOverlap;
 import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultByPvalue;
 import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultBySimilarity;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
@@ -62,9 +62,11 @@ public class BasicEnrichmentEngineFactory {
 			_comparator = new EnrichmentQueryResultByPvalue();
 		} else if (config.getSortAlgorithm().equalsIgnoreCase("similarity")){
 			_comparator = new EnrichmentQueryResultBySimilarity();
+		} else if (config.getSortAlgorithm().equalsIgnoreCase("overlap")){
+			_comparator = new EnrichmentQueryResultByOverlap();
 		} else {
 			_logger.error("{} is an unknown result sort algorithm. Using similarity. "
-					+ "Valid values are pvalue, similarity", config.getSortAlgorithm());
+					+ "Valid values are pvalue, similarity, overlap", config.getSortAlgorithm());
 			_comparator = new EnrichmentQueryResultBySimilarity();
 		}
 		_selectHitGenes = config.getSelectHitGenes();
