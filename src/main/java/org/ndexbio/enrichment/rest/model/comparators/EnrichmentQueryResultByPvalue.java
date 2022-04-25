@@ -10,6 +10,11 @@ import org.ndexbio.enrichment.rest.model.EnrichmentQueryResult;
  */
 public class EnrichmentQueryResultByPvalue implements Comparator<EnrichmentQueryResult> {
 
+	private EnrichmentQueryResultByOverlap _pvalCompare;
+	
+	public EnrichmentQueryResultByPvalue(){
+		_pvalCompare = new EnrichmentQueryResultByOverlap();
+	}
     /**
      * Compares two {@link org.ndexbio.enrichment.rest.model.EnrichmentQueryResult} objects
      * by Pvalue
@@ -35,7 +40,7 @@ public class EnrichmentQueryResultByPvalue implements Comparator<EnrichmentQuery
             return -1;
         }
         if (o1.getpValue() == o2.getpValue()){
-            return 0;
+            return _pvalCompare.compare(o1, o2);
         }
         return 1;
     }
