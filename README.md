@@ -101,29 +101,28 @@ sort.algorithm = similarity
 Replace **/tmp** paths with full path location to **enrichdb** directory 
 created earlier.
 
-### Step 2 Create databaseresults.json file
+### Step 2 Create dbresults.json file
 
-This file contains
-information about networks on NDEx to use to generate the Enrichment
-database.
+This file contains information about networks on [NDEx][ndex] to 
+use to generate the Enrichment database.
 
-Run the following to create an example **databaseresults.json** file:
+Run the following to create an example **dbresults.json** file:
 
 ```bash
-java -jar enrichment.jar --mode exampledbresults > databaseresults.json
+java -jar enrichment.jar --mode exampledbresults > dbresults.json
 
 ```
 
-The **databaseresults.json** file will look like this:
+The **dbresults.json** file from above command will look like this (``null``/``0`` value fields removed for clarity):
 
 ```bash
 {
   "databaseConnectionMap" : {
-    "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6" : {
-      "password" : "somepassword",
-      "user" : "bob",
-      "server" : "dev.ndexbio.org",
-      "networkSetId" : "f884cd40-5426-49e6-a311-fc046802b5f6"
+    "<UUID to identify entry in databaseConnectionMap>" : {
+      "password" : "<NDEx account password>",
+      "user" : "<NDEx account username>",
+      "server" : "<NDEx server ie ndexbio.org>",
+      "networkSetId" : "<NDEx networkset UUID ie f884cd40-5426-49e6-a311-fc046802b5f6>"
     },
     "e508cf31-79af-463e-b8b6-ff34c87e1734" : {
       "password" : "somepassword",
@@ -132,72 +131,62 @@ The **databaseresults.json** file will look like this:
       "networkSetId" : "bf0616dd-5d7e-403a-92f3-6e12cc02eb37"
     }
   },
-  "networksToExclude" : [ "4671adc9-670d-474c-84db-37774fc885ba", "309e834a-3005-41f2-8d28-46f2594aaaa8" ],
-  "universeUniqueGeneCount" : 0,
-  "databaseUniqueGeneCount" : null,
-  "geneMapList" : null,
-  "idfMap" : null,
-  "totalNetworkCount" : 0,
-  "networkGeneList" : null,
-  "networkToGeneToNodeMap" : null,
+  "networksToExclude" : [ "<UUID of network in NDEx, if here network will be excluded>", "4671adc9-670d-474c-84db-37774fc885ba" ],
   "results" : [ {
-    "numberOfNetworks" : null,
-    "name" : "signor",
-    "description" : "This is a description of a signor database",
-    "uuid" : "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6",
-    "url" : null,
-    "networks" : [ {
-      "name" : "Network Name",
-      "description" : "Network description",
-      "uuid" : "640e2cef-795d-11e8-a4bf-0ac135e8bacf",
-      "url" : "http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf",
-      "imageUrl" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
-      "geneCount" : 0,
-      "nodeCount" : 0,
-      "edgeCount" : 0
-    } ],
-    "imageURL" : "http://signor.uniroma2.it/img/signor_logo.png"
+    "name" : "<Name of source/database for these networks>",
+    "description" : "<Brief descriptiopn of this source/database of networks>",
+    "imageURL" : "<URL to png or svg to use as image icon for networks>",
+    "uuid" : "<UUID to identify entry in databaseConnectionMap>",
   }, {
-    "numberOfNetworks" : null,
     "name" : "ncipid",
     "description" : "This is a description of a ncipid database",
+    "imageURL" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
     "uuid" : "e508cf31-79af-463e-b8b6-ff34c87e1734",
-    "url" : null,
-    "networks" : [ {
-      "name" : "Network Name",
-      "description" : "Network description",
-      "uuid" : "640e2cef-795d-11e8-a4bf-0ac135e8bacf",
-      "url" : "http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf",
-      "imageUrl" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg",
-      "geneCount" : 0,
-      "nodeCount" : 0,
-      "edgeCount" : 0
-    } ],
-    "imageURL" : "http://www.home.ndexbio.org/img/pid-logo-ndex.jpg"
   } ]
 }
 
 ```
 
-The **databaseConnectionMap** section is internal and contains NDEx connection information
-that needs to be updated.The networks for the database will be all networks
-under network set specified by value of **networkSetId**
+Description of **dbresults.json**
 
-The **results** section is what will be returned to caller on service. During
-database creation the **numberOfNetworks**, **networks**, **url** will be updated, but its
-up to you to set **name** and **description** and to pick a **uuid** that matches
-the values under **databaseConnectionMap**
+* ``databaseConnectionMap: {...}``
+
+   Contains a map of [NDEx][ndex] credentials. This map is referenced by the 
+   ``uuid`` field under ``results``
+   
+   * ``password`` - [NDEx][ndex] account password
+   * ``username`` - [NDEx][ndex] account username
+   * ``server`` - [NDEx][ndex] server to use ie ``ndexbio.org``
+   * ``networkSetId`` - UUID of networkset on [NDEx][ndex] server. This networkset
+                        should contain the networks for a given database/source
+                        
+* ``networksToExclude``
+
+  List of zero or more of networks in [NDEx][ndex] to exclude. The value set should
+  be an [NDEx][ndex] UUID for the network.
+  
+* ``results [...]``
+
+  Contains a list of data sources or databases of networks.
+  
+  * ``name`` - Name of network database/source
+  * ``description`` - Description of network database/source
+  * ``imageURL`` - URL to png/svg image used as icon in UI for networks if `__iconurl` is
+     **NOT** set on the given network
+  * ``uuid`` - ID of credentials in ``databaseConnectionMap`` which has a ``networkSetId`` field
+               that denotes contains the networks for this network database/source
+
 
  ### Step 3 create database
 
 To create the database run the following command:
  
  ```bash
-java -jar enrichment.jar --mode createdb --conf enrichment.conf --dbresults databaseresults.json
+java -jar enrichment.jar --mode createdb --conf enrichment.conf --dbresults dbresults.json
 ```
 
-The above command will read the configuration and **databaseresults.json** 
-and query NDEx for networks downloading them to folders matching **uuid**
+The above command will read the configuration and **dbresults.json** file
+and query [NDEx][ndex] for networks downloading them to folders matching **uuid**
 values under the **enrichment.database.dir** directory.
 
 ### Step 4 Run the service
