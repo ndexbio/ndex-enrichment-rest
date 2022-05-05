@@ -284,29 +284,19 @@ public class App {
      * @throws Exception 
      */
     public static String generateExampleDatabaseResults() throws Exception {
-    	NetworkInfo nw = new NetworkInfo();
-    	nw.setName("Network Name");
-    	nw.setDescription("Network description");
-    	nw.setUuid("640e2cef-795d-11e8-a4bf-0ac135e8bacf");
-    	nw.setUrl("http://www.ndexbio.org/#/network/640e2cef-795d-11e8-a4bf-0ac135e8bacf");
-    	nw.setImageUrl("http://www.home.ndexbio.org/img/pid-logo-ndex.jpg");
-    	List<NetworkInfo> networkList = new ArrayList<>();
-    	networkList.add(nw);
+
     	
         DatabaseResult dr = new DatabaseResult();
-        dr.setDescription("This is a description of a signor database");
-        dr.setName("signor");
-        dr.setNetworks(networkList);
-        dr.setImageURL("http://signor.uniroma2.it/img/signor_logo.png");
-        String druuid = "89a90a24-2fa8-4a57-ae4b-7c30a180e8e6";
+        dr.setDescription("<Brief descriptiopn of this source/database of networks>");
+        dr.setName("<Name of source/database for these networks>");
+        dr.setImageURL("<URL to png or svg to use as image icon for networks>");
+        String druuid = "<UUID to identify entry in databaseConnectionMap>";
         dr.setUuid(druuid);
         
         DatabaseResult drtwo = new DatabaseResult();
         drtwo.setDescription("This is a description of a ncipid database");
         drtwo.setName("ncipid");
-        drtwo.setNetworks(networkList);
         drtwo.setImageURL("http://www.home.ndexbio.org/img/pid-logo-ndex.jpg");
-        //drtwo.setImageurl("http://ndexbio.org/images/new_landing_page_logo.06974471.png");
         String drtwouuid = "e508cf31-79af-463e-b8b6-ff34c87e1734";
         drtwo.setUuid(drtwouuid);
         
@@ -315,10 +305,10 @@ public class App {
         idr.setResults(Arrays.asList(dr, drtwo));
         HashMap<String, InternalNdexConnectionParams> ndexParam = new HashMap<>();
         InternalNdexConnectionParams cParam = new InternalNdexConnectionParams();
-        cParam.setPassword("somepassword");
-        cParam.setUser("bob");
-        cParam.setServer("dev.ndexbio.org");
-        cParam.setNetworkSetId("f884cd40-5426-49e6-a311-fc046802b5f6");
+        cParam.setPassword("<NDEx account password>");
+        cParam.setUser("<NDEx account username>");
+        cParam.setServer("<NDEx server ie ndexbio.org>");
+        cParam.setNetworkSetId("<NDEx networkset UUID ie f884cd40-5426-49e6-a311-fc046802b5f6>");
         ndexParam.put(druuid, cParam);
         
         cParam = new InternalNdexConnectionParams();
@@ -330,7 +320,7 @@ public class App {
         idr.setDatabaseConnectionMap(ndexParam);
         
         HashSet<String> excludeNetworks = new HashSet<>();
-        excludeNetworks.add("309e834a-3005-41f2-8d28-46f2594aaaa8");
+        excludeNetworks.add("<UUID of network in NDEx, if here network will be excluded>");
         excludeNetworks.add("4671adc9-670d-474c-84db-37774fc885ba");
         idr.setNetworksToExclude(excludeNetworks);
         ObjectMapper mappy = new ObjectMapper();
