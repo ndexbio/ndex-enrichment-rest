@@ -287,7 +287,7 @@ public class App {
 
     	
         DatabaseResult dr = new DatabaseResult();
-        dr.setDescription("<Brief descriptiopn of this source/database of networks>");
+        dr.setDescription("<Brief description of this source/database of networks>");
         dr.setName("<Name of source/database for these networks>");
         dr.setImageURL("<URL to png or svg to use as image icon for networks>");
         String druuid = "<UUID to identify entry in databaseConnectionMap>";
