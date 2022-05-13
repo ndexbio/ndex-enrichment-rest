@@ -78,7 +78,7 @@ public class LabelNetworkAnnotator implements NetworkAnnotator {
             _logger.error("Network lacks any visual properties. No changes made");
             return;
         }
-        
+        boolean labelPropertyChanged = false;
         Collection<AspectElement> aspectCol = opaqueAspects.get(LabelNetworkAnnotator.CY_VISUAL_PROPERTIES);
         for (AspectElement ae : aspectCol){
             if (ae instanceof CyVisualPropertiesElement == false){
@@ -110,13 +110,14 @@ public class LabelNetworkAnnotator implements NetworkAnnotator {
             // update type and definition
             nodeLabel.setType(LabelNetworkAnnotator.MAPPING_TYPE);
             nodeLabel.setDefinition(_definition);
-            // there should only be one of these so if we made it here, we are
-            // done
-            return;
+			labelPropertyChanged = true;
+            
         }
-        // @TODO to support this we'd need to create the nodes:default visual property and 
-        //       update the meta data count
-        _logger.error("Network lacks " + LabelNetworkAnnotator.NODES_DEFAULT + " CyVisualProperty. No changes made");
+		if (labelPropertyChanged == false){
+	        // @TODO to support this we'd need to create the nodes:default visual property and 
+		    //       update the meta data count
+			_logger.error("Network lacks " + LabelNetworkAnnotator.NODES_DEFAULT + " CyVisualProperty. No changes made");
+		}
     }
     
 }
