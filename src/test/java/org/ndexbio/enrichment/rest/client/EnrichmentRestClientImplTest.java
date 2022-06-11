@@ -1,10 +1,17 @@
 package org.ndexbio.enrichment.rest.client;
 
-import java.io.File;
 import java.io.IOException;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import java.io.InputStream;
 import java.util.TreeSet;
-import org.apache.commons.io.FileUtils;
+import kong.unirest.GetRequest;
+import kong.unirest.HttpResponse;
+import kong.unirest.HttpStatus;
+import kong.unirest.UnirestException;
+import kong.unirest.UnirestInstance;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -25,8 +32,122 @@ public class EnrichmentRestClientImplTest {
     public static final String NDEX_SERVER = "NDEX_PATHWAY_RELEVANCE_SERVER";
     
     @Test
-    public void testfoo(){
-        assertTrue(1 == 1);
+    public void testGetNetworkOverlayAsCXIdNull(){
+		
+		UnirestInstance mockInstance = createMock(UnirestInstance.class);
+		
+        EnrichmentRestClientImpl erc = new EnrichmentRestClientImpl(mockInstance, "http://foo", null);
+		try {
+			erc.getNetworkOverlayAsCX(null, "databaseUUID", "networkUUID");
+			fail("Expected IllegalArgumentExeption");
+		} catch(EnrichmentException ee){
+			fail("did not expect this exception: " + ee.getMessage());
+		} catch(IllegalArgumentException iae){
+			assertEquals("id cannot be null", iae.getMessage());
+		}
+    }
+	
+	@Test
+    public void testGetNetworkOverlayAsCXUnirestException(){
+		UnirestInstance mockInstance = createMock(UnirestInstance.class);
+		expect(mockInstance.get("http://foo/12345/overlaynetwork")).andThrow(new UnirestException("error"));
+
+		replay(mockInstance);
+		
+        EnrichmentRestClientImpl erc = new EnrichmentRestClientImpl(mockInstance, "http://foo", null);
+		try {
+			erc.getNetworkOverlayAsCX("12345", "db", "net");
+			fail("Expected EnrichmentException");
+		} catch(EnrichmentException ee){
+			assertEquals("Caught an exception: error", ee.getMessage());
+		}
+
+		verify(mockInstance);
+    }
+	
+	@Test
+    public void testGetNetworkOverlayAsCXErrorHttpStatus(){
+		
+		GetRequest mockDbQueryGR = createMock(GetRequest.class);
+		GetRequest mockNQueryGR = createMock(GetRequest.class);
+		GetRequest mockHeaderGR = createMock(GetRequest.class);
+		GetRequest mockBytesGR = createMock(GetRequest.class);
+		HttpResponse<byte[]> mockResponse = createMock(HttpResponse.class);
+		expect(mockResponse.getStatus()).andReturn(HttpStatus.NOT_FOUND);
+		expect(mockResponse.getStatus()).andReturn(HttpStatus.NOT_FOUND);
+		
+		expect(mockBytesGR.asBytes()).andReturn(mockResponse);
+		expect(mockHeaderGR.header(EnrichmentRestClientImpl.ACCEPT, EnrichmentRestClientImpl.APPLICATION_JSON)).andReturn(mockDbQueryGR);
+		expect(mockDbQueryGR.queryString("databaseUUID", "db")).andReturn(mockNQueryGR);
+		expect(mockNQueryGR.queryString("networkUUID", "net")).andReturn(mockBytesGR);
+		UnirestInstance mockInstance = createMock(UnirestInstance.class);
+		expect(mockInstance.get("http://foo/12345/overlaynetwork")).andReturn(mockHeaderGR);
+		
+		replay(mockDbQueryGR);
+		replay(mockNQueryGR);
+		replay(mockHeaderGR);
+		replay(mockBytesGR);
+		replay(mockResponse);
+		replay(mockInstance);
+		
+        EnrichmentRestClientImpl erc = new EnrichmentRestClientImpl(mockInstance, "http://foo", null);
+		try {
+			erc.getNetworkOverlayAsCX("12345", "db", "net");
+			fail("Expected IllegalArgumentExeption");
+		} catch(EnrichmentException ee){
+			assertEquals("HTTP Error: 404", ee.getMessage());
+		}
+		verify(mockDbQueryGR);
+		verify(mockNQueryGR);
+		verify(mockHeaderGR);
+		verify(mockBytesGR);
+		verify(mockResponse);
+		verify(mockInstance);
+    }
+	
+	@Test
+    public void testGetNetworkOverlayAsCXSuccess(){
+		
+		GetRequest mockDbQueryGR = createMock(GetRequest.class);
+		GetRequest mockNQueryGR = createMock(GetRequest.class);
+		GetRequest mockHeaderGR = createMock(GetRequest.class);
+		GetRequest mockBytesGR = createMock(GetRequest.class);
+		HttpResponse<byte[]> mockResponse = createMock(HttpResponse.class);
+		expect(mockResponse.getStatus()).andReturn(HttpStatus.OK);
+		byte[] barr = new byte[1];
+		expect(mockResponse.getBody()).andReturn(barr);
+		expect(mockBytesGR.asBytes()).andReturn(mockResponse);
+		expect(mockHeaderGR.header(EnrichmentRestClientImpl.ACCEPT, EnrichmentRestClientImpl.APPLICATION_JSON)).andReturn(mockDbQueryGR);
+		expect(mockDbQueryGR.queryString("databaseUUID", "db")).andReturn(mockNQueryGR);
+		expect(mockNQueryGR.queryString("networkUUID", "net")).andReturn(mockBytesGR);
+		UnirestInstance mockInstance = createMock(UnirestInstance.class);
+		expect(mockInstance.get("http://foo/12345/overlaynetwork")).andReturn(mockHeaderGR);
+		
+		replay(mockDbQueryGR);
+		replay(mockNQueryGR);
+		replay(mockHeaderGR);
+		replay(mockBytesGR);
+		replay(mockResponse);
+		replay(mockInstance);
+		
+        EnrichmentRestClientImpl erc = new EnrichmentRestClientImpl(mockInstance, "http://foo", null);
+		try {
+			InputStream in = erc.getNetworkOverlayAsCX("12345", "db", "net");
+			byte[] resBarr = in.readAllBytes();
+			
+			assertEquals(barr.length, resBarr.length);
+			assertEquals(barr[0], resBarr[0]);
+		} catch(EnrichmentException ee){
+			fail("Unexpected exception " + ee.getMessage());
+		} catch(IOException io){
+			fail("unexpected ioexception " + io.getMessage());
+		}
+		verify(mockDbQueryGR);
+		verify(mockNQueryGR);
+		verify(mockHeaderGR);
+		verify(mockBytesGR);
+		verify(mockResponse);
+		verify(mockInstance);
     }
     
     @EnabledIfEnvironmentVariable(named=EnrichmentRestClientImplTest.NDEX_SERVER, matches = ".+")

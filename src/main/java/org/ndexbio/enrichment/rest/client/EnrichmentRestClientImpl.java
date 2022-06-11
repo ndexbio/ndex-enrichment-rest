@@ -4,6 +4,7 @@ package org.ndexbio.enrichment.rest.client;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import kong.unirest.HttpResponse;
+import kong.unirest.HttpStatus;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
@@ -30,7 +31,12 @@ public class EnrichmentRestClientImpl implements EnrichmentRestClient {
     private UnirestInstance _unirest;
 
     public EnrichmentRestClientImpl(final String restEndPoint, final String userAgent) {
-        if (userAgent != null){
+        this(null, restEndPoint, userAgent);
+    }
+	
+	protected EnrichmentRestClientImpl(UnirestInstance restInstance, final String restEndPoint,
+			                           final String userAgent){
+		if (userAgent != null){
             _userAgent = _userAgent + " " + userAgent;
         }
         if (restEndPoint == null){
@@ -40,9 +46,13 @@ public class EnrichmentRestClientImpl implements EnrichmentRestClient {
         } else {
         _restEndPoint = restEndPoint;
         }
-        _unirest = Unirest.spawnInstance();
-        _unirest.config().setObjectMapper(new JacksonObjectMapper());
-    }
+		if (restInstance != null){
+			_unirest = restInstance;
+		} else {
+	        _unirest = Unirest.spawnInstance();
+		    _unirest.config().setObjectMapper(new JacksonObjectMapper());
+		}
+	}
     
     /**
      * Gets the UnirestInstance. This is for testing purposes only.
@@ -199,13 +209,19 @@ public class EnrichmentRestClientImpl implements EnrichmentRestClient {
             throw new IllegalArgumentException("id cannot be null");
         }
         try {
-            
-            
+			
             HttpResponse<byte[]> dbRes = _unirest.get(getNetworkOverlayEndPoint(id))
                     .header(ACCEPT, APPLICATION_JSON)
                     .queryString("databaseUUID", databaseUUID)
                     .queryString("networkUUID", networkUUID).asBytes();
-            // TODO need to get this to directly return in the inputstream
+            
+			// Fix for https://ndexbio.atlassian.net/browse/UD-2230
+			// where error response isn't caught and raised as an exception
+			if (dbRes.getStatus() != HttpStatus.OK){
+				throw new EnrichmentException("HTTP Error: "
+				                              + Integer.toString(dbRes.getStatus()));
+			}
+			// TODO need to get this to directly return in the inputstream
             //      instead of getting the body as a byte array and then
             //      wrapping it in an InputStream
             return new ByteArrayInputStream(dbRes.getBody());
