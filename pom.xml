@@ -24,7 +24,6 @@
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.7</commons-io.version>
-	    <ndex-object-model.version>2.5.4-SNAPSHOT</ndex-object-model.version>
         <ndex-java-client.version>2.5.4-SNAPSHOT</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
@@ -99,11 +98,6 @@
             <groupId>org.ndexbio.client</groupId>
             <artifactId>ndex-java-client</artifactId>
             <version>${ndex-java-client.version}</version>
-        </dependency>
-	<dependency>
-            <groupId>org.ndexbio</groupId>
-            <artifactId>ndex-object-model</artifactId>
-            <version>${ndex-object-model.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

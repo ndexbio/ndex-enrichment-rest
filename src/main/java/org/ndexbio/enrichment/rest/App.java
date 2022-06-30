@@ -65,6 +65,8 @@ public class App {
 
 	public static final String ICON_URL = "__iconurl";
 	
+	public static final String LEGEND_URL = "__legendurl";
+	
 	public static final String APP_PROPERTIES = "app.properties";
     
     /**
@@ -296,7 +298,8 @@ public class App {
         DatabaseResult drtwo = new DatabaseResult();
         drtwo.setDescription("This is a description of a ncipid database");
         drtwo.setName("ncipid");
-        drtwo.setImageURL("http://www.home.ndexbio.org/img/pid-logo-ndex.jpg");
+        drtwo.setImageURL("https://www.home.ndexbio.org/img/pid-logo-ndex.jpg");
+        drtwo.setLegendURL("https://home.ndexbio.org/iquerylegend/ncipid_legend.png");
         String drtwouuid = "e508cf31-79af-463e-b8b6-ff34c87e1734";
         drtwo.setUuid(drtwouuid);
         
@@ -448,7 +451,7 @@ public class App {
 				}
 				String networkUrl = getNetworkUrl(cParams.getServer(), netid.toString());
 				
-				NetworkInfo simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL(), network.getNodes().size(), network.getEdges().size());
+				NetworkInfo simpleNetwork = getSimpleNetwork(network, netid.toString(), networkUrl, dr.getImageURL(), dr.getLegendURL() , network.getNodes().size(), network.getEdges().size());
                 networkList.add(simpleNetwork);
 				networkGeneSet = new HashSet<>();
 				networkGeneMap.put(netid.toString(), networkGeneSet);
@@ -715,15 +718,38 @@ public class App {
 		}
 		return imageUrl;
 	}
+
+	
+	public static String getLegendUrlFromNetwork(NiceCXNetwork network, final String legendUrl){
+		if (network == null){
+			return legendUrl;
+		}
+		if (network.getNetworkAttributes() == null){
+			return legendUrl;
+		}
+		for (NetworkAttributesElement nae : network.getNetworkAttributes()){
+			if (nae.getName().equals(LEGEND_URL)){
+				if (nae.getValue() != null && !nae.getValue().trim().isEmpty() &&
+						nae.getValue().startsWith("http")){
+					return nae.getValue();
+				}
+				_logger.warn(LEGEND_URL + " network attribute exists but value is "
+						+ "empty or does not start with http. Using default");
+				break;
+			}
+		}
+		return legendUrl;
+	}
 	
     public static NetworkInfo getSimpleNetwork(NiceCXNetwork network, String networkUuid, String networkUrl, String imageUrl,
-			int nodeCount, int edgeCount) {
+    		String legendUrl, int nodeCount, int edgeCount) {
     	NetworkInfo nw = new NetworkInfo();
     	nw.setName(network.getNetworkName());
     	nw.setDescription(network.getNetworkDescription());
     	nw.setUuid(networkUuid);
     	nw.setUrl(networkUrl);
     	nw.setImageUrl(App.getImageUrlFromNetwork(network, imageUrl));
+    	nw.setLegendUrl(  getLegendUrlFromNetwork(network, legendUrl) );
 		nw.setNodeCount(nodeCount);
 		nw.setEdgeCount(edgeCount);
     	return nw;

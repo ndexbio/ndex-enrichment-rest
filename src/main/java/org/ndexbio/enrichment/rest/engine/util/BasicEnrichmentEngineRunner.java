@@ -360,6 +360,8 @@ public class BasicEnrichmentEngineRunner implements Callable {
 			eqr.setDatabaseName(dbres.getName());
 			
 			eqr.setImageURL(dbres.getImageURL());
+			eqr.setLegendURL(dbres.getLegendURL());
+			
 			eqr.setDatabaseUUID(dbres.getUuid());
 			TreeSet<String> hitGenes = new TreeSet<>(networkMap.get(network));
 			eqr.setHitGenes(hitGenes);
@@ -379,6 +381,11 @@ public class BasicEnrichmentEngineRunner implements Callable {
 							&& networkInfo.getImageUrl().startsWith("http")){
 						eqr.setImageURL(networkInfo.getImageUrl());
 					}
+					if (networkInfo.getLegendUrl() != null
+							&& networkInfo.getLegendUrl().startsWith("http")){
+						eqr.setLegendURL(networkInfo.getLegendUrl());
+					}
+					
                     break; 
 					
 				}

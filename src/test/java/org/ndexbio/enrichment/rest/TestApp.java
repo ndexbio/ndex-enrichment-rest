@@ -135,10 +135,11 @@ public class TestApp {
 	public void testGetSimpleNetwork(){
 		NiceCXNetwork network = new NiceCXNetwork();
 		network.addNetworkAttribute(new NetworkAttributesElement(null, "name", "netname"));
-		NetworkInfo res = App.getSimpleNetwork(network, "netuuid", "neturl", "imageurl", 10, 20);
+		NetworkInfo res = App.getSimpleNetwork(network, "netuuid", "neturl", "imageurl", "legendurl", 10, 20);
 		assertEquals("netname", res.getName());
 		assertEquals("neturl", res.getUrl());
 		assertEquals("imageurl", res.getImageUrl());
+		assertEquals("legendurl", res.getLegendUrl());
 		assertEquals(null, res.getDescription());
 		assertEquals(0, res.getGeneCount());
 	}

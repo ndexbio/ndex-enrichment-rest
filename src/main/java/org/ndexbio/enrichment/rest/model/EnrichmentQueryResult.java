@@ -15,6 +15,8 @@ public class EnrichmentQueryResult {
     private String _description;
     private String _url;
     private String _imageURL;
+    private String _legendURL;
+    
     private int _percentOverlap;
     private int _nodes;
     private int _edges;
@@ -164,6 +166,14 @@ public class EnrichmentQueryResult {
     public void setTotalGeneCount(int _totalGeneCount) {
         this._totalGeneCount = _totalGeneCount;
     }
+
+	public String getLegendURL() {
+		return _legendURL;
+	}
+
+	public void setLegendURL(String _legendURL) {
+		this._legendURL = _legendURL;
+	}
         
         
 }
