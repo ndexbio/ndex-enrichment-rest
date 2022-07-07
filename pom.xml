@@ -16,7 +16,7 @@
         <junit.version>5.8.2</junit.version>
         <easymock.version>4.0.2</easymock.version>
         <mockito.version>3.12.4</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
-        <jetty.version>9.4.45.v20220203</jetty.version>
+        <jetty.version>10.0.10</jetty.version>
         <jetty.maven.plugin.version>9.4.45.v20220203</jetty.maven.plugin.version>
         <swagger.version>2.0.0</swagger.version>
         <jackson.version>2.9.9</jackson.version>
