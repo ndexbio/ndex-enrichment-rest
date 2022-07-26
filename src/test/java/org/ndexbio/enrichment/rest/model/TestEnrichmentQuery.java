@@ -1,10 +1,12 @@
 package org.ndexbio.enrichment.rest.model;
 
+import java.util.Arrays;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.ndexbio.ndexsearch.rest.model.AlterationData;
 /**
  *
  * @author churas
@@ -68,6 +70,24 @@ public class TestEnrichmentQuery {
 		genelist.add("gene2");
 		eq.setGeneList(genelist);
 		assertEquals(588716314, eq.hashCode());
+		
+		AlterationData aOne = new AlterationData();
+		aOne.setGene("gene1");
+		aOne.setPercentAltered("1%");
+		eq.setAlterationData(Arrays.asList(aOne));
+		assertEquals(1472474081, eq.hashCode());
+		
+		aOne = new AlterationData();
+		aOne.setGene("gene1");
+		aOne.setPercentAltered("2%");
+		eq.setAlterationData(Arrays.asList(aOne));
+		assertEquals(338607488, eq.hashCode());
+		
+		AlterationData aTwo = new AlterationData();
+		aTwo.setGene("gene2");
+		aTwo.setPercentAltered("1%");
+		eq.setAlterationData(Arrays.asList(aOne, aTwo));
+		assertEquals(-358253819, eq.hashCode());
 	}
 	
 	@Test
@@ -96,5 +116,20 @@ public class TestEnrichmentQuery {
 		assertTrue(othereq.equals(eq));
 		
 		SortedSet<String> genelist = new TreeSet<>();
+		
+		eq = new EnrichmentQuery();
+		eq.setDatabaseList(new TreeSet<>(Arrays.asList("dbone", "dbtwo")));
+		eq.setGeneList(new TreeSet<>(Arrays.asList("gene1", "gene2")));
+		assertTrue(eq.equals(eq));
+		othereq = new EnrichmentQuery();
+		othereq.setDatabaseList(eq.getDatabaseList());
+		othereq.setGeneList(othereq.getGeneList());
+		AlterationData aOne = new AlterationData();
+		aOne.setGene("gene1");
+		aOne.setPercentAltered("1%");
+		othereq.setAlterationData(Arrays.asList(aOne));
+		assertFalse(eq.equals(othereq));
+		assertFalse(othereq.equals(eq));
+		
 	}
 }

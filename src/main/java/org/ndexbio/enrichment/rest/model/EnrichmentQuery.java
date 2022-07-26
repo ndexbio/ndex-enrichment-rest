@@ -136,6 +136,21 @@ public class EnrichmentQuery {
     			.stream()
     			.collect(Collectors.joining(",")));
 		}
+		// Bug fix for UD-2255 include alteration data if found when building
+		// digest string so we dont have false cache hits
+		if (this.getAlterationData() != null){
+			sb.append("::");
+			for (AlterationData ad: this.getAlterationData()){
+				if (ad != null){
+					if (ad.getGene() != null && ad.getPercentAltered() != null){
+						sb.append(ad.getGene().toUpperCase());
+						sb.append("__");
+						sb.append(ad.getPercentAltered());
+						sb.append(",");
+					}
+				}
+			}
+		}
 		return sb.toString();
 	}
     

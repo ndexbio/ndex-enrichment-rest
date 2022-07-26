@@ -19,6 +19,7 @@ import org.ndexbio.enrichment.rest.model.ServerStatus;
 import org.ndexbio.enrichment.rest.model.comparators.EnrichmentQueryResultBySimilarity;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 import org.ndexbio.model.cx.NiceCXNetwork;
+import org.ndexbio.ndexsearch.rest.model.AlterationData;
 
 /**
  *
@@ -139,6 +140,33 @@ public class TestBasicEnrichmentEngineImpl {
 		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(null, null, null, 25, null);
 		String res = enricher.getUniqueString(query);
 		assertEquals("dbone,dbtwo:GENE1,GENE2", res);
+		
+		query = new EnrichmentQuery();
+		query.setDatabaseList(new TreeSet<>(Arrays.asList("dbone", "dbtwo")));
+		query.setGeneList(new TreeSet<>(Arrays.asList("gene1", "gene2")));
+		query.setAlterationData(new ArrayList<AlterationData>());
+		res = enricher.getUniqueString(query);
+		assertEquals("dbone,dbtwo:GENE1,GENE2::", res);
+		
+		AlterationData aOne = new AlterationData();
+		aOne.setGene("gene1");
+		aOne.setPercentAltered("1%");
+		query.setAlterationData(Arrays.asList(aOne));
+		res = enricher.getUniqueString(query);
+		assertEquals("dbone,dbtwo:GENE1,GENE2::GENE1__1%,", res);
+		
+		AlterationData aTwo = new AlterationData();
+		aTwo.setGene("gene2");
+		aTwo.setPercentAltered(null);
+		query.setAlterationData(Arrays.asList(aOne, aTwo));
+		res = enricher.getUniqueString(query);
+		assertEquals("dbone,dbtwo:GENE1,GENE2::GENE1__1%,", res);
+		
+		aTwo.setPercentAltered("2%");
+		query.setAlterationData(Arrays.asList(aOne, aTwo));
+		res = enricher.getUniqueString(query);
+		assertEquals("dbone,dbtwo:GENE1,GENE2::GENE1__1%,GENE2__2%,", res);
+		
 	}
 	/**
     @Test

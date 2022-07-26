@@ -51,6 +51,7 @@ import com.google.common.cache.RemovalNotification;
 import java.util.Comparator;
 import java.util.Map;
 import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
+import org.ndexbio.ndexsearch.rest.model.AlterationData;
 
 /**
  * Runs enrichment 
@@ -383,7 +384,25 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 				.map( e -> e.trim())
 				.filter(e -> e.length()>0)
 				.collect(Collectors.joining(","));
-		//String id = UUID.nameUUIDFromBytes(intermediary.getBytes()).toString();
+		
+		// Bug fix for UD-2255 include alteration data if found when building
+		// unique string so we dont have false cache hits
+		if (query.getAlterationData() != null){
+			StringBuilder sb = new StringBuilder();
+			sb.append(intermediary);
+			sb.append("::");
+			for (AlterationData ad: query.getAlterationData()){
+				if (ad != null){
+					if (ad.getGene() != null && ad.getPercentAltered() != null){
+						sb.append(ad.getGene().toUpperCase());
+						sb.append("__");
+						sb.append(ad.getPercentAltered());
+						sb.append(",");
+					}
+				}
+			}
+			intermediary = sb.toString();
+		}
 		return intermediary;
 	}
         
