@@ -20,7 +20,7 @@
         <jetty.maven.plugin.version>9.4.45.v20220203</jetty.maven.plugin.version>
         <swagger.version>2.0.0</swagger.version>
         <jackson.version>2.9.9</jackson.version>
-        <jackson.databind.version>2.9.10.8</jackson.databind.version>
+        <jackson.databind.version>2.12.6.1</jackson.databind.version>
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.7</commons-io.version>
