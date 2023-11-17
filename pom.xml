@@ -14,10 +14,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <resteasy.version>3.1.4.Final</resteasy.version>
         <junit.version>5.8.2</junit.version>
-        <easymock.version>4.0.2</easymock.version>
-        <mockito.version>3.12.4</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
-        <jetty.version>9.4.45.v20220203</jetty.version>
-        <jetty.maven.plugin.version>9.4.45.v20220203</jetty.maven.plugin.version>
+        <easymock.version>5.2.0</easymock.version>
+        <mockito.version>5.7.0</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
+        <jetty.version>9.4.53.v20231009</jetty.version>
+        <jetty.maven.plugin.version>9.4.53.v20231009</jetty.maven.plugin.version>
         <swagger.version>2.0.0</swagger.version>
         <jackson.version>2.9.9</jackson.version>
         <jackson.databind.version>2.9.10.8</jackson.databind.version>
@@ -285,7 +285,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.3</version>
+                <version>0.8.11</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
