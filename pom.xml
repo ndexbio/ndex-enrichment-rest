@@ -13,7 +13,7 @@
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <resteasy.version>3.1.4.Final</resteasy.version>
-        <junit.version>5.8.2</junit.version>
+        <junit.version>5.10.1</junit.version>
         <easymock.version>5.2.0</easymock.version>
         <mockito.version>5.7.0</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
         <jetty.version>9.4.53.v20231009</jetty.version>
@@ -24,7 +24,7 @@
         <logback.version>1.2.3</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-io.version>2.7</commons-io.version>
-        <ndex-java-client.version>2.5.6-SNAPSHOT</ndex-java-client.version>
+        <ndex-java-client.version>2.5.5</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
         <hamcrest.version>2.1</hamcrest.version>
         <guava.version>29.0-jre</guava.version>
