@@ -455,8 +455,17 @@ public class App {
                 networkList.add(simpleNetwork);
 				networkGeneSet = new HashSet<>();
 				networkGeneMap.put(netid.toString(), networkGeneSet);
-				updateGeneMap(network, netid.toString(), geneMap,
-                              networkGeneSet, idr);
+				
+				// Quick fix to handle case where gene to node id mapping already
+				// exists and we just use that instead of parsing the network to
+				// find genes. 
+				// @TODO: Should really refactor this into a generalized strategy
+				//        so this caller does not have to branch here
+				if (updateGeneMapIfGeneNodeMappingExists(network, netid.toString(), geneMap,
+                              networkGeneSet, idr) == false){
+					updateGeneMap(network, netid.toString(), geneMap,
+		                          networkGeneSet, idr);
+				}
 				
 				simpleNetwork.setGeneCount(networkGeneSet.size());
 				uniqueGeneSet.addAll(networkGeneSet);
@@ -540,12 +549,64 @@ public class App {
 		
 		
 	}
+	
+	/**
+	 *
+	 * Using <b>NetworkToGeneToNodeMap</b> mapping for the network, this
+	 * function adds network to gene map which has the following structure:
+	 * 
+	 * gene names => [ list of network UUIDs for networks that have this gene]
+	 *
+	 * @param network network to examine
+     * @param externalId id of network passed in
+     * @param geneMap gene names => [ list of network UUIDs]
+     * @param networkGeneSet this method fills this set with the unique set of genes found
+	 *                       on this network
+     * @throws Exception 
+	 */
+	public static boolean updateGeneMapIfGeneNodeMappingExists(final NiceCXNetwork network,
+            final String externalId, InternalGeneMap geneMap,
+            final Set<String> networkGeneSet,
+            InternalDatabaseResults idr) throws Exception {
+		
+		Map<String, Set<String>> mappy = geneMap.getGeneMap();
+        if (mappy == null){
+            _logger.debug("Adding mappy");
+            mappy = new HashMap<>();
+            geneMap.setGeneMap(mappy);
+        }
+		
+		Map<String, Map<String, Set<Long>>> geneToNodeBigMap = idr.getNetworkToGeneToNodeMap();
+		if (geneToNodeBigMap == null || geneToNodeBigMap.containsKey(externalId) == false){
+			return false;
+		}
+		
+		_logger.debug("Network " + externalId + " has gene symbol to node id mapping");
+		
+		Map<String, Set<Long>> geneToNodeMap = geneToNodeBigMap.get(externalId);
+		for (String key : geneToNodeMap.keySet()){
+			networkGeneSet.add(key);
+			if (mappy.containsKey(key) == false){
+                    mappy.put(key, new HashSet<String>());
+            }
+			if (mappy.get(key).contains(externalId) == false){
+				mappy.get(key).add(externalId);
+			}
+		}
+		return true;
+	}
+	
     /**
-     * Adds network to gene map which has the following structure:
+     * Adds a normalized network to gene map which has the following structure:
      * 
      * gene names => [ list of network UUIDs for networks that have this gene]
      * 
-     * 
+     * A normalized network has a <b>type</b> node attribute of value of 
+	 * protein type as noted from {@code App.isTypeProtein} 
+	 * for gene nodes with the name of node being the gene symbol <b>OR</b>
+	 * complex type as noted in {@code App.isTypeComplex} which would also
+	 * have a <b>member</b> node attribute with list of gene symbols
+	 * 
      * @param network network to examine
      * @param externalId id of network passed in
      * @param geneMap gene names => [ list of network UUIDs]
