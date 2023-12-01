@@ -58,7 +58,7 @@ def _parse_arguments(desc, args):
                                                'REST service')
     parser.add_argument('outputdbresults', help='Output dbresults.json file')
     parser.add_argument('--networkset',
-                        default='c2228290-368e-11ec-b3be-0ac135e8bacf',
+                        default='93061b2c-9078-11ee-8a13-005056ae23aa',
                         help='NDEx networkset ID of CCMI networks to update'
                              'mapping on')
     parser.add_argument('--verbose', '-v', action='count', default=0,
@@ -142,10 +142,9 @@ def update_nodemappings(source_client=None, dbresults=None,
         if entry['networkSetId'] != networkset_id:
             continue
         res = source_client.get_networkset(entry['networkSetId'])
-        entry['networks'] = res['networks']
-        num_networks = len(entry['networks'])
+        num_networks = len(res['networks'])
         LOGGER.info('There are ' + str(num_networks) + ' in CCMI networkset_id')
-        for net_id in entry['networks']:
+        for net_id in res['networks']:
             LOGGER.info('Downloading network: ' + str(net_id))
             client_resp = source_client.get_network_as_cx2_stream(net_id)
             cx2_network = cx2fac.get_cx2network(client_resp.json())
