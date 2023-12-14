@@ -298,9 +298,9 @@ def main(arglist):
     theargs = _parse_arguments(desc, arglist[1:])
     _setup_logging(theargs)
     theargs.source_server = input('Enter source NDEx server '
-                          '(default ' + constants.DEFAULT_SERVER + '): ')
+                                  '(default http://ndexbio.org): ')
     if theargs.source_server is None or len(theargs.source_server) == 0:
-        theargs.source_server = constants.DEFAULT_SERVER
+        theargs.source_server = 'http://ndexbio.org'
 
     theargs.source_user = input('Enter source NDEx user: ')
     theargs.source_pass = getpass.getpass(prompt='Enter source '
