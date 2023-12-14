@@ -57,9 +57,10 @@ def _parse_arguments(desc, args):
                                                'pathway relevance or enrichment'
                                                'REST service')
     parser.add_argument('outputdbresults', help='Output dbresults.json file')
-    parser.add_argument('--networkset',
-                        default='93061b2c-9078-11ee-8a13-005056ae23aa',
-                        help='NDEx networkset ID of CCMI networks to update'
+    parser.add_argument('--networksets', nargs='+', type=str,
+                        default=['c2228290-368e-11ec-b3be-0ac135e8bacf',
+                                 'df8574a2-909b-11ee-8a13-005056ae23aa'],
+                        help='NDEx networkset IDs of CCMI networks to update'
                              'mapping on')
     parser.add_argument('--verbose', '-v', action='count', default=0,
                         help='Increases verbosity of logger to standard '
@@ -306,12 +307,13 @@ def update_mapping(theargs):
     if NETWORK_TO_GENE_TO_NODE_KEY not in dbresults:
         dbresults[NETWORK_TO_GENE_TO_NODE_KEY] = {}
 
-    source_client = get_ndex_client(dbresults,
-                                    networkset_id=theargs.networkset)
-
-    update_nodemappings(source_client=source_client,
-                        networkset_id=theargs.networkset,
-                        dbresults=dbresults)
+    for ns in theargs.networksets:
+        LOGGER.info('Processing networkset: ' + ns)
+        source_client = get_ndex_client(dbresults,
+                                        networkset_id=ns)
+        update_nodemappings(source_client=source_client,
+                            networkset_id=ns,
+                            dbresults=dbresults)
 
     write_output_dbresults(theargs, dbresults)
     sys.stdout.write('\nProcessing complete. Have a nice day.\n\n')
@@ -322,11 +324,12 @@ def main(arglist):
     desc = """
               This program takes an input dbresults.json/databaseresults.json
               and manually generates "{network_to_gene_to_node_key}" mapping for
-              CCMI networks in networkset XXX. This is done by examining
-              the nodes looking for Bait ID, BaitUniprot, Prey, PreyUniprot, or
-              Represents attributes to get the uniprot id. If that fails the 
-              name is used as gene symbol which is then fed to mygene to 
-              update with latest gene symbol.
+              CCMI networks in networksets passed in via --networksets flag. 
+              This is done by examining the nodes looking for Bait ID, 
+              BaitUniprot, Prey, PreyUniprot, or Represents attributes to 
+              get the uniprot id. If that fails the name is used as gene 
+              symbol which is then fed to mygene to update with latest gene 
+              symbol.
               
               To use an account on the source NDEx server must exist which 
               has access to all networks in networkset XXX input 
