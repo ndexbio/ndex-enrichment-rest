@@ -50,6 +50,7 @@ import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
 import org.ndexbio.ndexsearch.rest.model.AlterationData;
 
@@ -97,14 +98,41 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	private long _threadSleep = 10;
 
 	//Cache
-	private final LoadingCache<EnrichmentQuery, String> geneSetSearchCache;
-	private static int resultCacheSize = 600;
+	private final LoadingCache<String, String> geneSetSearchCache;
 	
 	private int _numResultsToReturn;
-
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param es
+	 * @param dbDir
+	 * @param taskDir
+	 * @param numResultsToReturn
+	 * @param resComparator 
+	 */
 	public BasicEnrichmentEngineImpl(ExecutorService es, 
 			final String dbDir,
 			final String taskDir, int numResultsToReturn, Comparator<EnrichmentQueryResult> resComparator){
+		this(es, dbDir, taskDir, numResultsToReturn, resComparator, 600, 600, 5, TimeUnit.DAYS);
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param es
+	 * @param dbDir
+	 * @param taskDir
+	 * @param numResultsToReturn
+	 * @param resComparator
+	 * @param initialCacheSize
+	 * @param maximumCacheSize 
+	 */
+	public BasicEnrichmentEngineImpl(ExecutorService es, 
+			final String dbDir,
+			final String taskDir, int numResultsToReturn, Comparator<EnrichmentQueryResult> resComparator,
+			int cacheInitialSize, long cacheMaximumSize, long cacheExpireAfterDuration,
+			TimeUnit cacheExpireAfterAccessUnit){
 		_executorService = es;
 		_futureTaskMap = new ConcurrentHashMap<>();
 		_shutdown = false;
@@ -117,9 +145,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		_comparator = resComparator;
 		_numResultsToReturn = numResultsToReturn;
 
-		RemovalListener<EnrichmentQuery, String> removalListener = new RemovalListener<EnrichmentQuery, String>() {
+		RemovalListener<String, String> removalListener = new RemovalListener<String, String>() {
 			@Override
-			public void onRemoval(RemovalNotification<EnrichmentQuery, String> removal) {
+			public void onRemoval(RemovalNotification<String, String> removal) {
 				String id = removal.getValue();
 				try {
 					delete(id);
@@ -131,21 +159,14 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 
 		geneSetSearchCache = CacheBuilder
 				.newBuilder()
-				.initialCapacity(resultCacheSize)
-				.maximumSize(resultCacheSize)
+				.initialCapacity(cacheInitialSize)
+				.maximumSize(cacheMaximumSize)
+				.expireAfterAccess(cacheExpireAfterDuration, cacheExpireAfterAccessUnit)
 				.removalListener(removalListener)
 				.build(
-						new CacheLoader<EnrichmentQuery, String>() {
-							public String load(EnrichmentQuery eq) {
-								long startTime = System.currentTimeMillis();
-								String id = UUID.nameUUIDFromBytes(getUniqueString(eq).getBytes()).toString();
-								_logger.info("Creating id {} took {} ms", id, System.currentTimeMillis() - startTime);
-								EnrichmentQueryResults eqr = new EnrichmentQueryResults(System.currentTimeMillis());
-								eqr.setStatus(EnrichmentQueryResults.SUBMITTED_STATUS);
-								BasicEnrichmentEngineRunner task = new BasicEnrichmentEngineRunner(id, _taskDir, _dbDir, _databaseResults, _databases, _uniqueGeneSet, _comparator, _numResultsToReturn, eq, eqr);
-								_futureTaskMap.put(id, _executorService.submit(task));
-								_queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));        
-								return id;
+						new CacheLoader<String, String>() {
+							public String load(final String id) {        
+								return new String(id);
 							}
 						}      		
 						);
@@ -242,6 +263,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	protected EnrichmentQueryResults getEnrichmentQueryResultsFromDbOrFilesystem(final String id){
 		EnrichmentQueryResults eqr = _queryResults.get(id);
 		if (eqr != null){
+			_logger.debug("returning enrichmentqueryresults object for id: " + id);
 			return eqr;
 		}
 		ObjectMapper mappy = new ObjectMapper();
@@ -255,6 +277,7 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		} catch(IOException io){
 			_logger.error("Caught exception trying to load " + eqrFile.getAbsolutePath(), io);
 		}
+		_logger.debug("no match for id: " + id);
 		return null;
 	}
 
@@ -369,7 +392,25 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		if (thequery.getDatabaseList() == null || thequery.getDatabaseList().isEmpty()){
 			throw new EnrichmentException("No databases selected");
 		}
-		return geneSetSearchCache.get(thequery);
+		String id = UUID.nameUUIDFromBytes(getUniqueString(thequery).getBytes()).toString();
+		
+		// check if we already ran this query
+		EnrichmentQueryResults eqResults = getEnrichmentQueryResultsFromDbOrFilesystem(id);
+		if (eqResults != null){
+			// we did return id
+			_logger.info("Found existing query result, "
+					+ "returning that instead of running new query: " + id);
+			return id;
+		}
+		
+		long startTime = System.currentTimeMillis();
+		_logger.info("Creating id {} took {} ms", id, System.currentTimeMillis() - startTime);
+		EnrichmentQueryResults eqr = new EnrichmentQueryResults(System.currentTimeMillis());
+		eqr.setStatus(EnrichmentQueryResults.SUBMITTED_STATUS);
+		BasicEnrichmentEngineRunner task = new BasicEnrichmentEngineRunner(id, _taskDir, _dbDir, _databaseResults, _databases, _uniqueGeneSet, _comparator, _numResultsToReturn, thequery, eqr);
+		_futureTaskMap.put(id, _executorService.submit(task));
+		_queryResults.merge(id, eqr, (oldval, newval) -> newval.updateStartTime(oldval));
+		return geneSetSearchCache.get(id);
 	}  
 
 	String getUniqueString(EnrichmentQuery query) {
@@ -406,23 +447,29 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		return intermediary;
 	}
         
-        private void removeQueryFromCache(final String id){
-            Map<EnrichmentQuery, String> cacheMap = this.geneSetSearchCache.asMap();
-            EnrichmentQuery queryToInvalidate = null;
-            for (EnrichmentQuery query : cacheMap.keySet()){
-                String queryId = cacheMap.get(query);
-                if (queryId == null){
-                    continue;
-                }
-                if (queryId.equals(id)){
-                    queryToInvalidate = query;
-                    break;
-                }
-            }
-            if (queryToInvalidate != null){
-                this.geneSetSearchCache.invalidate(queryToInvalidate);
-            }
-        }
+	private void removeQueryFromCache(final String id){
+		Map<String, String> cacheMap = this.geneSetSearchCache.asMap();
+		if (cacheMap.containsKey(id)){
+			this.geneSetSearchCache.invalidate(id);
+		}
+	}
+	
+	/**
+	 * Checks for id in cache and if there issues a get request which in effect
+	 * updates the cache entry I think.
+	 * @param id 
+	 */
+	protected void touchIdInCache(final String id){
+		Map<String, String> cacheMap = this.geneSetSearchCache.asMap();
+		if (cacheMap.containsKey(id)){
+			try {
+				this.geneSetSearchCache.get(id);
+			} catch(ExecutionException ee){
+				_logger.debug("Caught ExecutionException trying to get "
+						+ id + " from cache: ", ee);
+			}
+		}
+	}
 
 	@Override
 	public DatabaseResults getDatabaseResults() throws EnrichmentException {
@@ -441,6 +488,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	 */
 	@Override
 	public EnrichmentQueryResults getQueryResults(String id, int start, int size) throws EnrichmentException {
+		
+		touchIdInCache(id);
+		
 		EnrichmentQueryResults eqr = getEnrichmentQueryResultsFromDbOrFilesystem(id);
 		if (start < 0){
 			throw new EnrichmentException("start parameter must be a value of 0 or greater");
@@ -480,12 +530,12 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 
 	@Override
 	public void delete(String id) throws EnrichmentException {
-		_logger.debug("Deleting task " + id);
+		_logger.info("Deleting task " + id);
 		if (_queryResults.containsKey(id) == true){
 			_queryResults.remove(id);
 		}
                 
-                removeQueryFromCache(id);
+		removeQueryFromCache(id);
                 
 		File thisTaskDir = new File(this._taskDir + File.separator + id);
 		if (thisTaskDir.exists() == false){
@@ -500,6 +550,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 
 	protected EnrichmentQueryResult getEnrichmentQueryResult(final String id, 
 			final String networkUUID) throws EnrichmentException {
+		
+		touchIdInCache(id);
+
 		EnrichmentQueryResults eqResults = getEnrichmentQueryResultsFromDbOrFilesystem(id);
 		if (eqResults == null){
 			return null;
@@ -523,7 +576,10 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 	}
 
 	@Override
-	public InputStream getNetworkOverlayAsCX(String id, String databaseUUID, String networkUUID) throws EnrichmentException { 
+	public InputStream getNetworkOverlayAsCX(String id, String databaseUUID, String networkUUID) throws EnrichmentException {
+		
+		touchIdInCache(id);
+
 		EnrichmentQueryResult eqr = getEnrichmentQueryResult(id, networkUUID);
 		if (eqr == null){
 			_logger.error("No network found");
@@ -569,9 +625,9 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		ServerStatus sObj = new ServerStatus();
 		sObj.setStatus(ServerStatus.OK_STATUS);
 		sObj.setRestVersion(EnrichmentHttpServletDispatcher.getVersion());
-                if (this.geneSetSearchCache != null){
-                    sObj.setCacheSize(this.geneSetSearchCache.size());
-                }
+		if (this.geneSetSearchCache != null){
+			sObj.setCacheSize(this.geneSetSearchCache.size());
+		}
 		OperatingSystemMXBean omb = ManagementFactory.getOperatingSystemMXBean();
 		float unknown = (float)-1;
 		float load = (float)omb.getSystemLoadAverage();
