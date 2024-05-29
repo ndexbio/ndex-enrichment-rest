@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.ndexbio.enrichment.rest.engine.util.CBioPortalAlterationDataNetworkAnnotator;
 import org.ndexbio.enrichment.rest.engine.util.HitGeneNetworkAnnotator;
 import org.ndexbio.enrichment.rest.engine.util.NetworkAnnotator;
@@ -42,6 +43,11 @@ public class BasicEnrichmentEngineFactory {
 	private boolean _simulatePercentAltered;
 	private ExecutorServiceFactory _executorServiceFac;
 	private Comparator<EnrichmentQueryResult> _comparator;
+	private int _cacheInitialSize;
+	private long _cacheMaximumSize;
+	private long _cacheExpireAfterAccessDuration;
+	private TimeUnit _cacheExpireAfterAccessUnit;
+	
     
     /**
      * Temp directory where query results will temporarily be stored.
@@ -71,8 +77,11 @@ public class BasicEnrichmentEngineFactory {
 		}
 		_selectHitGenes = config.getSelectHitGenes();
 		_simulatePercentAltered = config.getSimulatePercentAltered();
-		
-    }
+		_cacheExpireAfterAccessDuration = config.getCacheExpireAfterAccessDuration();
+		_cacheExpireAfterAccessUnit = config.getCacheExpireAfterAccessUnit();
+		_cacheInitialSize = config.getCacheInitialSize();
+		_cacheMaximumSize = config.getCacheMaximumSize();
+	}
     
     protected void setAlternateExecutorServiceFactory(ExecutorServiceFactory esf){
 		_executorServiceFac = esf;
@@ -97,7 +106,8 @@ public class BasicEnrichmentEngineFactory {
 		}
 
 		BasicEnrichmentEngineImpl enricher = new BasicEnrichmentEngineImpl(es, _dbDir, _taskDir,
-		_numResultsToReturn, _comparator);
+		_numResultsToReturn, _comparator, _cacheInitialSize, _cacheMaximumSize,
+		_cacheExpireAfterAccessDuration, _cacheExpireAfterAccessUnit);
 		enricher.setDatabaseResults(_databaseResults);
 		enricher.setDatabaseMap(databases);
                 

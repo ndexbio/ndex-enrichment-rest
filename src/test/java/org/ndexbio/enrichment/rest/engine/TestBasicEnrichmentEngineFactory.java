@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -137,6 +138,10 @@ public class TestBasicEnrichmentEngineFactory {
 		
 		when(mockConfig.getNDExDatabases()).thenReturn(idr);
 		when(mockConfig.getNumberWorkers()).thenReturn(5);
+		when(mockConfig.getCacheExpireAfterAccessDuration()).thenReturn(10L);
+		when(mockConfig.getCacheExpireAfterAccessUnit()).thenReturn(TimeUnit.DAYS);
+		when(mockConfig.getCacheInitialSize()).thenReturn(5);
+		when(mockConfig.getCacheMaximumSize()).thenReturn(20L);
 		
 		BasicEnrichmentEngineFactory fac = new BasicEnrichmentEngineFactory(mockConfig);
 		fac.setAlternateExecutorServiceFactory(mockExecFac);
