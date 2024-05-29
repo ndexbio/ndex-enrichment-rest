@@ -1,11 +1,11 @@
 package org.ndexbio.enrichment.rest.services;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
@@ -46,7 +46,12 @@ public class Configuration {
     
     
     public static final String DATABASE_RESULTS_JSON_FILE = "databaseresults.json";
-    
+	
+	public static final String CACHE_INITIAL_SIZE = "cache.initial.size";
+	public static final String CACHE_MAXIMUM_SIZE = "cache.maximum.size";
+	public static final String CACHE_EXPIRE_AFTER_ACCESS_DURATION = "cache.expire.after.access.duration";
+	public static final String CACHE_EXPIRE_AFTER_ACCESS_UNIT = "cache.expire.after.access.unit";
+
     private static Configuration INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(Configuration.class);
     private static String _alternateConfigurationFile;
@@ -59,6 +64,11 @@ public class Configuration {
 	private static int _numResults;
 	private static boolean _selectHitGenes;
 	private static boolean _simulatePercentAltered;
+	private static int _cacheInitialSize;
+	private static long _cacheMaximumSize;
+	private static long _cacheExpireAfterAccessDuration;
+	private static TimeUnit _cacheExpireAfterAccessUnit;
+	
 	
     /**
      * Constructor that attempts to get configuration from properties file
@@ -95,6 +105,10 @@ public class Configuration {
 		_sortAlgorithm = props.getProperty(Configuration.SORT_ALGO, "similarity");
 		_selectHitGenes = Boolean.parseBoolean(props.getProperty(Configuration.SELECT_HIT_GENES, "false"));
 		_simulatePercentAltered = Boolean.parseBoolean(props.getProperty(Configuration.SIMULATE_PERCENT_ALTERED, "false"));
+		_cacheInitialSize = Integer.parseInt(props.getProperty(Configuration.CACHE_INITIAL_SIZE, "600"));
+		_cacheMaximumSize = Long.parseLong(props.getProperty(Configuration.CACHE_MAXIMUM_SIZE, "600"));
+		_cacheExpireAfterAccessDuration = Long.parseLong(props.getProperty(Configuration.CACHE_EXPIRE_AFTER_ACCESS_DURATION, "5"));
+		_cacheExpireAfterAccessUnit = TimeUnit.valueOf(props.getProperty(Configuration.CACHE_EXPIRE_AFTER_ACCESS_UNIT, "DAYS"));
     }
         
     protected void setEnrichmentEngine(EnrichmentEngine ee){
@@ -178,6 +192,23 @@ public class Configuration {
         return new File(getEnrichmentDatabaseDirectory() + File.separator +
                               Configuration.DATABASE_RESULTS_JSON_FILE);
     }
+
+	public int getCacheInitialSize() {
+		return _cacheInitialSize;
+	}
+
+	public long getCacheMaximumSize() {
+		return _cacheMaximumSize;
+	}
+
+	public long getCacheExpireAfterAccessDuration() {
+		return _cacheExpireAfterAccessDuration;
+	}
+
+	public TimeUnit getCacheExpireAfterAccessUnit() {
+		return _cacheExpireAfterAccessUnit;
+	}
+
     /**
      * 
      * @return 

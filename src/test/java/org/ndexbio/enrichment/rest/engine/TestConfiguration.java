@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
@@ -100,6 +101,11 @@ public class TestConfiguration {
 
             InternalDatabaseResults residr = config.getNDExDatabases();
             assertEquals(idr.getUniverseUniqueGeneCount(), residr.getUniverseUniqueGeneCount());
+			assertEquals(600, config.getCacheInitialSize());
+			assertEquals(600, config.getCacheMaximumSize());
+			assertEquals(5, config.getCacheExpireAfterAccessDuration());
+			assertEquals(TimeUnit.DAYS, config.getCacheExpireAfterAccessUnit());
+			
         } finally {
             _folder.delete();
         }
