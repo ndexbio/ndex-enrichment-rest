@@ -269,7 +269,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
 		ObjectMapper mappy = new ObjectMapper();
 		File eqrFile = new File(getEnrichmentQueryResultsFilePath(id));
 		if (eqrFile.isFile() == false){
-			_logger.error(eqrFile.getAbsolutePath() + " is not a file");
+			_logger.info(eqrFile.getAbsolutePath() +
+					" is not a file, which most likely means no entry for this id");
 			return null;
 		}
 		try {
@@ -293,7 +294,8 @@ public class BasicEnrichmentEngineImpl implements EnrichmentEngine {
             ObjectMapper mappy = new ObjectMapper();
 		File eqrFile = new File(getEnrichmentQueryFilePath(id));
 		if (eqrFile.isFile() == false){
-			_logger.error(eqrFile.getAbsolutePath() + " is not a file");
+			_logger.info(eqrFile.getAbsolutePath()
+					+ " is not a file, which most likely means no entry for this id");
 			return null;
 		}
 		try {
