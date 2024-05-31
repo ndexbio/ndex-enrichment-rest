@@ -81,7 +81,6 @@
             <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${javax.servlet.version}</version>
-                <scope>provided</scope>
         </dependency>
         <!-- If i didn't include this guava then I would get weird reflection errors -->
         <dependency>
@@ -253,12 +252,6 @@
     		<artifactId>vecmath</artifactId>
     		<version>${javax.vecmath.version}</version>
         </dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>4.0.1</version>
-		</dependency>
-
     </dependencies>
     <scm>
 	  <connection>scm:git:https://github.com/cytoscape/ndex-enrichment-rest.git</connection>
