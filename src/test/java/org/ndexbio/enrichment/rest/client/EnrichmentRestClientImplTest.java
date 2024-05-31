@@ -66,6 +66,42 @@ public class EnrichmentRestClientImplTest {
     }
 	
 	@Test
+    public void testGetNetworkOverlayAsCXGoneHttpStatus() throws EnrichmentException {
+		
+		GetRequest mockDbQueryGR = createMock(GetRequest.class);
+		GetRequest mockNQueryGR = createMock(GetRequest.class);
+		GetRequest mockHeaderGR = createMock(GetRequest.class);
+		GetRequest mockBytesGR = createMock(GetRequest.class);
+		HttpResponse<byte[]> mockResponse = createMock(HttpResponse.class);
+		expect(mockResponse.getStatus()).andReturn(HttpStatus.GONE);
+		expect(mockResponse.getStatus()).andReturn(HttpStatus.GONE);
+
+		
+		expect(mockBytesGR.asBytes()).andReturn(mockResponse);
+		expect(mockHeaderGR.header(EnrichmentRestClientImpl.ACCEPT, EnrichmentRestClientImpl.APPLICATION_JSON)).andReturn(mockDbQueryGR);
+		expect(mockDbQueryGR.queryString("databaseUUID", "db")).andReturn(mockNQueryGR);
+		expect(mockNQueryGR.queryString("networkUUID", "net")).andReturn(mockBytesGR);
+		UnirestInstance mockInstance = createMock(UnirestInstance.class);
+		expect(mockInstance.get("http://foo/12345/overlaynetwork")).andReturn(mockHeaderGR);
+		
+		replay(mockDbQueryGR);
+		replay(mockNQueryGR);
+		replay(mockHeaderGR);
+		replay(mockBytesGR);
+		replay(mockResponse);
+		replay(mockInstance);
+		
+        EnrichmentRestClientImpl erc = new EnrichmentRestClientImpl(mockInstance, "http://foo", null);
+		assertNull(erc.getNetworkOverlayAsCX("12345", "db", "net"));
+		verify(mockDbQueryGR);
+		verify(mockNQueryGR);
+		verify(mockHeaderGR);
+		verify(mockBytesGR);
+		verify(mockResponse);
+		verify(mockInstance);
+    }
+	
+	@Test
     public void testGetNetworkOverlayAsCXErrorHttpStatus(){
 		
 		GetRequest mockDbQueryGR = createMock(GetRequest.class);
@@ -75,6 +111,8 @@ public class EnrichmentRestClientImplTest {
 		HttpResponse<byte[]> mockResponse = createMock(HttpResponse.class);
 		expect(mockResponse.getStatus()).andReturn(HttpStatus.NOT_FOUND);
 		expect(mockResponse.getStatus()).andReturn(HttpStatus.NOT_FOUND);
+		expect(mockResponse.getStatus()).andReturn(HttpStatus.NOT_FOUND);
+
 		
 		expect(mockBytesGR.asBytes()).andReturn(mockResponse);
 		expect(mockHeaderGR.header(EnrichmentRestClientImpl.ACCEPT, EnrichmentRestClientImpl.APPLICATION_JSON)).andReturn(mockDbQueryGR);

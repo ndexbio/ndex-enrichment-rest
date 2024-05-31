@@ -218,6 +218,9 @@ public class EnrichmentRestClientImpl implements EnrichmentRestClient {
 			// Fix for https://ndexbio.atlassian.net/browse/UD-2230
 			// where error response isn't caught and raised as an exception
 			if (dbRes.getStatus() != HttpStatus.OK){
+				if (dbRes.getStatus() == HttpStatus.GONE){
+					return null;
+				}
 				throw new EnrichmentException("HTTP Error: "
 				                              + Integer.toString(dbRes.getStatus()));
 			}
