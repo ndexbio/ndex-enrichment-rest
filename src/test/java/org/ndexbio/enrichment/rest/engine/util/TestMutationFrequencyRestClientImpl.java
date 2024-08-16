@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import javax.ws.rs.core.HttpHeaders;
-import kong.unirest.HttpMethod;
-import kong.unirest.HttpStatus;
-import kong.unirest.MockClient;
-import kong.unirest.MockResponse;
+import jakarta.ws.rs.core.HttpHeaders;
+import kong.unirest.core.HttpMethod;
+import kong.unirest.core.HttpStatus;
+import kong.unirest.core.MockClient;
+import kong.unirest.core.MockResponse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -140,7 +140,7 @@ public class TestMutationFrequencyRestClientImpl {
         try {
             final String theURL = "http://doesnotexist";
             client = new MutationFrequencyRestClientImpl("agent");
-            client.setTimeouts(0, 0);
+            client.setTimeouts(1, 1);
             mock = MockClient.register(client.getUnirestInstance());
             GeneList geneList = new GeneList();
             geneList.setGenes(Arrays.asList("mtor"));

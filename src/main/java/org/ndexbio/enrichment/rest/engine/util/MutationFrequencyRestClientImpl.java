@@ -1,10 +1,11 @@
 package org.ndexbio.enrichment.rest.engine.util;
 
-import javax.ws.rs.core.HttpHeaders;
-import kong.unirest.HttpResponse;
-import kong.unirest.HttpStatus;
-import kong.unirest.Unirest;
-import kong.unirest.UnirestInstance;
+import jakarta.ws.rs.core.HttpHeaders;
+
+import kong.unirest.core.HttpResponse;
+import kong.unirest.core.HttpStatus;
+import kong.unirest.core.Unirest;
+import kong.unirest.core.UnirestInstance;
 import kong.unirest.jackson.JacksonObjectMapper;
 import org.ndexbio.enrichment.rest.model.ErrorResponse;
 import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
@@ -65,7 +66,7 @@ public class MutationFrequencyRestClientImpl implements MutationFrequencyRestCli
     @Override
     public void setTimeouts(int connectionTimeout,
                           int socketTimeout){
-        _unirest.config().socketTimeout(socketTimeout).connectTimeout(connectionTimeout);
+        _unirest.config().requestTimeout(socketTimeout).connectTimeout(connectionTimeout);
     }
     
     /**
@@ -112,7 +113,7 @@ public class MutationFrequencyRestClientImpl implements MutationFrequencyRestCli
      */
     @Override
     public void shutdown() throws EnrichmentException {
-        _unirest.shutDown();
+        _unirest.close();
         Unirest.shutDown();
     }
 }

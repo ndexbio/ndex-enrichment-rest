@@ -14,6 +14,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -23,20 +24,20 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.servlet.DispatcherType;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jetty.server.Handler;
+import org.apache.commons.math3.analysis.function.Log;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
-import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
 
 import org.slf4j.Logger;
@@ -208,7 +209,7 @@ public class App {
 
                 final Server server = new Server(port);
 
-                final ServletContextHandler webappContext = new ServletContextHandler(server, props.getProperty(App.RUNSERVER_CONTEXTPATH, "/"));
+                final ServletContextHandler webappContext = new ServletContextHandler(props.getProperty(App.RUNSERVER_CONTEXTPATH, "/"));
                 
                 HashMap<String, String> initMap = new HashMap<>();
                 initMap.put("resteasy.servlet.mapping.prefix",
@@ -221,15 +222,14 @@ public class App {
                 restEasyServlet.setInitParameters(initMap);
                 webappContext.addServlet(restEasyServlet,
                                          Configuration.APPLICATION_PATH + "/*");
-                webappContext.addFilter(CorsFilter.class,
+				FilterHolder filterHolder = new FilterHolder(new CorsFilter());
+				
+                webappContext.addFilter(filterHolder,
                                         Configuration.APPLICATION_PATH + "/*", null);
-                ContextHandlerCollection contexts = new ContextHandlerCollection();
-                contexts.setHandlers(new Handler[] { webappContext });
  
-                server.setHandler(contexts);
+                server.setHandler(webappContext);
                 
                 server.start();
-                Log.getRootLogger().info("Embedded Jetty logging started.", new Object[]{});
 	    
                 System.out.println("Server started on port " + port);
                 server.join();
@@ -248,7 +248,7 @@ public class App {
 		try {
 			props.load(App.class.getClassLoader().getResourceAsStream(APP_PROPERTIES));
 		} catch(IOException io){
-			Log.getRootLogger().warn("Unable to get information from " +
+			_logger.warn("Unable to get information from " +
 					App.APP_PROPERTIES + " needed for description", io);
 		}
 		return props;

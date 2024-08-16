@@ -1,15 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.ndexbio.enrichment.rest.services;
 
 import java.io.IOException;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.ndexbio.enrichment.rest.engine.BasicEnrichmentEngineFactory;
 import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
@@ -56,7 +51,7 @@ public class EnrichmentHttpServletDispatcher extends HttpServletDispatcher {
     }
 
     @Override
-    public void init(javax.servlet.ServletConfig servletConfig) throws ServletException {
+    public void init(jakarta.servlet.ServletConfig servletConfig) throws ServletException  {
         super.init(servletConfig);
         _logger.info("Entering init()");
         updateVersion();

@@ -12,26 +12,26 @@
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <resteasy.version>3.1.4.Final</resteasy.version>
-        <junit.version>5.10.1</junit.version>
-        <easymock.version>5.2.0</easymock.version>
-        <mockito.version>5.7.0</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
-        <jetty.version>9.4.54.v20240208</jetty.version>
-        <jetty.maven.plugin.version>9.4.54.v20240208</jetty.maven.plugin.version>
-        <swagger.version>2.0.8</swagger.version>
-        <jackson.version>2.9.10</jackson.version>
-        <jackson.databind.version>2.9.10.8</jackson.databind.version>
-        <logback.version>1.2.3</logback.version>
+        <resteasy.version>6.2.9.Final</resteasy.version>
+        <junit.version>5.11.0</junit.version>
+        <easymock.version>5.4.0</easymock.version>
+        <mockito.version>5.12.0</mockito.version> <!-- switching to mockito cause cytoscape uses it -->
+        <jetty.version>12.0.12</jetty.version>
+        <jetty.maven.plugin.version>11.0.22</jetty.maven.plugin.version>
+        <swagger.version>2.2.22</swagger.version>
+        <jackson.version>2.17.2</jackson.version>
+        <jackson.databind.version>2.17.2</jackson.databind.version>
+        <logback.version>1.5.7</logback.version>
         <commons-math3.version>3.6.1</commons-math3.version>
-        <commons-io.version>2.7</commons-io.version>
-        <ndex-java-client.version>2.5.5</ndex-java-client.version>
+        <commons-io.version>2.16.1</commons-io.version>
+        <ndex-java-client.version>2.5.7-SNAPSHOT</ndex-java-client.version>
         <jopt-simple.version>5.0.4</jopt-simple.version>
-        <hamcrest.version>2.1</hamcrest.version>
-        <guava.version>29.0-jre</guava.version>
+        <hamcrest.version>3.0</hamcrest.version>
+        <guava.version>33.2.1-jre</guava.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <javax.vecmath.version>1.5.2</javax.vecmath.version>
-        <java.version>11</java.version>
-        <unirest-java.version>3.13.6</unirest-java.version>
+        <java.version>17</java.version>
+		<servlet-api.version>6.0.0</servlet-api.version>
     </properties>
     
     <repositories>
@@ -130,46 +130,57 @@
             <version>${jackson.version}</version>
         </dependency>
         
-        <!-- https://mvnrepository.com/artifact/com.konghq/unirest-java -->
-        <dependency>
-            <groupId>com.konghq</groupId>
-            <artifactId>unirest-java</artifactId>
-            <version>${unirest-java.version}</version>
-        </dependency>
-        
-        <!-- https://mvnrepository.com/artifact/com.konghq/unirest-objectmapper-jackson -->
-        <dependency>
-            <groupId>com.konghq</groupId>
-            <artifactId>unirest-objectmapper-jackson</artifactId>
-            <version>${unirest-java.version}</version>
-        </dependency>
+         <!-- https://mvnrepository.com/artifact/com.konghq/unirest-java-core -->
+		<dependency>
+			<groupId>com.konghq</groupId>
+			<artifactId>unirest-java-core</artifactId>
+			<scope>provided</scope>
+			<version>4.4.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.konghq</groupId>
+			<artifactId>unirest-objectmapper-jackson</artifactId>
+			<version>4.2.9</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.konghq/unirest-modules-jackson -->
+		<dependency>
+			<groupId>com.konghq</groupId>
+			<artifactId>unirest-modules-jackson</artifactId>
+			<version>4.4.4</version>
+		</dependency>
         
         <!--resteasy-->
         <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jaxrs</artifactId>
-            <version>${resteasy.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-client</artifactId>
-            <version>${resteasy.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jaxb-provider</artifactId>
-            <version>${resteasy.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jackson2-provider</artifactId>
-            <version>${resteasy.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-multipart-provider</artifactId>
-            <version>${resteasy.version}</version>
-        </dependency> 
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-servlet-initializer</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jackson2-provider</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-core</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-core-spi</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-multipart-provider</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jaxb-provider</artifactId>
+			<version>${resteasy.version}</version>
+		</dependency>
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-jaxrs2</artifactId>
@@ -191,23 +202,23 @@
             <version>${logback.version}</version>
         </dependency>
         <!-- Jetty server -->
-        <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-webapp -->
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server -->
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>${jetty.version}</version>
-        </dependency>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
+			<version>${servlet-api.version}</version>
+			<!-- <scope>provided</scope> -->
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.eclipse.jetty.ee10/jetty-ee10-servlet -->
+		<dependency>
+			<groupId>org.eclipse.jetty.ee10</groupId>
+			<artifactId>jetty-ee10-servlet</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty.ee10</groupId>
+			<artifactId>jetty-ee10-servlets</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
         <!--unit test-->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -244,7 +255,7 @@
         <dependency>
             <groupId>com.konghq</groupId>
             <artifactId>unirest-mocks</artifactId>
-            <version>${unirest-java.version}</version>
+            <version>4.2.9</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -268,7 +279,7 @@
               <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M3</version>
+                <version>3.3.1</version>
               </plugin>
             </plugins>
         </pluginManagement>
@@ -284,7 +295,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version>
+                <version>0.8.12</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -322,7 +333,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -334,7 +345,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.3</version>
+                <version>3.4.0</version>
                 <configuration>
                     <warName>ndex-enrichment-rest</warName>
                     <failOnMissingWebXml>true</failOnMissingWebXml>
@@ -406,7 +417,7 @@
             <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
-        <version>1.4</version>
+        <version>3.2.0</version>
         <executions>
           <execution>
             <phase>generate-resources</phase>

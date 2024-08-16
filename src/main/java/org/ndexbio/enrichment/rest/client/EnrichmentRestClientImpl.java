@@ -3,12 +3,12 @@ package org.ndexbio.enrichment.rest.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import kong.unirest.HttpResponse;
-import kong.unirest.HttpStatus;
-import kong.unirest.JsonNode;
-import kong.unirest.Unirest;
-import kong.unirest.UnirestException;
-import kong.unirest.UnirestInstance;
+import kong.unirest.core.HttpResponse;
+import kong.unirest.core.HttpStatus;
+import kong.unirest.core.JsonNode;
+import kong.unirest.core.Unirest;
+import kong.unirest.core.UnirestException;
+import kong.unirest.core.UnirestInstance;
 import kong.unirest.jackson.JacksonObjectMapper;
 import org.ndexbio.enrichment.rest.model.DatabaseResults;
 import org.ndexbio.enrichment.rest.model.EnrichmentQuery;
@@ -69,7 +69,7 @@ public class EnrichmentRestClientImpl implements EnrichmentRestClient {
      */
     public void setTimeouts(int connectionTimeout,
                            int socketTimeout){
-            _unirest.config().socketTimeout(socketTimeout).connectTimeout(connectionTimeout);
+            _unirest.config().requestTimeout(socketTimeout).connectTimeout(connectionTimeout);
     }
 
     
@@ -236,7 +236,7 @@ public class EnrichmentRestClientImpl implements EnrichmentRestClient {
     @Override
     public void shutdown() throws EnrichmentException {
        
-        _unirest.shutDown();
+        _unirest.close();
         Unirest.shutDown();
     }
 
