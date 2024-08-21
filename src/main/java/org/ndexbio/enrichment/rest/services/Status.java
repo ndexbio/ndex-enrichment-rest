@@ -1,25 +1,19 @@
 package org.ndexbio.enrichment.rest.services; // Note your package will be {{ groupId }}.rest
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.lang.management.ManagementFactory;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import java.io.File;
-import java.lang.management.OperatingSystemMXBean;
 import jakarta.ws.rs.core.Response;
 import org.ndexbio.enrichment.rest.engine.EnrichmentEngine;
 import org.ndexbio.enrichment.rest.model.ErrorResponse;
 import org.ndexbio.enrichment.rest.model.ServerStatus;
-import org.ndexbio.enrichment.rest.model.exceptions.EnrichmentException;
 
 /**
  * Returns status of Server
@@ -54,7 +48,6 @@ public class Status {
                                 schema = @Schema(implementation = ErrorResponse.class)))
                })
     public Response status() {
-        ObjectMapper omappy = new ObjectMapper();
 
         try {
             EnrichmentEngine enricher = Configuration.getInstance().getEnrichmentEngine();
@@ -65,7 +58,7 @@ public class Status {
             if (sObj == null){
                 throw new NullPointerException("No Server Status object returned");
             }
-            return Response.ok().type(MediaType.APPLICATION_JSON).entity(omappy.writeValueAsString(sObj)).build();
+            return Response.ok().type(MediaType.APPLICATION_JSON).entity(sObj).build();
         } 
         catch(Exception ex){
             ErrorResponse er = new ErrorResponse("Error retreiving server status", ex);

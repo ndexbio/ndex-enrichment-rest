@@ -1,5 +1,6 @@
 package org.ndexbio.enrichment.rest; 
 
+import io.swagger.v3.jaxrs2.integration.OpenApiServlet;
 import io.swagger.v3.jaxrs2.integration.resources.AcceptHeaderOpenApiResource;
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 
@@ -9,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
+import org.jboss.resteasy.plugins.stats.RegistryStatsResource;
 import org.ndexbio.enrichment.rest.services.Enrichment;
 import org.ndexbio.enrichment.rest.services.EnrichmentDatabase;
 import org.ndexbio.enrichment.rest.services.Status;
@@ -34,6 +36,7 @@ public class EnrichmentApplication extends Application {
                 EnrichmentDatabase.class,
                 Status.class,
                 OpenApiResource.class,
+				RegistryStatsResource.class,
                 AcceptHeaderOpenApiResource.class).collect(Collectors.toSet());
     }
 }

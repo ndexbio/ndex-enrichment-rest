@@ -24,13 +24,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.DispatcherType;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.math3.analysis.function.Log;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.ndexbio.cxio.aspects.datamodels.NodeAttributesElement;
 import org.ndexbio.cxio.aspects.datamodels.NodesElement;
@@ -214,11 +212,16 @@ public class App {
                 HashMap<String, String> initMap = new HashMap<>();
                 initMap.put("resteasy.servlet.mapping.prefix",
                             Configuration.APPLICATION_PATH);
-                initMap.put("javax.ws.rs.Application", "org.ndexbio.enrichment.rest.EnrichmentApplication");
-                final ServletHolder restEasyServlet = new ServletHolder(
+                initMap.put("jakarta.ws.rs.Application", "org.ndexbio.enrichment.rest.EnrichmentApplication");
+				initMap.put("openApi.configuration.resourcePackages", "org.ndexbio.enrichment.rest.services,org.ndexbio.enrichment.model");
+				initMap.put("openApi.configuration.scannerClass", "org.ndexbio.enrichment.swagger.SwaggerScanner");
+				initMap.put("openApi.configuration.filterClass", "org.ndexbio.enrichment.swagger.SwaggerFilter");
+				initMap.put("openApi.configuration.prettyPrint", "true");
+				final ServletHolder restEasyServlet = new ServletHolder(
                      new EnrichmentHttpServletDispatcher());
                 
                 restEasyServlet.setInitOrder(1);
+				
                 restEasyServlet.setInitParameters(initMap);
                 webappContext.addServlet(restEasyServlet,
                                          Configuration.APPLICATION_PATH + "/*");
