@@ -27,10 +27,10 @@ public class SwaggerScanner extends JaxrsApplicationAndResourcePackagesAnnotatio
 		Set<Class<?>> unprocessed_classes = super.classes();
 		Set<Class<?>> output = new HashSet<>();
 		for (Class c : unprocessed_classes){
-			if (!c.getPackageName().startsWith("org.ndex")){
+			if (!c.getPackageName().startsWith("org.ndexbio")){
 				continue;
 			}
-			_logger.debug("Adding to swagger " + c.getCanonicalName());
+			_logger.info("Adding to swagger " + c.getCanonicalName());
 			output.add(c);
 		}
 		return output;
