@@ -68,7 +68,7 @@ public class SwaggerFilter extends AbstractSpecFilter {
         }
       
         Server ndexServer = new Server();
-		ndexServer.setDescription("NDEx public server");
+		ndexServer.setDescription("NDEx pathway relevance rest service");
 		ndexServer.setUrl(getServerUrl());
 		
 		Server customServer = new Server();
@@ -105,49 +105,8 @@ public class SwaggerFilter extends AbstractSpecFilter {
     }
     
     protected String getSwaggerTitle(){
-		return "NDEx " + getVersion() + " REST API";
-    }
-
-	/**
-	 * Only allow v2 and v3 endpoints through and add a tag V2/V3 - (group)
-	 * @param operation
-	 * @param api
-	 * @param params
-	 * @param cookies
-	 * @param headers
-	 * @return 
-	 */
-	@Override
-	public Optional<Operation> filterOperation(Operation operation, ApiDescription api, Map<String, List<String>> params, Map<String, String> cookies, Map<String, List<String>> headers) {
-		String apiVersion = null;
-		if (api.getPath().startsWith("/v2")){
-			apiVersion = "V2";
-		} else if (api.getPath().startsWith("/v3")) {
-			apiVersion = "V3";
-		}
-		
-		if (apiVersion != null){
-			String[] splitPath = api.getPath().split("/");
-			String group = "";
-			if (splitPath.length >= 3){
-				group = " - " + splitPath[2];
-			}
-			String theTag = apiVersion + group;
-			boolean addTag = true;
-			if (operation.getTags() != null){
-				for (String tagsItem : operation.getTags()){
-					if (theTag.equalsIgnoreCase(tagsItem)){
-						addTag = false;
-					}
-				}
-			}
-			if (addTag == true){
-				operation.addTagsItem(theTag);
-			}
-			return Optional.of(operation);
-		}
-		return Optional.empty();
-	}	
+		return "NDEx " + getVersion() + " pathway relevance REST API";
+    }	
     
     /**
      * Reads /META-INFO/MANIFEST.MF for version and build information
