@@ -213,7 +213,7 @@ public class App {
                 initMap.put("resteasy.servlet.mapping.prefix",
                             Configuration.APPLICATION_PATH);
                 initMap.put("jakarta.ws.rs.Application", "org.ndexbio.enrichment.rest.EnrichmentApplication");
-				initMap.put("openApi.configuration.resourcePackages", "org.ndexbio.enrichment.rest.services,org.ndexbio.enrichment.model");
+				initMap.put("openApi.configuration.resourcePackages", "org.ndexbio.enrichment.rest.services,org.ndexbio.enrichment.model,org.ndexbio.model");
 				initMap.put("openApi.configuration.scannerClass", "org.ndexbio.enrichment.swagger.SwaggerScanner");
 				initMap.put("openApi.configuration.filterClass", "org.ndexbio.enrichment.swagger.SwaggerFilter");
 				initMap.put("openApi.configuration.prettyPrint", "true");
