@@ -203,7 +203,7 @@ More Information
 COPYRIGHT AND LICENSE
 =====================
 
-TODO
+See [LICENSE.txt](LICENSE.txt)
 
 Acknowledgements
 ================
